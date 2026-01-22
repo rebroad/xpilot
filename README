@@ -10,6 +10,11 @@ source code, and the COPYING file.
 
 Installation instructions are in the INSTALL file.
 
+For quick build instructions, see BUILD.md. To build on Linux, simply run:
+    ./build.sh
+
+For Windows builds, see BUILD.md for cross-compilation or native build options.
+
 The documentation for XPilot NG is far from complete.
 
 For further reading, see the manuals in the doc/man directory.

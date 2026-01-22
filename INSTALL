@@ -123,7 +123,17 @@ may remove or edit it.
 `configure.ac' if you want to change it or regenerate `configure' using
 a newer version of `autoconf'.
 
-The simplest way to compile this package is:
+QUICK START (Linux):
+====================
+
+  The easiest way to build on Linux is to use the provided build script:
+
+    ./build.sh
+
+  This will automatically check dependencies, configure, and build the project.
+  For detailed build instructions including Windows builds, see BUILD.md.
+
+The simplest way to compile this package manually is:
 
   1. `cd' to the directory containing the package's source code and type
      `./configure' to configure the package for your system.  If you're
@@ -150,6 +160,15 @@ The simplest way to compile this package is:
      for the package's developers.  If you use it, you may have to get
      all sorts of other programs in order to regenerate files that came
      with the distribution.
+
+REQUIREMENTS:
+============
+
+  - Build tools: gcc, make, autoconf, automake
+  - Libraries: X11 development libraries, zlib, expat XML parser
+
+  See BUILD.md for detailed requirements and installation instructions
+  for various Linux distributions.
 
 Compilers and Options
 =====================
