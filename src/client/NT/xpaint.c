@@ -68,8 +68,7 @@ Window	about_next_b;		/* About window's next button */
 Window	about_prev_b;		/* About window's previous button */
 Window	keys_close_b;		/* Help window's close button */
 Window	talkWindow;
-bool	gotFocus;
-bool	players_exposed;
+/* gotFocus and players_exposed are defined in paint.c */
 
 static int clockColor;		/* Clock color index */
 static int scoreColor;		/* Score list color indices */
