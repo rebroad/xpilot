@@ -1,6 +1,6 @@
 #!/bin/bash
 # Build script for XPilot NG Windows client using MinGW cross-compiler
-# This script cross-compiles the Windows client
+# This script automatically handles all dependencies and cross-compiles the Windows client
 
 set -e
 
@@ -8,9 +8,23 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$SCRIPT_DIR"
 
 echo "=========================================="
-echo "XPilot NG Windows Cross-Compilation Script"
+echo "XPilot NG Windows Cross-Compilation"
 echo "=========================================="
 echo ""
+
+# Cache sudo password for unattended operation
+if command -v sudo >/dev/null 2>&1; then
+    echo "Caching sudo credentials..."
+    sudo -v
+    # Keep sudo alive for the duration of the script
+    while true; do
+        sudo -n true
+        sleep 60
+        kill -0 "$$" || exit
+    done 2>/dev/null &
+    SUDO_PID=$!
+    trap "kill $SUDO_PID 2>/dev/null" EXIT
+fi
 
 # Detect MinGW cross-compiler
 MINGW_CC=""
@@ -28,33 +42,233 @@ elif command -v i686-w64-mingw32-gcc >/dev/null 2>&1; then
     MINGW_PREFIX="i686-w64-mingw32"
     TARGET_ARCH="i686"
 else
-    echo "ERROR: MinGW cross-compiler not found!"
-    echo ""
-    echo "Please install MinGW-w64:"
-    echo "  Ubuntu/Debian: sudo apt-get install mingw-w64"
-    echo "  Fedora:        sudo dnf install mingw64-gcc"
-    echo "  Arch:          sudo pacman -S mingw-w64-gcc"
-    exit 1
+    echo "MinGW cross-compiler not found. Installing..."
+    if command -v apt-get >/dev/null 2>&1; then
+        sudo apt-get update -qq
+        sudo apt-get install -y mingw-w64
+    elif command -v dnf >/dev/null 2>&1; then
+        sudo dnf install -y mingw64-gcc
+    elif command -v pacman >/dev/null 2>&1; then
+        sudo pacman -S --noconfirm mingw-w64-gcc
+    else
+        echo "ERROR: Cannot auto-install MinGW. Package manager not found."
+        exit 1
+    fi
+
+    # Try again after installation
+    if command -v x86_64-w64-mingw32-gcc >/dev/null 2>&1; then
+        MINGW_CC="x86_64-w64-mingw32-gcc"
+        MINGW_CXX="x86_64-w64-mingw32-g++"
+        MINGW_PREFIX="x86_64-w64-mingw32"
+        TARGET_ARCH="x86_64"
+    elif command -v i686-w64-mingw32-gcc >/dev/null 2>&1; then
+        MINGW_CC="i686-w64-mingw32-gcc"
+        MINGW_CXX="i686-w64-mingw32-g++"
+        MINGW_PREFIX="i686-w64-mingw32"
+        TARGET_ARCH="i686"
+    else
+        echo "ERROR: MinGW installation failed or compiler not in PATH"
+        exit 1
+    fi
 fi
 
-echo "Found MinGW cross-compiler: $MINGW_CC"
-echo "Target architecture: $TARGET_ARCH"
-echo ""
+# Set up paths
+MINGW_SYSROOT="/usr/${MINGW_PREFIX}/sys-root/mingw"
+MINGW_PREFIX_DIR="/usr/${MINGW_PREFIX}"
+MINGW_INCLUDE="${MINGW_PREFIX_DIR}/include"
+MINGW_LIB="${MINGW_PREFIX_DIR}/lib"
 
-# Check for Windows libraries
-# Note: For a complete Windows build, you'd need Windows versions of:
-# - zlib
-# - expat
-# - X11 (or use SDL client instead)
-# - SDL (if building SDL client)
+# Function to check if a library exists
+check_library() {
+    local header=$1
+    if [ -f "${MINGW_INCLUDE}/${header}" ] || [ -f "${MINGW_SYSROOT}/include/${header}" ]; then
+        return 0
+    fi
+    return 1
+}
 
-echo "WARNING: Windows cross-compilation requires Windows versions of dependencies."
-echo "This script will attempt to configure for Windows, but you may need to:"
-echo "  1. Install Windows libraries (zlib, expat) for MinGW"
-echo "  2. Use --enable-sdl-client for SDL-based client (recommended for Windows)"
-echo ""
+# Shared build directory in parent (reusable by other projects)
+SHARED_BUILD_DIR="$SCRIPT_DIR/../mingw-build-${MINGW_PREFIX}"
+mkdir -p "$SHARED_BUILD_DIR"
 
-# Create a separate build directory for Windows
+# Function to build zlib for Windows
+build_zlib() {
+    echo "Building zlib for Windows..."
+    cd "$SHARED_BUILD_DIR"
+
+    ZLIB_TAR="zlib-1.3.1.tar.gz"
+    ZLIB_DIR="zlib-1.3.1"
+
+    if [ ! -f "$ZLIB_TAR" ]; then
+        echo "  Downloading zlib..."
+        wget -q https://zlib.net/zlib-1.3.1.tar.gz || {
+            echo "  ERROR: Failed to download zlib"
+            return 1
+        }
+    fi
+
+    if [ ! -d "$ZLIB_DIR" ]; then
+        tar xzf "$ZLIB_TAR"
+    fi
+
+    cd "$ZLIB_DIR"
+
+    echo "  Compiling zlib..."
+    make -f win32/Makefile.gcc \
+        PREFIX="${MINGW_PREFIX}-" \
+        BINARY_PATH="${MINGW_PREFIX_DIR}/bin" \
+        INCLUDE_PATH="${MINGW_INCLUDE}" \
+        LIBRARY_PATH="${MINGW_LIB}" \
+        SHARED_MODE=1 \
+        clean all >/dev/null 2>&1
+
+    echo "  Installing zlib..."
+    sudo make -f win32/Makefile.gcc \
+        PREFIX="${MINGW_PREFIX}-" \
+        BINARY_PATH="${MINGW_PREFIX_DIR}/bin" \
+        INCLUDE_PATH="${MINGW_INCLUDE}" \
+        LIBRARY_PATH="${MINGW_LIB}" \
+        SHARED_MODE=1 \
+        install >/dev/null 2>&1
+
+    echo "  ✓ zlib installed"
+}
+
+# Function to build expat for Windows
+build_expat() {
+    echo "Building expat for Windows..."
+    BUILD_TMP_DIR="$SCRIPT_DIR/.mingw-build"
+    mkdir -p "$BUILD_TMP_DIR"
+    cd "$BUILD_TMP_DIR"
+
+    if [ ! -f expat-2.6.3.tar.gz ]; then
+        echo "  Downloading expat..."
+        wget -q https://github.com/libexpat/libexpat/releases/download/R_2_6_3/expat-2.6.3.tar.gz || {
+            echo "  ERROR: Failed to download expat"
+            return 1
+        }
+    fi
+
+    if [ ! -d expat-2.6.3 ]; then
+        tar xzf expat-2.6.3.tar.gz || {
+            echo "  ERROR: Failed to extract expat"
+            return 1
+        }
+    fi
+
+    cd expat-2.6.3 || {
+        echo "  ERROR: Failed to enter expat directory"
+        return 1
+    }
+
+    # Make sure configure exists and is executable
+    if [ ! -f configure ]; then
+        if [ -f buildconf.sh ]; then
+            echo "  Running buildconf..."
+            bash buildconf.sh >/dev/null 2>&1 || {
+                echo "  ERROR: buildconf failed"
+                return 1
+            }
+        else
+            echo "  ERROR: configure script not found"
+            return 1
+        fi
+    fi
+
+    chmod +x configure
+
+    echo "  Configuring expat..."
+    ./configure \
+        --host="${MINGW_PREFIX}" \
+        --prefix="${MINGW_PREFIX_DIR}" \
+        --disable-shared \
+        --enable-static \
+        --quiet >"$BUILD_TMP_DIR/expat-configure.log" 2>&1 || {
+        echo "  ERROR: expat configuration failed. Check $BUILD_TMP_DIR/expat-configure.log"
+        cat "$BUILD_TMP_DIR/expat-configure.log" | tail -20
+        return 1
+    }
+
+    echo "  Compiling expat..."
+    make -j$(nproc) >"$BUILD_TMP_DIR/expat-build.log" 2>&1 || {
+        echo "  ERROR: expat compilation failed. Check $BUILD_TMP_DIR/expat-build.log"
+        cat "$BUILD_TMP_DIR/expat-build.log" | tail -20
+        return 1
+    }
+
+    echo "  Installing expat..."
+    sudo make install >"$BUILD_TMP_DIR/expat-install.log" 2>&1 || {
+        echo "  ERROR: expat installation failed. Check $BUILD_TMP_DIR/expat-install.log"
+        return 1
+    }
+
+    echo "  ✓ expat installed"
+}
+
+# Check and build dependencies automatically
+if ! check_library "zlib.h"; then
+    build_zlib || {
+        echo "ERROR: Failed to build zlib"
+        exit 1
+    }
+fi
+
+if ! check_library "expat.h"; then
+    build_expat || {
+        echo "ERROR: Failed to build expat"
+        exit 1
+    }
+fi
+
+# Check for SDL in various locations
+SDL_AVAILABLE=false
+SDL_PREFIX=""
+
+# Check MinGW system location first
+if check_library "SDL/SDL.h"; then
+    SDL_AVAILABLE=true
+    SDL_PREFIX="${MINGW_PREFIX_DIR}"
+fi
+
+# Check parent directory for existing SDL build
+if [ "$SDL_AVAILABLE" = false ] && [ -d "$SCRIPT_DIR/../SDL" ]; then
+    SDL_SRC_DIR="$SCRIPT_DIR/../SDL"
+    # Check if it's configured for MinGW
+    if [ -f "$SDL_SRC_DIR/config.status" ]; then
+        # Check if it was configured for our target
+        if grep -q "host=${MINGW_PREFIX}" "$SDL_SRC_DIR/config.status" 2>/dev/null; then
+            SDL_AVAILABLE=true
+            SDL_PREFIX="$SDL_SRC_DIR"
+            echo "Found existing SDL build in ../SDL"
+        fi
+    fi
+fi
+
+# Determine if SDL client should be enabled
+ENABLE_SDL=false
+for arg in "$@"; do
+    if [ "$arg" = "--enable-sdl-client" ]; then
+        ENABLE_SDL=true
+        break
+    fi
+done
+
+# Auto-enable SDL if available and not explicitly disabled
+if [ "$ENABLE_SDL" = false ] && [ "$SDL_AVAILABLE" = true ]; then
+    # Check if --disable-sdl-client was explicitly passed
+    DISABLE_SDL=false
+    for arg in "$@"; do
+        if [ "$arg" = "--disable-sdl-client" ]; then
+            DISABLE_SDL=true
+            break
+        fi
+    done
+    if [ "$DISABLE_SDL" = false ]; then
+        ENABLE_SDL=true
+    fi
+fi
+
+# Create build directory
 BUILD_DIR="build-windows"
 if [ -d "$BUILD_DIR" ]; then
     echo "Cleaning previous Windows build..."
@@ -62,70 +276,783 @@ if [ -d "$BUILD_DIR" ]; then
 fi
 
 mkdir -p "$BUILD_DIR"
-cd "$SCRIPT_DIR"
+cd "$BUILD_DIR"
 
 # Configure for Windows
-echo "Configuring for Windows ($TARGET_ARCH)..."
-echo ""
-
-# Basic configure for Windows - you may need to adjust paths
-# Note: This is a simplified version. Full Windows build may require:
-# - Windows-specific library paths
-# - SDL client (--enable-sdl-client) instead of X11 client
-# - Additional configure options
-
 CONFIGURE_OPTS=(
     --host="${MINGW_PREFIX}"
     CC="${MINGW_CC}"
     CXX="${MINGW_CXX}"
 )
 
-# Try to enable SDL client if available (better for Windows)
-if pkg-config --exists sdl 2>/dev/null || \
-   [ -f "/usr/${MINGW_PREFIX}/include/SDL/SDL.h" ] || \
-   [ -f "/usr/${MINGW_PREFIX}/sys-root/mingw/include/SDL/SDL.h" ]; then
-    echo "SDL found - enabling SDL client (recommended for Windows)"
-    CONFIGURE_OPTS+=(--enable-sdl-client)
-else
-    echo "SDL not found - will try X11 client (may not work on Windows)"
+# Set library paths so configure can find the libraries we built
+export LDFLAGS="-L${MINGW_LIB}"
+export CPPFLAGS="-I${MINGW_INCLUDE}"
+export PKG_CONFIG_PATH="${MINGW_LIB}/pkgconfig:${PKG_CONFIG_PATH:-}"
+
+# Add SDL paths if using local SDL installation
+if [ -n "$SDL_PREFIX" ] && [ "$SDL_PREFIX" != "${MINGW_PREFIX_DIR}" ]; then
+    export LDFLAGS="-L${SDL_PREFIX}/lib $LDFLAGS"
+    export CPPFLAGS="-I${SDL_PREFIX}/include $CPPFLAGS"
+    export PKG_CONFIG_PATH="${SDL_PREFIX}/lib/pkgconfig:${PKG_CONFIG_PATH}"
+    # Find sdl-config
+    if [ -f "${SDL_PREFIX}/bin/sdl-config" ]; then
+        export SDL_CONFIG="${SDL_PREFIX}/bin/sdl-config"
+    elif [ -f "${SDL_PREFIX}/sdl-config" ]; then
+        export SDL_CONFIG="${SDL_PREFIX}/sdl-config"
+    fi
+    export PATH="${SDL_PREFIX}/bin:${PATH}"
 fi
 
-# Run configure from parent directory
-cd ..
-"$SCRIPT_DIR/configure" "${CONFIGURE_OPTS[@]}" "$@" || {
+# Also check if SDL was installed to MinGW system location
+if [ -f "${MINGW_PREFIX_DIR}/bin/sdl-config" ]; then
+    export SDL_CONFIG="${MINGW_PREFIX_DIR}/bin/sdl-config"
+    export PATH="${MINGW_PREFIX_DIR}/bin:${PATH}"
+fi
+
+# For Windows, we must use SDL client (X11 doesn't work on Windows)
+# Force enable SDL client for Windows builds
+if [ "$ENABLE_SDL" = false ]; then
+    echo "SDL client required for Windows. Enabling SDL client..."
+    ENABLE_SDL=true
+fi
+
+# Build SDL for Windows if not available
+if [ "$SDL_AVAILABLE" = false ]; then
+    echo "Building SDL for Windows..."
+    cd "$SHARED_BUILD_DIR"
+
+    SDL_TAR="SDL-1.2.15.tar.gz"
+    SDL_DIR="SDL-1.2.15"
+
+    if [ ! -f "$SDL_TAR" ]; then
+        echo "  Downloading SDL..."
+        wget -q https://www.libsdl.org/release/SDL-1.2.15.tar.gz || {
+            echo "  ERROR: Failed to download SDL"
+            exit 1
+        }
+    fi
+
+    if [ ! -d "$SDL_DIR" ]; then
+        tar xzf "$SDL_TAR"
+    fi
+
+    cd "$SDL_DIR"
+
+    # Check if already built
+    if [ -f "config.status" ] && [ -f ".libs/libSDL.a" ] || [ -f "libSDL.a" ]; then
+        echo "  SDL already built, reinstalling..."
+        sudo make install >"$SHARED_BUILD_DIR/sdl-install.log" 2>&1 || {
+            if check_library "SDL/SDL.h"; then
+                echo "  SDL already installed"
+                SDL_AVAILABLE=true
+                cd "$SCRIPT_DIR"
+            fi
+        }
+    fi
+
+    echo "  Configuring SDL..."
+    ./configure \
+        --host="${MINGW_PREFIX}" \
+        --prefix="${MINGW_PREFIX_DIR}" \
+        --disable-shared \
+        --enable-static \
+        --quiet >"$SHARED_BUILD_DIR/sdl-configure.log" 2>&1 || {
+        echo "  ERROR: SDL configuration failed"
+        cat "$SHARED_BUILD_DIR/sdl-configure.log" | tail -20
+        exit 1
+    }
+
+    echo "  Compiling SDL..."
+    make -j$(nproc) >"$SHARED_BUILD_DIR/sdl-build.log" 2>&1 || {
+        echo "  ERROR: SDL compilation failed"
+        cat "$SHARED_BUILD_DIR/sdl-build.log" | tail -20
+        exit 1
+    }
+
+    echo "  Installing SDL..."
+    sudo make install >"$SHARED_BUILD_DIR/sdl-install.log" 2>&1 || {
+        echo "  ERROR: SDL installation failed"
+        exit 1
+    }
+
+    echo "  ✓ SDL installed"
+    SDL_AVAILABLE=true
+    cd "$SCRIPT_DIR"
+fi
+
+# Check for FreeType2 - it can be in include/ or include/freetype2/
+FREETYPE_AVAILABLE=false
+FREETYPE_HEADER=""
+FREETYPE_LIB=""
+
+# Check various locations
+for loc in "${MINGW_INCLUDE}" "${MINGW_SYSROOT}/include"; do
+    if [ -f "${loc}/ft2build.h" ]; then
+        FREETYPE_AVAILABLE=true
+        FREETYPE_HEADER="${loc}"
+        break
+    elif [ -f "${loc}/freetype2/ft2build.h" ]; then
+        FREETYPE_AVAILABLE=true
+        FREETYPE_HEADER="${loc}/freetype2"
+        break
+    fi
+done
+
+# Check for library
+if [ -f "${MINGW_LIB}/libfreetype.a" ] || [ -f "${MINGW_LIB}/libfreetype.dll.a" ]; then
+    FREETYPE_LIB="${MINGW_LIB}"
+fi
+
+# Build FreeType2 for Windows if not available (required by SDL_ttf)
+if [ "$FREETYPE_AVAILABLE" = false ] || [ -z "$FREETYPE_LIB" ]; then
+    echo "Building FreeType2 for Windows..."
+    cd "$SHARED_BUILD_DIR"
+
+    FREETYPE_TAR="freetype-2.13.2.tar.xz"
+    FREETYPE_DIR="freetype-2.13.2"
+
+    if [ ! -f "$FREETYPE_TAR" ]; then
+        echo "  Downloading FreeType2..."
+        wget -q https://download.savannah.gnu.org/releases/freetype/freetype-2.13.2.tar.xz || {
+            echo "  ERROR: Failed to download FreeType2"
+            exit 1
+        }
+    fi
+
+    if [ ! -d "$FREETYPE_DIR" ]; then
+        tar xJf "$FREETYPE_TAR"
+    fi
+
+    cd "$FREETYPE_DIR"
+
+    # Check if already configured and built (check for either static or shared lib)
+    if [ -f "config.status" ] && { [ -f "objs/.libs/libfreetype.a" ] || [ -f "objs/.libs/libfreetype.dll.a" ]; }; then
+        echo "  FreeType2 already built, reinstalling..."
+        sudo make install >"$SHARED_BUILD_DIR/freetype-install.log" 2>&1 || {
+            echo "  Reinstalling failed, checking if already installed..."
+            # Check if it's actually installed
+            if [ -f "${MINGW_INCLUDE}/ft2build.h" ] || [ -f "${MINGW_INCLUDE}/freetype2/ft2build.h" ]; then
+                echo "  FreeType2 already installed"
+                FREETYPE_AVAILABLE=true
+                cd "$SCRIPT_DIR"
+                return 0
+            fi
+        }
+    fi
+
+    if [ ! -f "config.status" ] || { [ ! -f "objs/.libs/libfreetype.a" ] && [ ! -f "objs/.libs/libfreetype.dll.a" ]; }; then
+        echo "  Configuring FreeType2..."
+        # FreeType2 configure needs explicit paths for cross-compilation
+        ./configure \
+            --host="${MINGW_PREFIX}" \
+            --prefix="${MINGW_PREFIX_DIR}" \
+            --includedir="${MINGW_INCLUDE}" \
+            --libdir="${MINGW_LIB}" \
+            --disable-shared \
+            --enable-static \
+            --quiet >"$SHARED_BUILD_DIR/freetype-configure.log" 2>&1 || {
+            echo "  ERROR: FreeType2 configuration failed"
+            cat "$SHARED_BUILD_DIR/freetype-configure.log" | tail -20
+            exit 1
+        }
+
+        echo "  Compiling FreeType2..."
+        make -j$(nproc) >"$SHARED_BUILD_DIR/freetype-build.log" 2>&1 || {
+            echo "  ERROR: FreeType2 compilation failed"
+            cat "$SHARED_BUILD_DIR/freetype-build.log" | tail -20
+            exit 1
+        }
+    fi
+
+    echo "  Installing FreeType2..."
+    # Use DESTDIR to ensure files go to the right location
+    sudo make DESTDIR="" install >"$SHARED_BUILD_DIR/freetype-install.log" 2>&1 || {
+        # If that fails, try installing to a temp dir and copying
+        TEMP_INSTALL="$SHARED_BUILD_DIR/freetype-install-temp"
+        make DESTDIR="$TEMP_INSTALL" install >"$SHARED_BUILD_DIR/freetype-install.log" 2>&1 || {
+            echo "  ERROR: FreeType2 installation failed"
+            cat "$SHARED_BUILD_DIR/freetype-install.log" | tail -10
+            exit 1
+        }
+        # Copy files to correct location
+        if [ -d "$TEMP_INSTALL${MINGW_PREFIX_DIR}" ]; then
+            sudo cp -r "$TEMP_INSTALL${MINGW_PREFIX_DIR}"/* "${MINGW_PREFIX_DIR}/"
+        fi
+    }
+
+    # Verify installation - FreeType2 installs headers in include/freetype2/
+    sleep 1  # Give filesystem time to sync
+
+    # Check if installed to /usr/local (wrong location) and copy if needed
+    if [ -f "/usr/local/include/freetype2/ft2build.h" ] && [ ! -f "${MINGW_INCLUDE}/freetype2/ft2build.h" ]; then
+        echo "  Copying FreeType2 from /usr/local to MinGW prefix..."
+        sudo mkdir -p "${MINGW_INCLUDE}/freetype2" "${MINGW_LIB}"
+        sudo cp -r /usr/local/include/freetype2/* "${MINGW_INCLUDE}/freetype2/" 2>/dev/null || true
+        sudo cp /usr/local/include/freetype2/ft2build.h "${MINGW_INCLUDE}/" 2>/dev/null || true
+        sudo cp /usr/local/lib/libfreetype* "${MINGW_LIB}/" 2>/dev/null || true
+    fi
+
+    # FreeType2 installs to freetype2/ but some code expects freetype/
+    # Create symlink for compatibility
+    if [ -d "${MINGW_INCLUDE}/freetype2" ] && [ ! -d "${MINGW_INCLUDE}/freetype" ]; then
+        echo "  Creating freetype symlink for compatibility..."
+        sudo ln -sf freetype2 "${MINGW_INCLUDE}/freetype" 2>/dev/null || true
+    fi
+
+    if [ -f "${MINGW_INCLUDE}/ft2build.h" ]; then
+        FREETYPE_HEADER="${MINGW_INCLUDE}"
+        FREETYPE_AVAILABLE=true
+    elif [ -f "${MINGW_INCLUDE}/freetype2/ft2build.h" ]; then
+        FREETYPE_HEADER="${MINGW_INCLUDE}/freetype2"
+        FREETYPE_AVAILABLE=true
+        # Create ft2build.h in include/ for SDL_ttf
+        if [ ! -f "${MINGW_INCLUDE}/ft2build.h" ]; then
+            sudo cp "${MINGW_INCLUDE}/freetype2/ft2build.h" "${MINGW_INCLUDE}/ft2build.h" 2>/dev/null || true
+        fi
+    else
+        echo "  ERROR: FreeType2 headers not found after installation"
+        exit 1
+    fi
+
+    # Verify library was installed
+    if [ -f "${MINGW_LIB}/libfreetype.a" ] || [ -f "${MINGW_LIB}/libfreetype.dll.a" ]; then
+        FREETYPE_LIB="${MINGW_LIB}"
+    fi
+
+    echo "  ✓ FreeType2 installed"
+    cd "$SCRIPT_DIR"
+fi
+
+# Check for SDL_ttf
+SDL_TTF_AVAILABLE=false
+if check_library "SDL/SDL_ttf.h"; then
+    SDL_TTF_AVAILABLE=true
+fi
+
+# Build SDL_ttf for Windows if not available
+if [ "$SDL_TTF_AVAILABLE" = false ]; then
+    echo "Building SDL_ttf for Windows..."
+    cd "$SHARED_BUILD_DIR"
+
+    SDL_TTF_TAR="SDL_ttf-2.0.11.tar.gz"
+    SDL_TTF_DIR="SDL_ttf-2.0.11"
+
+    if [ ! -f "$SDL_TTF_TAR" ]; then
+        echo "  Downloading SDL_ttf..."
+        wget -q https://www.libsdl.org/projects/SDL_ttf/release/SDL_ttf-2.0.11.tar.gz || {
+            echo "  ERROR: Failed to download SDL_ttf"
+            exit 1
+        }
+    fi
+
+    if [ ! -d "$SDL_TTF_DIR" ]; then
+        tar xzf "$SDL_TTF_TAR"
+    fi
+
+    cd "$SDL_TTF_DIR"
+
+    # Check if already built and installed
+    if [ -f "config.status" ] && [ -f ".libs/libSDL_ttf.a" ] || [ -f "libSDL_ttf.a" ]; then
+        if check_library "SDL/SDL_ttf.h"; then
+            echo "  SDL_ttf already installed"
+            SDL_TTF_AVAILABLE=true
+            cd "$SCRIPT_DIR"
+        else
+            echo "  SDL_ttf built but not installed, reinstalling..."
+            sudo make install >"$SHARED_BUILD_DIR/sdl_ttf-install.log" 2>&1 || true
+            if check_library "SDL/SDL_ttf.h"; then
+                SDL_TTF_AVAILABLE=true
+                cd "$SCRIPT_DIR"
+            fi
+        fi
+    fi
+
+    if [ "$SDL_TTF_AVAILABLE" = false ]; then
+        # Clean previous build
+        if [ -f "Makefile" ]; then
+            make clean >/dev/null 2>&1 || true
+        fi
+        rm -f config.cache config.status
+
+        echo "  Configuring SDL_ttf..."
+    SDL_CFLAGS="$(${SDL_CONFIG:-sdl-config} --cflags 2>/dev/null || echo '-I/usr/x86_64-w64-mingw32/include/SDL')"
+    SDL_LIBS="$(${SDL_CONFIG:-sdl-config} --libs 2>/dev/null || echo '-L/usr/x86_64-w64-mingw32/lib -lSDL')"
+
+    # Use the detected FreeType2 header location, or find it
+    FT2_INCLUDE="$FREETYPE_HEADER"
+    if [ -z "$FT2_INCLUDE" ]; then
+        # Search for it
+        FT2_FOUND=$(find "${MINGW_PREFIX_DIR}" -name "ft2build.h" -type f 2>/dev/null | head -1)
+        if [ -n "$FT2_FOUND" ]; then
+            FT2_INCLUDE=$(dirname "$FT2_FOUND")
+        else
+            echo "  ERROR: FreeType2 headers not found"
+            echo "  Searched in: ${MINGW_INCLUDE}, ${MINGW_SYSROOT}/include"
+            echo "  Installation may have failed. Check logs in $SHARED_BUILD_DIR"
+            exit 1
+        fi
+    fi
+
+    # SDL_ttf needs both freetype2/ and freetype/ (symlink) in include path
+    # Also need parent include for ft2build.h
+    export CPPFLAGS="-I${MINGW_INCLUDE}/freetype2 -I${MINGW_INCLUDE}/freetype -I${MINGW_INCLUDE} $CPPFLAGS"
+    export CFLAGS="-I${MINGW_INCLUDE}/freetype2 -I${MINGW_INCLUDE}/freetype -I${MINGW_INCLUDE} ${CFLAGS:-}"
+
+    export FT2_CFLAGS="-I${FT2_INCLUDE}"
+    # Use FULL PATH to the static library to prevent libtool from finding system freetype
+    export FT2_LIBS="${MINGW_LIB}/libfreetype.a"
+    export CPPFLAGS="-I${FT2_INCLUDE} $CPPFLAGS"
+    export CFLAGS="-I${FT2_INCLUDE} ${CFLAGS:-}"
+    export LDFLAGS="-L${MINGW_LIB} $LDFLAGS"
+
+    # Prevent pkg-config from finding system libraries
+    export PKG_CONFIG_LIBDIR="${MINGW_LIB}/pkgconfig"
+    unset PKG_CONFIG_PATH
+
+    ./configure \
+        --host="${MINGW_PREFIX}" \
+        --prefix="${MINGW_PREFIX_DIR}" \
+        --with-sdl-prefix="${MINGW_PREFIX_DIR}" \
+        --with-freetype-prefix="${MINGW_PREFIX_DIR}" \
+        SDL_CFLAGS="$SDL_CFLAGS" \
+        SDL_LIBS="$SDL_LIBS" \
+        FT2_CFLAGS="$FT2_CFLAGS" \
+        FT2_LIBS="$FT2_LIBS" \
+        --quiet >"$SHARED_BUILD_DIR/sdl_ttf-configure.log" 2>&1 || {
+        echo "  ERROR: SDL_ttf configuration failed"
+        cat "$SHARED_BUILD_DIR/sdl_ttf-configure.log" | tail -20
+        exit 1
+    }
+
+    echo "  Compiling SDL_ttf..."
+
+    # For static FreeType2, use --whole-archive to ensure all symbols are included
+    # and use FULL PATH to prevent libtool from finding system library
+    if [ -f "Makefile" ]; then
+        # Replace any -lfreetype with full path to static library
+        sed -i "s|-lfreetype|${MINGW_LIB}/libfreetype.a|g" Makefile
+        # Also ensure LIBADD has freetype with full path
+        if grep -q "^libSDL_ttf_la_LIBADD" Makefile; then
+            if ! grep -q "libSDL_ttf_la_LIBADD.*libfreetype" Makefile; then
+                sed -i "s|^libSDL_ttf_la_LIBADD =\(.*\)|libSDL_ttf_la_LIBADD =\1 ${MINGW_LIB}/libfreetype.a|" Makefile
+            fi
+        fi
+        # Also add freetype to the test program link lines (showfont, glfont)
+        sed -i "s|^showfont_LDADD =\(.*\)|showfont_LDADD =\1 ${MINGW_LIB}/libfreetype.a|" Makefile
+        sed -i "s|^glfont_LDADD =\(.*\)|glfont_LDADD =\1 ${MINGW_LIB}/libfreetype.a|" Makefile
+    fi
+
+    # Build with explicit library path - prevent system library interference
+    export LIBRARY_PATH="${MINGW_LIB}"
+    export LDFLAGS="-L${MINGW_LIB}"
+    # Prevent libtool from searching system paths
+    export lt_cv_sys_lib_search_path_spec="${MINGW_LIB}"
+
+    make -j$(nproc) >"$SHARED_BUILD_DIR/sdl_ttf-build.log" 2>&1 || {
+        echo "  ERROR: SDL_ttf compilation failed"
+        # Check if it's a library ordering issue - try building static instead
+        if grep -q "undefined reference.*FT_" "$SHARED_BUILD_DIR/sdl_ttf-build.log"; then
+            echo "  Trying static build instead of shared..."
+            # Reconfigure for static build
+            ./configure \
+                --host="${MINGW_PREFIX}" \
+                --prefix="${MINGW_PREFIX_DIR}" \
+                --with-sdl-prefix="${MINGW_PREFIX_DIR}" \
+                --with-freetype-prefix="${MINGW_PREFIX_DIR}" \
+                --disable-shared \
+                --enable-static \
+                SDL_CFLAGS="$SDL_CFLAGS" \
+                SDL_LIBS="$SDL_LIBS" \
+                FT2_CFLAGS="$FT2_CFLAGS" \
+                FT2_LIBS="$FT2_LIBS" \
+                --quiet >"$SHARED_BUILD_DIR/sdl_ttf-static-configure.log" 2>&1
+
+            # Update Makefile again - use full path to static library for all targets
+            if [ -f "Makefile" ]; then
+                sed -i "s|-lfreetype|${MINGW_LIB}/libfreetype.a|g" Makefile
+                if grep -q "^libSDL_ttf_la_LIBADD" Makefile; then
+                    if ! grep -q "libSDL_ttf_la_LIBADD.*libfreetype" Makefile; then
+                        sed -i "s|^libSDL_ttf_la_LIBADD =\(.*\)|libSDL_ttf_la_LIBADD =\1 ${MINGW_LIB}/libfreetype.a|" Makefile
+                    fi
+                fi
+                # Also add freetype to the test program link lines (showfont, glfont)
+                sed -i "s|^showfont_LDADD =\(.*\)|showfont_LDADD =\1 ${MINGW_LIB}/libfreetype.a|" Makefile
+                sed -i "s|^glfont_LDADD =\(.*\)|glfont_LDADD =\1 ${MINGW_LIB}/libfreetype.a|" Makefile
+            fi
+
+            # Build just the library if full build fails
+            make -j$(nproc) >"$SHARED_BUILD_DIR/sdl_ttf-static-build.log" 2>&1 || {
+                # If full build fails, try building just the library
+                echo "  Full build failed, trying library only..."
+                make libSDL_ttf.la >"$SHARED_BUILD_DIR/sdl_ttf-libonly-build.log" 2>&1 || {
+                    # Check if library exists anyway
+                    if [ -f ".libs/libSDL_ttf.a" ] || [ -f ".libs/libSDL_ttf.dll.a" ]; then
+                        echo "  Library built successfully (test programs may have failed)"
+                    else
+                        cat "$SHARED_BUILD_DIR/sdl_ttf-static-build.log" | grep -E "(error|undefined|FT_)" | tail -10
+                        exit 1
+                    fi
+                }
+            }
+        else
+            cat "$SHARED_BUILD_DIR/sdl_ttf-build.log" | tail -20
+            exit 1
+        fi
+    }
+
+        echo "  Installing SDL_ttf..."
+        # Install only the library and headers, not test programs
+        # First try standard install, if it fails (due to test programs), install just lib/headers
+        sudo make install >"$SHARED_BUILD_DIR/sdl_ttf-install.log" 2>&1 || {
+            echo "  Standard install failed, installing library only..."
+            # Install library, pkgconfig, and headers manually
+            sudo make install-libLTLIBRARIES >"$SHARED_BUILD_DIR/sdl_ttf-install.log" 2>&1 || true
+            sudo make install-pkgconfigDATA >>"$SHARED_BUILD_DIR/sdl_ttf-install.log" 2>&1 || true
+            # Install header manually if install target doesn't exist
+            sudo cp SDL_ttf.h "${MINGW_INCLUDE}/SDL/" 2>/dev/null || true
+            # Verify installation
+            if [ ! -f "${MINGW_INCLUDE}/SDL/SDL_ttf.h" ]; then
+                echo "  ERROR: SDL_ttf header not installed"
+                exit 1
+            fi
+            if [ ! -f "${MINGW_LIB}/libSDL_ttf.a" ] && [ ! -f "${MINGW_LIB}/libSDL_ttf.dll.a" ]; then
+                echo "  ERROR: SDL_ttf library not installed"
+                exit 1
+            fi
+        }
+
+        echo "  ✓ SDL_ttf installed"
+        SDL_TTF_AVAILABLE=true
+        cd "$SCRIPT_DIR"
+    fi
+fi
+
+# Check for SDL_image
+SDL_IMAGE_AVAILABLE=false
+if check_library "SDL/SDL_image.h"; then
+    SDL_IMAGE_AVAILABLE=true
+fi
+
+# Build SDL_image for Windows if not available
+if [ "$SDL_IMAGE_AVAILABLE" = false ]; then
+    echo "Building SDL_image for Windows..."
+    cd "$SHARED_BUILD_DIR"
+
+    SDL_IMAGE_TAR="SDL_image-1.2.12.tar.gz"
+    SDL_IMAGE_DIR="SDL_image-1.2.12"
+
+    if [ ! -f "$SDL_IMAGE_TAR" ]; then
+        echo "  Downloading SDL_image..."
+        wget -q https://www.libsdl.org/projects/SDL_image/release/SDL_image-1.2.12.tar.gz || {
+            echo "  ERROR: Failed to download SDL_image"
+            exit 1
+        }
+    fi
+
+    if [ ! -d "$SDL_IMAGE_DIR" ]; then
+        tar xzf "$SDL_IMAGE_TAR"
+    fi
+
+    cd "$SDL_IMAGE_DIR"
+
+    # Check if already built
+    if [ -f "config.status" ] && [ -f ".libs/libSDL_image.a" ] || [ -f "libSDL_image.a" ]; then
+        echo "  SDL_image already built, reinstalling..."
+        sudo make install >"$SHARED_BUILD_DIR/sdl_image-install.log" 2>&1 || {
+            if check_library "SDL/SDL_image.h"; then
+                echo "  SDL_image already installed"
+                SDL_IMAGE_AVAILABLE=true
+                cd "$SCRIPT_DIR"
+            fi
+        }
+    fi
+
+    echo "  Configuring SDL_image..."
+    SDL_CFLAGS="$(${SDL_CONFIG:-sdl-config} --cflags 2>/dev/null || echo '-I/usr/x86_64-w64-mingw32/include/SDL')"
+    SDL_LIBS="$(${SDL_CONFIG:-sdl-config} --libs 2>/dev/null || echo '-L/usr/x86_64-w64-mingw32/lib -lSDL')"
+
+    ./configure \
+        --host="${MINGW_PREFIX}" \
+        --prefix="${MINGW_PREFIX_DIR}" \
+        --with-sdl-prefix="${MINGW_PREFIX_DIR}" \
+        SDL_CFLAGS="$SDL_CFLAGS" \
+        SDL_LIBS="$SDL_LIBS" \
+        --quiet >"$SHARED_BUILD_DIR/sdl_image-configure.log" 2>&1 || {
+        echo "  ERROR: SDL_image configuration failed"
+        cat "$SHARED_BUILD_DIR/sdl_image-configure.log" | tail -20
+        exit 1
+    }
+
+    echo "  Compiling SDL_image..."
+    make -j$(nproc) >"$SHARED_BUILD_DIR/sdl_image-build.log" 2>&1 || {
+        echo "  Full build failed (test programs may have failed), trying library only..."
+        make libSDL_image.la >"$SHARED_BUILD_DIR/sdl_image-libonly-build.log" 2>&1 || {
+            # Check if library exists anyway
+            if [ ! -f ".libs/libSDL_image.a" ] && [ ! -f ".libs/libSDL_image.dll.a" ]; then
+                echo "  ERROR: SDL_image compilation failed"
+                cat "$SHARED_BUILD_DIR/sdl_image-build.log" | tail -20
+                exit 1
+            fi
+        }
+    }
+
+    echo "  Installing SDL_image..."
+    # Install only the library and headers, not test programs
+    sudo make install >"$SHARED_BUILD_DIR/sdl_image-install.log" 2>&1 || {
+        echo "  Standard install failed, installing library only..."
+        sudo make install-libLTLIBRARIES >"$SHARED_BUILD_DIR/sdl_image-install.log" 2>&1 || true
+        sudo make install-pkgconfigDATA >>"$SHARED_BUILD_DIR/sdl_image-install.log" 2>&1 || true
+        # Install header manually if install target doesn't exist
+        sudo cp SDL_image.h "${MINGW_INCLUDE}/SDL/" 2>/dev/null || true
+        # Verify installation
+        if [ ! -f "${MINGW_INCLUDE}/SDL/SDL_image.h" ]; then
+            echo "  ERROR: SDL_image header not installed"
+            exit 1
+        fi
+        if [ ! -f "${MINGW_LIB}/libSDL_image.a" ] && [ ! -f "${MINGW_LIB}/libSDL_image.dll.a" ]; then
+            echo "  ERROR: SDL_image library not installed"
+            exit 1
+        fi
+    }
+
+    echo "  ✓ SDL_image installed"
+    SDL_IMAGE_AVAILABLE=true
+    cd "$SCRIPT_DIR"
+fi
+
+CONFIGURE_OPTS+=(--enable-sdl-client)
+
+# Patch configure script to skip X11 check for Windows when SDL is enabled
+echo "Patching configure to skip X11 check for Windows..."
+if [ ! -f "$SCRIPT_DIR/configure.bak" ]; then
+    cp "$SCRIPT_DIR/configure" "$SCRIPT_DIR/configure.bak"
+fi
+# Skip X11 check if SDL client is enabled (for Windows builds)
+sed -i 's/if test x$no_x == xyes; then/if test x$no_x == xyes \&\& test x$enable_sdl_client != xyes; then/' "$SCRIPT_DIR/configure"
+
+# Pass through any additional configure options
+for arg in "$@"; do
+    if [[ "$arg" != "--enable-sdl-client" && "$arg" != "--disable-sdl-client" ]]; then
+        CONFIGURE_OPTS+=("$arg")
+    fi
+done
+
+echo "Configuring build..."
+CONFIGURE_LOG="$(pwd)/configure.log"
+"$SCRIPT_DIR/configure" "${CONFIGURE_OPTS[@]}" >"$CONFIGURE_LOG" 2>&1 || {
     echo ""
-    echo "=========================================="
-    echo "Configuration failed!"
-    echo "=========================================="
-    echo ""
-    echo "For Windows builds, you typically need:"
-    echo "  1. MinGW-w64 cross-compiler (installed)"
-    echo "  2. Windows libraries in /usr/${MINGW_PREFIX}/"
-    echo "  3. SDL libraries for SDL client (recommended)"
-    echo ""
-    echo "Alternative: Use the Visual Studio project files (.dsp) on Windows"
-    echo "or build natively on Windows with MinGW/MSYS2."
+    echo "Configuration failed. Full log: $CONFIGURE_LOG"
+    echo "Last 30 lines:"
+    tail -30 "$CONFIGURE_LOG"
     exit 1
 }
 
-echo ""
-cd "$BUILD_DIR"
 echo "Building Windows client..."
-make -j$(nproc) || {
-    echo ""
-    echo "Build failed. You may need to install Windows libraries."
+make -j$(nproc) >/dev/null 2>&1 || {
+    echo "Build failed. Showing errors:"
+    make -j$(nproc)
     exit 1
 }
 
 echo ""
 echo "=========================================="
-echo "Windows build completed!"
+echo "Build completed successfully!"
 echo "=========================================="
 echo ""
-echo "Built binaries are in: $BUILD_DIR/src/client/"
+
+# Find built executables
+CLIENT_EXE=""
+SERVER_EXE=""
+REPLAY_EXE=""
+
+CLIENT_EXE=$(find . -name "xpilot-ng-*.exe" -type f | grep -E "(sdl|x11)" | head -1)
+SERVER_EXE=$(find . -name "xpilot-ng-server.exe" -type f | head -1)
+REPLAY_EXE=$(find . -name "xpilot-ng-replay.exe" -type f | head -1)
+
+if [ -z "$CLIENT_EXE" ]; then
+    CLIENT_EXE=$(find . -name "*.exe" -type f | grep -v "test" | head -1)
+fi
+
+if [ -z "$CLIENT_EXE" ]; then
+    echo "ERROR: No client executable found!"
+    exit 1
+fi
+
+echo "Built binaries:"
+[ -n "$CLIENT_EXE" ] && echo "  Client: $CLIENT_EXE"
+[ -n "$SERVER_EXE" ] && echo "  Server: $SERVER_EXE"
+[ -n "$REPLAY_EXE" ] && echo "  Replay: $REPLAY_EXE"
 echo ""
-echo "Note: You may need to copy DLL dependencies:"
-echo "  - zlib1.dll"
-echo "  - libexpat-1.dll"
-echo "  - SDL.dll, SDL_ttf.dll, SDL_image.dll (if using SDL client)"
+
+# Create installer package
+echo "Creating installer package..."
+
+INSTALLER_DIR="$SCRIPT_DIR/installer-windows"
+rm -rf "$INSTALLER_DIR"
+mkdir -p "$INSTALLER_DIR/bin"
+mkdir -p "$INSTALLER_DIR/share/xpilot-ng"
+mkdir -p "$INSTALLER_DIR/doc"
+
+# Copy executables
+echo "  Copying executables..."
+[ -n "$CLIENT_EXE" ] && cp "$CLIENT_EXE" "$INSTALLER_DIR/bin/"
+[ -n "$SERVER_EXE" ] && cp "$SERVER_EXE" "$INSTALLER_DIR/bin/"
+[ -n "$REPLAY_EXE" ] && cp "$REPLAY_EXE" "$INSTALLER_DIR/bin/"
+
+# Copy data files
+echo "  Copying data files..."
+if [ -d "$SCRIPT_DIR/lib" ]; then
+    cp -r "$SCRIPT_DIR/lib"/* "$INSTALLER_DIR/share/xpilot-ng/" 2>/dev/null || true
+fi
+
+# Copy documentation
+echo "  Copying documentation..."
+if [ -d "$SCRIPT_DIR/doc" ]; then
+    cp -r "$SCRIPT_DIR/doc"/* "$INSTALLER_DIR/doc/" 2>/dev/null || true
+fi
+
+# Copy required DLLs
+echo "  Copying DLL dependencies..."
+
+# Find and copy DLLs
+find_dll() {
+    local dll_name=$1
+    local found=""
+
+    # Check common locations
+    for path in "${MINGW_LIB}" "${MINGW_PREFIX_DIR}/bin" "/usr/${MINGW_PREFIX}/bin"; do
+        if [ -f "${path}/${dll_name}" ]; then
+            found="${path}/${dll_name}"
+            break
+        fi
+    done
+
+    # Also check if it's in the build directory
+    if [ -z "$found" ]; then
+        local build_dll=$(find "$BUILD_DIR" -name "${dll_name}" -type f 2>/dev/null | head -1)
+        if [ -n "$build_dll" ]; then
+            found="$build_dll"
+        fi
+    fi
+
+    echo "$found"
+}
+
+# Copy zlib DLL
+ZLIB_DLL=$(find_dll "zlib1.dll")
+if [ -n "$ZLIB_DLL" ] && [ -f "$ZLIB_DLL" ]; then
+    cp "$ZLIB_DLL" "$INSTALLER_DIR/bin/"
+fi
+
+# Copy expat DLL (if shared)
+EXPAT_DLL=$(find_dll "libexpat-1.dll")
+if [ -z "$EXPAT_DLL" ]; then
+    EXPAT_DLL=$(find_dll "libexpat.dll")
+fi
+if [ -n "$EXPAT_DLL" ] && [ -f "$EXPAT_DLL" ]; then
+    cp "$EXPAT_DLL" "$INSTALLER_DIR/bin/"
+fi
+
+# Copy SDL DLLs if SDL client was built
+if [ "$ENABLE_SDL" = true ]; then
+    for sdl_dll in "SDL.dll" "SDL_ttf.dll" "SDL_image.dll"; do
+        SDL_PATH=$(find_dll "$sdl_dll")
+        if [ -n "$SDL_PATH" ] && [ -f "$SDL_PATH" ]; then
+            cp "$SDL_PATH" "$INSTALLER_DIR/bin/"
+        fi
+    done
+fi
+
+# Create README for Windows users
+cat > "$INSTALLER_DIR/README.txt" << EOF
+XPilot NG for Windows
+=====================
+
+This installer contains XPilot NG for Windows.
+
+Files:
+- bin/          : Executable files
+- share/        : Game data (maps, textures, etc.)
+- doc/          : Documentation
+
+All required DLL files are included in the bin directory.
+
+For more information, visit: http://xpilot.sourceforge.net/
+EOF
+
+# Create installer using NSIS if available, otherwise create ZIP
+INSTALLER_NAME="xpilot-ng-windows-installer"
+
+if command -v makensis >/dev/null 2>&1; then
+    echo "  Creating NSIS installer..."
+
+    # Generate NSIS script dynamically
+    NSIS_SCRIPT="$INSTALLER_DIR/installer.nsi"
+    CLIENT_NAME=$(basename "$CLIENT_EXE")
+
+    cat > "$NSIS_SCRIPT" << NSISEOF
+!define PRODUCT_NAME "XPilot NG"
+!define PRODUCT_VERSION "4.6.3"
+!define PRODUCT_PUBLISHER "XPilot NG Team"
+!define PRODUCT_WEB_SITE "http://xpilot.sourceforge.net/"
+
+Name "\${PRODUCT_NAME} \${PRODUCT_VERSION}"
+OutFile "$SCRIPT_DIR/${INSTALLER_NAME}.exe"
+InstallDir "\$PROGRAMFILES\\XPilot NG"
+ShowInstDetails show
+
+Section "MainSection"
+  SetOutPath "\$INSTDIR\\bin"
+  File "$INSTALLER_DIR/bin/*.exe"
+  File "$INSTALLER_DIR/bin/*.dll"
+
+  SetOutPath "\$INSTDIR\\share\\xpilot-ng"
+  File /r "$INSTALLER_DIR/share/xpilot-ng/*"
+
+  SetOutPath "\$INSTDIR\\doc"
+  File /r "$INSTALLER_DIR/doc/*"
+
+  File "$INSTALLER_DIR/README.txt"
+
+  CreateDirectory "\$SMPROGRAMS\\XPilot NG"
+  CreateShortCut "\$SMPROGRAMS\\XPilot NG\\XPilot NG.lnk" "\$INSTDIR\\bin\\${CLIENT_NAME}"
+  CreateShortCut "\$DESKTOP\\XPilot NG.lnk" "\$INSTDIR\\bin\\${CLIENT_NAME}"
+SectionEnd
+NSISEOF
+
+    cd "$INSTALLER_DIR"
+    makensis "$NSIS_SCRIPT" >/dev/null 2>&1
+
+    if [ -f "$SCRIPT_DIR/${INSTALLER_NAME}.exe" ]; then
+        INSTALLER_FILE="$SCRIPT_DIR/${INSTALLER_NAME}.exe"
+        INSTALLER_TYPE="NSIS installer"
+    else
+        # Fall back to ZIP
+        INSTALLER_FILE="$SCRIPT_DIR/${INSTALLER_NAME}.zip"
+        INSTALLER_TYPE="ZIP archive"
+        cd "$SCRIPT_DIR"
+        zip -rq "$INSTALLER_FILE" installer-windows/
+    fi
+else
+    echo "  Creating ZIP archive (NSIS not available)..."
+    echo "  (Install NSIS for a proper Windows installer: sudo apt-get install nsis)"
+
+    cd "$SCRIPT_DIR"
+    INSTALLER_FILE="$SCRIPT_DIR/${INSTALLER_NAME}.zip"
+    INSTALLER_TYPE="ZIP archive"
+    zip -rq "$INSTALLER_FILE" installer-windows/
+fi
+
+INSTALLER_SIZE=$(ls -lh "$INSTALLER_FILE" 2>/dev/null | awk '{print $5}')
+
+echo ""
+echo "=========================================="
+echo "Installer created successfully!"
+echo "=========================================="
+echo ""
+echo "Installer: $INSTALLER_FILE ($INSTALLER_SIZE)"
+echo "Type: $INSTALLER_TYPE"
+echo ""
+echo "This file is ready to transfer to a Windows PC and install."
 echo ""
