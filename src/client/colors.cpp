@@ -2,7 +2,7 @@
  *
  * XPilot, a multiplayer gravity war game.  Copyright (C) 1991-2001 by
  *
- *      Bjï¿½rn Stabell        <bjoern@xpilot.org>
+ *      Bjørn Stabell        <bjoern@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
  *      Dick Balaska         <dick@xpilot.org>
@@ -150,7 +150,7 @@ static struct Visual_class_name {
 };
 
 /*
- * Structure to hold pixel information
+ * Structure to hold pixel information 
  * for a color cube for PseudoColor visuals.
  */
 struct Color_cube {
@@ -508,7 +508,7 @@ int Colors_init(void)
      * Initialize the double buffering routine.
      */
     dbuf_state = NULL;
-
+    
     if (iniClient.multiBuffer) {
 	dbuf_state = start_dbuff(iniClient.dpy,
 				 (colormap != 0)

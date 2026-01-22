@@ -1,10 +1,10 @@
-/* $Id: ConnectionPlayer.cpp,v 1.31 2004/05/31 23:45:39 dick Exp $
+/* $Id: ConnectionPlayer.cpp,v 1.34 2007/02/17 20:29:18 dick Exp $
  *
  * Describe a server's connection to a player.
  *
  * XPilot, a multiplayer gravity war game.  Copyright (C) 1991-2001 by
  *
- *      Bjï¿½rn Stabell        <bjoern@xpilot.org>
+ *      Bjørn Stabell        <bjoern@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
  *      Dick Balaska         <dick@xpilot.org>
@@ -25,6 +25,15 @@
  */
 /*
  *  $Log: ConnectionPlayer.cpp,v $
+ *  Revision 1.34  2007/02/17 20:29:18  dick
+ *  Wrap Trace(...) debug with D().
+ *
+ *  Revision 1.33  2007/02/12 07:55:27  dick
+ *  Support RobotWatchDeco, which is decorated shapes displayed on the playfield.
+ *
+ *  Revision 1.32  2007/01/17 09:06:22  dick
+ *  Send the RobotWatch packets to the client
+ *
  *  Revision 1.31  2004/05/31 23:45:39  dick
  *  Whitespace
  *
@@ -161,7 +170,7 @@
 #include "Cannon.h"
 #include "ScoreTable.h"
 #include "World.h"
-
+#include "Robot.h"
 
 ///////////////////////////////////////////////////////////////////////////////
 ConnectionPlayer::ConnectionPlayer()
@@ -182,7 +191,7 @@ void ConnectionPlayer::DestroyConnection(PCSTR reason)
 {
 	if (world)
 		world->NumLogoutsBump();
-
+		
 	if (id != NO_ID) {
 		DeletePlayer(world, world->getInd[id]);
 	}
@@ -484,7 +493,7 @@ int ConnectionPlayer::SendSelf(Player *pl, int lock_id, int lock_dist,
 int ConnectionPlayer::SendLeave(int id)
 {
 
-	if (!BIT(state, CONN_PLAYING | CONN_READY))
+	if (!BIT(state, CONN_PLAYING | CONN_READY)) 
 	{
 		seterrno(0);
 		emh(emhThis, EmError, "Connection not ready for leave info (%d,%d)",
@@ -501,7 +510,7 @@ int ConnectionPlayer::SendLeave(int id)
 int ConnectionPlayer::SendWar(int robot_id, int killer_id)
 {
 
-	if (!BIT(state, CONN_PLAYING | CONN_READY))
+	if (!BIT(state, CONN_PLAYING | CONN_READY)) 
 	{
 		seterrno(0);
 		emh(emhThis, EmError, "Connection not ready for war declaration (%d,%d,%d)",
@@ -517,7 +526,7 @@ int ConnectionPlayer::SendWar(int robot_id, int killer_id)
  */
 int ConnectionPlayer::SendEyes(int watcherId, int watchedId)
 {
-	if (!BIT(state, CONN_PLAYING | CONN_READY))
+	if (!BIT(state, CONN_PLAYING | CONN_READY)) 
 	{
 		seterrno(0);
 		emh(emhThis, EmError, "Connection not ready for SendEyes (%d,%d,%d)",
@@ -631,7 +640,7 @@ int ConnectionPlayer::SendScoreTableRank(Player* pl)
 	if (version < 0x5000)
 		return(0);
 	// D(xpprintf("SendScoreTableRank: %s %d %d\n", pl->name, pl->rank, (int)(pl->rate*100.0));)
-	return(cw.printf("%c%c%hd%d%d", PKT_SCORE_TABLE, STRank,
+	return(cw.printf("%c%c%hd%d%d", PKT_SCORE_TABLE, STRank, 
 									pl->id, pl->rank, (int)(pl->rate*100.0)));
 }
 
@@ -665,11 +674,11 @@ int ConnectionPlayer::SendScore(Player* pl)
 			}
 		}
 		if (version < 0x5000)
-			return cw.printf("%c%hd%d%hd%c%c", PKT_SCORE, pl->id,
+			return cw.printf("%c%hd%d%hd%c%c", PKT_SCORE, pl->id, 
 											 (int)(pl->score * 100 + (pl->score > 0 ? 0.5 : 0.5)),
 											 pl->life, pl->mychar, allchar);
 		else
-			return cw.printf("%c%hd%d%hd%c%c%hd%hd", PKT_SCORE, pl->id,
+			return cw.printf("%c%hd%d%hd%c%c%hd%hd", PKT_SCORE, pl->id, 
 											 (int)(pl->score * 100 + (pl->score > 0 ? 0.5 : 0.5)),
 											 pl->life, pl->mychar, allchar,
 											 pl->kills, pl->deaths);
@@ -773,7 +782,7 @@ int ConnectionPlayer::SendScoreObject(DFLOAT score, int x, int y, const char *st
 	}
 	if (version < 0x4500) {
 		/* older clients don't get decimals of the score */
-		return cw.printf("%c%hd%hu%hu%s",PKT_SCORE_OBJECT,
+		return cw.printf("%c%hd%hu%hu%s",PKT_SCORE_OBJECT, 
 				(int)(score + (score > 0 ? 0.5 : -0.5)),
 				x, y, string);
 	} else {
@@ -979,6 +988,7 @@ int ConnectionPlayer::SendPaused(int x, int y, int count)
 ///////////////////////////////////////////////////////////////////////////////
 int ConnectionPlayer::SendEcm(int x, int y, int size)
 {
+	D(Trace("Ecm: %d/%d\n", x, y);)
 	return w.printf("%c%hd%hd%hd", PKT_ECM, x, y, size);
 }
 
@@ -1002,7 +1012,7 @@ int ConnectionPlayer::SendShip(int x, int y, int id, int dir,
 			 "%c%hd%hd%hd" "%c" "%c",
 			 PKT_SHIP, x, y, id,
 			 dir,
-			 (shield != 0)
+			 (shield != 0) 
 					| ((cloak != 0) << 1)
 					| ((emergency_shield != 0) << 2)
 					| ((phased != 0) << 3)			/* clients older than 3.8.0 will ignore this */
@@ -1086,7 +1096,7 @@ int ConnectionPlayer::SendTimeLeft(long sec)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-int ConnectionPlayer::SendPlayMessage(const char *msg)
+int ConnectionPlayer::SendPlayMessage(PCSTR msg)
 {
 	if (!BIT(state, CONN_PLAYING | CONN_READY)) {
 				seterrno(0);
@@ -1095,6 +1105,36 @@ int ConnectionPlayer::SendPlayMessage(const char *msg)
 				return 0;
 	}
 	return cw.printf("%c%S", PKT_MESSAGE, msg);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+int ConnectionPlayer::SendRobotWatch(int y, PCSTR msg)
+{
+	if (!BIT(state, CONN_PLAYING | CONN_READY)) {
+				seterrno(0);
+				error("Connection not ready for message (%d,%d)",
+						  state, id);
+				return 0;
+	}
+	if (version < 0x5010)
+		return(0);
+	return w.printf("%c%hd%S", PKT_ROBOT_WATCH, y, msg);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+int	ConnectionPlayer::SendRobotWatchDeco(const RobotWatchDeco* rwd) {
+	if (!BIT(state, CONN_PLAYING | CONN_READY)) {
+				seterrno(0);
+				error("Connection not ready for message (%d,%d)",
+						  state, id);
+				return 0;
+	}
+	if (version < 0x5010)
+		return(0);
+	D(Trace("Deco: %d/%d\n", rwd->x, rwd->y);)
+	return w.printf("%c%c%hd%hd%c%c", PKT_ROBOT_WATCHDECO, rwd->type, rwd->x, rwd->y,
+									  rwd->radius, rwd->color);
+
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -1180,10 +1220,10 @@ int ConnectionPlayer::SendEndOfFrame()
 int ConnectionPlayer::SetCookie(uint _cookie)
 {
 	if (cookie == _cookie)
-			return(0);
+		return(0);
 	cookie = _cookie;
 	if (version < 0x5000)
-			return(0);
+		return(0);
 	return(cw.printf("%c%d", PKT_COOKIE, cookie));
 }
 
@@ -1533,19 +1573,6 @@ void ConnectionPlayer::GetDisplayParameters(int *width, int *height,
 	*_spark_rand = spark_rand;
 }
 
-//int ConnectionPlayer::GetPlayerId()
-//{
-//	  return id;
-//}
-
-///////////////////////////////////////////////////////////////////////////////
-/*
-int ConnectionPlayer::GetConnVersion()
-{
-	return version;
-}
-*/
-
 ///////////////////////////////////////////////////////////////////////////////
 int ConnectionPlayer::ReceivePointerMove()
 {
@@ -1640,7 +1667,7 @@ int ConnectionPlayer::ReceiveFpsRequest()
 		pl->player_fps = fps;
 		if (fps > world->GetFPS()) pl->player_fps = world->GetFPS();
 		if (fps < (world->GetFPS() / 2)) pl->player_fps = (world->GetFPS()+1) / 2;
-		if (fps == 0)
+		if (fps == 0) 
 				pl->player_fps = world->GetFPS();
 		if ((fps == 20) && world->options.ignore20MaxFPS->GetBool())
 				pl->player_fps = world->GetFPS();
@@ -1825,8 +1852,8 @@ void ConnectionPlayer::HandleTalk(char *str)
 		team = atoi (str);
 		sprintf(msg + strlen(msg), ":[%d]", team);
 		for (sent = i = 0; i < world->numPlayers; i++) {
-			if (world->players[i]->team != TEAM_NOT_SET
-				 && world->players[i]->team == team)
+			if (world->players[i]->team != TEAM_NOT_SET 
+				 && world->players[i]->team == team) 
 				{
 						sent++;
 						world->players[i]->SetMessage(msg);

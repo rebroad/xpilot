@@ -1,4 +1,4 @@
-# $Id: Makefile.in,v 1.23 2004/05/10 13:01:18 dick Exp $
+# $Id: Makefile.in,v 1.24 2007/02/17 19:48:42 dick Exp $
 # @configure_input@
 #
 # Makefile.in for xpilot++'s library common and subdirectories of common
@@ -26,6 +26,9 @@
 # Please report all bugs and problems to "xpilot++@buckosoft.com".
 #
 # $Log: Makefile.in,v $
+# Revision 1.24  2007/02/17 19:48:42  dick
+# Add AudioMan, Sound, and SoundEvent
+#
 # Revision 1.23  2004/05/10 13:01:18  dick
 # Remove InetServerList
 #
@@ -113,9 +116,10 @@ SUBDIRS = expat fltk-widgets web xp-flwidgets
 
 CPPFILES = \
 	config.cpp \
-	Archive.cpp CfgBase.cpp checknames.cpp \
+	Archive.cpp AudioMan.cpp CfgBase.cpp checknames.cpp \
 	Connectparam.cpp ControlClient.cpp cstring.cpp \
-	error.cpp FirewallPortList.cpp FlEventNames.cpp \
+	error.cpp \
+	fileUtils.cpp FirewallPortList.cpp FlEventNames.cpp \
 	Ini.cpp Ini.cpp Ini.Save.cpp \
 	IniClient.cpp IniClient.Defaults.cpp \
 	IniServer.cpp IniServer.Defaults.cpp \
@@ -123,6 +127,7 @@ CPPFILES = \
 	Obj.cpp password.cpp portability.cpp randommt.cpp \
 	ServerList.cpp ServerOptionsNetClient.cpp ServerOptionsNetClientFl.cpp ServerSite.cpp \
 	ShipDocument.cpp ShipList.cpp shipshape.cpp showtime.cpp Sock.cpp Sockbuf.cpp sockerrs.cpp \
+	Sound.cpp SoundEvent.cpp \
 	strcasecmp.cpp strdup.cpp strlcpy.cpp \
 	UndoableCommand.cpp UndoMan.cpp WildMap.cpp \
 	XMLArchive.cpp xpmemory.cpp XpPoint.cpp XpPointList.cpp xpprintf.cpp
@@ -200,5 +205,5 @@ AUTHORS=@AUTHORS@
 install:
 
 #
-# End of "$Id: Makefile.in,v 1.23 2004/05/10 13:01:18 dick Exp $".
+# End of "$Id: Makefile.in,v 1.24 2007/02/17 19:48:42 dick Exp $".
 #

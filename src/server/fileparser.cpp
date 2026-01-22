@@ -1,8 +1,8 @@
-/* $Id: fileparser.cpp,v 1.15 2004/02/03 03:39:54 dick Exp $
+/* $Id: fileparser.cpp,v 1.16 2007/01/13 22:09:52 dick Exp $
  *
  * XPilot, a multiplayer gravity war game.  Copyright (C) 1991-2001 by
  *
- *      Bjï¿½rn Stabell        <bjoern@xpilot.org>
+ *      Bjørn Stabell        <bjoern@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
  *      Dick Balaska         <dick@xpilot.org>
@@ -23,6 +23,9 @@
  */
 /*
  * $Log: fileparser.cpp,v $
+ * Revision 1.16  2007/01/13 22:09:52  dick
+ * Note on the console that we are reading a tweaks file
+ *
  * Revision 1.15  2004/02/03 03:39:54  dick
  * Add Windows precompiled header support.
  *
@@ -512,10 +515,10 @@ static void fileClose(FILE *fp)
 static int hasMapExtension(const char *filename)
 {
     int fnlen = strlen(filename);
-    if (fnlen > 3 && !strcmp(&filename[fnlen - 3], ".xp")){
+    if (fnlen > 3 && !strcmp(&filename[fnlen - 3], ".xp")){ 
 	return 1;
     }
-    if (fnlen > 4 && !strcmp(&filename[fnlen - 3], ".map")){
+    if (fnlen > 4 && !strcmp(&filename[fnlen - 3], ".map")){ 
 	return 1;
     }
     return 0;
@@ -541,7 +544,7 @@ static int hasDirectoryPrefix(const char *filename)
 static String fileJoin(const char *dir, const char *file)
 {
 	String	s;
-
+	
 	s = dir;
 	if (!s.EndsWith('/'))
 		s += '/';
@@ -800,6 +803,7 @@ bool parseTweaksFile(World* w, PCSTR filename)
     if ((ifile = openDefaultsFile(path)) == NULL) {
 		return false;
     }
+	xpprintf("Parsing tweaks: %s\n", (PCSTR)path);
     result = w->options.ParseOpenFile(ifile, OPT_TUNEFILE);
     closeDefaultsFile(ifile);
 

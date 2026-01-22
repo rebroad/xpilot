@@ -2,7 +2,7 @@
  *
  * XPilot, a multiplayer gravity war game.  Copyright (C) 1991-2001 by
  *
- *      Bjï¿½rn Stabell        <bjoern@xpilot.org>
+ *      Bjørn Stabell        <bjoern@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
  *      Dick Balaska         <dick@xpilot.org>
@@ -489,7 +489,7 @@ static int Cmd_team(char *arg, Player *pl, int oper, char *msg)
 		else if (w->teams[team].numBases == 0) {
 			sprintf(msg, "There are no bases for team %d on this map.", team);
 		}
-		else if (w->options.reserveRobotTeam->GetBool() &&
+		else if (w->options.reserveRobotTeam->GetBool() && 
 						 w->options.robotTeam->GetInt() == team) {
 			sprintf(msg, "You cannot join the robot team on this server.");
 		}
@@ -776,7 +776,7 @@ static int Cmd_password(char *arg, Player *pl, int oper, char *msg)
 {
 	World*	w = pl->world;
 
-	if (!w->options.password->GetString().GetLength() ||
+	if (!w->options.password->GetString().GetLength() || 
 		!arg || strcmp(arg, w->options.password->GetString()))
 	{
 		strcpy(msg, "Wrong.");

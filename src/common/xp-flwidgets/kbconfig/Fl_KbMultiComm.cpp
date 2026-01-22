@@ -9,7 +9,7 @@
  *      Jarrod Miller        <jarrod@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
- *      Bjï¿½rn Stabell        <bjoern@xpilot.org>
+ *      Bjørn Stabell        <bjoern@xpilot.org>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -83,7 +83,7 @@ void Fl_KbMultiComm::Init(Fl_KbConfigKb* /*pw*/, Fl_KbCButton* pb)
 	{
 		kc = (KbCKeyCommand*)o;
 		Fl_KbCButton* b = new Fl_KbCButton(x()+i*BUTTON_WIDTH+MULTICOMM_BORDER,
-										   y()+MULTICOMM_BORDER,
+										   y()+MULTICOMM_BORDER, 
 										   BUTTON_WIDTH,
 										   BUTTON_HEIGHT);
 		b->parentButton = pb;
@@ -99,7 +99,7 @@ void Fl_KbMultiComm::Init(Fl_KbConfigKb* /*pw*/, Fl_KbCButton* pb)
 			b->kname = "??";
 		DEBUGSELECTION(printf("Add mwchild %d %s\n", i, (PCSTR)b->kname);)
 		b->GetCommands().Add(kc);
-
+		
 	}
 	end();
 }

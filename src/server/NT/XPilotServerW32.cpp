@@ -10,7 +10,7 @@
  *      Jarrod Miller        <jarrod@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
- *      Bjï¿½rn Stabell        <bjoern@xpilot.org>
+ *      Bjørn Stabell        <bjoern@xpilot.org>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -80,7 +80,7 @@
 XPilotServerW32	theApp;
 HWND			notifyWnd;
 
-LRESULT CALLBACK MainWndProc(HWND hwnd,	UINT uMsg, WPARAM wParam, LPARAM lParam);
+LRESULT CALLBACK MainWndProc(HWND hwnd,	UINT uMsg, WPARAM wParam, LPARAM lParam); 
 //LONG OnWMB_HTTP(UINT wParam, LONG lParam);
 //LONG OnWMB_UDP(UINT wParam, LONG lParam);
 //VOID CALLBACK XPilotServerW32TimerProc(HWND hwnd, UINT uMsg, UINT idEvent, DWORD dwTime);
@@ -106,43 +106,43 @@ XPilotServerW32::XPilotServerW32()
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-int PASCAL WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
-	LPSTR lpszCmdLine, int nCmdShow)
+int PASCAL WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, 
+	LPSTR lpszCmdLine, int nCmdShow) 
 {
 	return(theApp.WinMain(hInstance, hPrevInstance, lpszCmdLine, nCmdShow));
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-int XPilotServerW32::WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
+int XPilotServerW32::WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, 
 							 LPSTR lpszCmdLine, int nCmdShow)
 {
 	MSG msg;
-	BOOL bRet;
-	WNDCLASS wc;
-	UNREFERENCED_PARAMETER(lpszCmdLine);
-
-	// Register the window class for the main window.
-
-	if (!hPrevInstance)
-	{
-		wc.style = 0;
-		wc.lpfnWndProc = (WNDPROC) ::MainWndProc;
-		wc.cbClsExtra = 0;
-		wc.cbWndExtra = 0;
-		wc.hInstance = hInstance;
-		wc.hIcon = LoadIcon(hInstance, MAKEINTRESOURCE(1));
-		wc.hCursor = LoadCursor((HINSTANCE) NULL,
-			IDC_ARROW);
-		wc.hbrBackground = (HBRUSH)GetStockObject(DKGRAY_BRUSH);
-		wc.lpszMenuName =  "MainMenu";
-		wc.lpszClassName = "MainsWndClass";
-
-		if (!RegisterClass(&wc))
-			return FALSE;
-	}
-
-	hinst = hInstance;	// save instance handle
-
+	BOOL bRet; 
+	WNDCLASS wc; 
+	UNREFERENCED_PARAMETER(lpszCmdLine); 
+ 
+	// Register the window class for the main window. 
+ 
+	if (!hPrevInstance) 
+	{ 
+		wc.style = 0; 
+		wc.lpfnWndProc = (WNDPROC) ::MainWndProc; 
+		wc.cbClsExtra = 0; 
+		wc.cbWndExtra = 0; 
+		wc.hInstance = hInstance; 
+		wc.hIcon = LoadIcon(hInstance, MAKEINTRESOURCE(1)); 
+		wc.hCursor = LoadCursor((HINSTANCE) NULL, 
+			IDC_ARROW); 
+		wc.hbrBackground = (HBRUSH)GetStockObject(DKGRAY_BRUSH); 
+		wc.lpszMenuName =  "MainMenu"; 
+		wc.lpszClassName = "MainsWndClass"; 
+ 
+		if (!RegisterClass(&wc)) 
+			return FALSE; 
+	} 
+ 
+	hinst = hInstance;	// save instance handle 
+ 
 	RECT	rect;
 	int		x, y, cx, cy;
 	if (!iniServer.GetWindowPositions(&rect))
@@ -159,23 +159,23 @@ int XPilotServerW32::WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
 		y = rect.top;
 		cy = rect.bottom - rect.top;
 	}
-	// Create the main window.
-
-	mainWnd = CreateWindow("MainsWndClass", "XPilotServer",
-		WS_OVERLAPPEDWINDOW, x, y,
-		cx, cy, (HWND)NULL,
-		(HMENU) NULL, hinst, (LPVOID) NULL);
-
-	// If the main window cannot be created, terminate
-	// the application.
-
-	if (!mainWnd)
-		return FALSE;
-
+	// Create the main window. 
+ 
+	mainWnd = CreateWindow("MainsWndClass", "XPilotServer", 
+		WS_OVERLAPPEDWINDOW, x, y, 
+		cx, cy, (HWND)NULL, 
+		(HMENU) NULL, hinst, (LPVOID) NULL); 
+ 
+	// If the main window cannot be created, terminate 
+	// the application. 
+ 
+	if (!mainWnd) 
+		return FALSE; 
+ 
 	notifyWnd = mainWnd;	// where the network layer sends his messages
 
-	// Show the window and paint its contents.
-
+	// Show the window and paint its contents. 
+ 
 	int ret;
 	WSADATA	wsaData;
 	ret = WSAStartup(1, &wsaData);
@@ -185,34 +185,34 @@ int XPilotServerW32::WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
 		return(ret);
 	}
 
-	ShowWindow(mainWnd, nCmdShow);
-	UpdateWindow(mainWnd);
-
+	ShowWindow(mainWnd, nCmdShow); 
+	UpdateWindow(mainWnd); 
+ 
 	AddMiniTrayIcon();
 
-	// Start the message loop.
+	// Start the message loop. 
  	while( (bRet = GetMessage( &msg, NULL, 0, 0 )) != 0)
-	{
+	{ 
 		if (bRet == -1)
 		{
 			// handle the error and possibly exit
 		}
 		else
 		{
-			TranslateMessage(&msg);
-			DispatchMessage(&msg);
+			TranslateMessage(&msg); 
+			DispatchMessage(&msg); 
 		}
-	}
-
+	} 
+ 
 	UnregisterClass(wc.lpszClassName, wc.hInstance);
-	// Return the exit code to the system.
-
-	return msg.wParam;
+	// Return the exit code to the system. 
+ 
+	return msg.wParam; 
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 LRESULT CALLBACK MainWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
-{
+{ 
 	return(theApp.MainWndProc(hwnd, uMsg, wParam, lParam));
 }
 
@@ -224,11 +224,11 @@ LRESULT XPilotServerW32::MainWndProc(
 	LPARAM lParam)	  // second message parameter
 {
 	//Trace("Wnd: %x Msg: %x\n", hwnd, uMsg);
-	switch (uMsg)
-	{
-		case WM_CREATE:
+	switch (uMsg) 
+	{ 
+		case WM_CREATE: 
 		{
-			// Initialize the window.
+			// Initialize the window. 
 			LPCREATESTRUCT	lpcs = (LPCREATESTRUCT)lParam;
 			//CREATESTRUCT	editcs = {
 			Trace("lpcs x/y = %d/%d\n", lpcs->cx, lpcs->cy);
@@ -237,16 +237,16 @@ LRESULT XPilotServerW32::MainWndProc(
 				5, 5, lpcs->cx - 20, lpcs->cy - 40, hwnd, NULL, hinst, NULL);
 			printfWnd = editWnd;
 			editFont = CreateFont(-12, 0, 0, 0, FW_MEDIUM, FALSE, FALSE, FALSE,
-				ANSI_CHARSET, OUT_DEVICE_PRECIS, CLIP_DEFAULT_PRECIS,
+				ANSI_CHARSET, OUT_DEVICE_PRECIS, CLIP_DEFAULT_PRECIS, 
 				PROOF_QUALITY, FF_SWISS|DEFAULT_PITCH, NULL);
 			if (editFont)
 				SendMessage(editWnd, WM_SETFONT, (WPARAM)editFont, TRUE);
 			else
 				xpprintf("Couldn't create edit font\n");
-			return 0;
+			return 0; 
 		}
-		case WM_PAINT:
-			// Paint the window's client area.
+		case WM_PAINT: 
+			// Paint the window's client area. 
 			if (virgin)
 			{
 				virgin = false;
@@ -257,18 +257,18 @@ LRESULT XPilotServerW32::MainWndProc(
 					return(ShowWindow(hwnd, SW_HIDE));
 				}
 			}
-			return DefWindowProc(hwnd, uMsg, wParam, lParam);
+			return DefWindowProc(hwnd, uMsg, wParam, lParam); 
 
-			//return 0;
-		case WM_SIZE:
+			//return 0; 
+		case WM_SIZE: 
 		{
-			// Set the size and position of the window.
+			// Set the size and position of the window. 
 			int w = GET_X_LPARAM(lParam);
 			int	h = GET_Y_LPARAM(lParam);
 
 			MoveWindow(editWnd, 5, 5, w-10, h-10, TRUE);
 			Trace("Size: wnd=%x, w/h = %d/%d\n", hwnd, w, h);
-			return 0;
+			return 0; 
 		}
 		case WM_CLOSE:
 		{
@@ -278,13 +278,13 @@ LRESULT XPilotServerW32::MainWndProc(
 			DestroyWindow(hwnd);
 			break;
 		}
-		case WM_DESTROY:
-			// Clean up window-specific data objects.
+		case WM_DESTROY: 
+			// Clean up window-specific data objects. 
 			printfWnd = NULL;
 			DeleteObject(editFont);
 			WSACleanup();
 			PostQuitMessage(0);
-			return 0;
+			return 0; 
 		case WM_SYSCOMMAND:
  			if (trayIconOn && wParam == SC_MINIMIZE)
 			{
@@ -306,10 +306,10 @@ LRESULT XPilotServerW32::MainWndProc(
 			default:
 				return DefWindowProc(hwnd, uMsg, wParam, lParam);
 			}
-		//
-		// Process other messages.
-		//
-//		case WMB_HTTP:
+		// 
+		// Process other messages. 
+		// 
+//		case WMB_HTTP: 
 //			return(OnWMB_HTTP(wParam, lParam));
 //		case WMB_UDP:
 //			return(OnWMB_UDP(wParam, lParam));
@@ -323,11 +323,11 @@ LRESULT XPilotServerW32::MainWndProc(
 		case WM_TRAYICONMSG:
 			return(OnTrayIconMsg(wParam, lParam));
 
-		default:
-			return DefWindowProc(hwnd, uMsg, wParam, lParam);
-	}
-	return 0;
-}
+		default: 
+			return DefWindowProc(hwnd, uMsg, wParam, lParam); 
+	} 
+	return 0; 
+} 
 
 #if 0
 ///////////////////////////////////////////////////////////////////////////////
@@ -369,11 +369,11 @@ void XPilotServerW32::AddMiniTrayIcon()
 		nd.cbSize = sizeof(NOTIFYICONDATA);
 		nd.hWnd = mainWnd;
 		nd.uID  = 1;
-		nd.uFlags = NIF_ICON | NIF_TIP | NIF_MESSAGE;
+		nd.uFlags = NIF_ICON | NIF_TIP | NIF_MESSAGE; 
 		nd.uCallbackMessage = WM_TRAYICONMSG;
 		//nd.hIcon = AfxGetApp()->LoadIcon(IDI_ICON_TRAY);
 		nd.hIcon = ::LoadIcon(hinst, MAKEINTRESOURCE(1));
-		strcpy(nd.szTip, szAppName);
+		strcpy(nd.szTip, szAppName); 
 		Shell_NotifyIcon(NIM_ADD, &nd);
 
 		miniMenu = CreatePopupMenu();
@@ -396,7 +396,7 @@ void XPilotServerW32::RemoveMiniTrayIcon()
 		nd.cbSize = sizeof(NOTIFYICONDATA);
 		nd.hWnd = mainWnd;
 		nd.uID  = 1;
-		nd.uFlags = 0;
+		nd.uFlags = 0; 
 		nd.uCallbackMessage = 0;
 		nd.hIcon = NULL;
 		Shell_NotifyIcon(NIM_DELETE, &nd);
@@ -424,7 +424,7 @@ LONG XPilotServerW32::OnTrayIconMsg(WPARAM /*wParam*/, LPARAM lParam)
 					AfxMessageBox(_T("Unable to load menu"));
 					return;
 				}
-
+				
 				CMenu* pSubMenu = Menu.GetSubMenu(0);
 				ASSERT(pSubMenu != NULL);
 
@@ -460,8 +460,8 @@ LONG XPilotServerW32::OnTrayIconMsg(WPARAM /*wParam*/, LPARAM lParam)
 ///////////////////////////////////////////////////////////////////////////////
 void XPilotServerW32::OnPopupShowWindow()
 {
-	//ShowWindow(mainWnd, SW_SHOW);
-	ShowWindow(mainWnd, SW_RESTORE);
+	//ShowWindow(mainWnd, SW_SHOW);	
+	ShowWindow(mainWnd, SW_RESTORE);	
 	iniServer.windowMode = 0;
 	SetForegroundWindow(mainWnd);
 }

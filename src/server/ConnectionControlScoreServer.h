@@ -1,4 +1,4 @@
-/* $Id: ConnectionControlScoreServer.h,v 1.12 2004/05/31 18:17:25 dick Exp $
+/* $Id: ConnectionControlScoreServer.h,v 1.13 2007/02/03 05:36:33 dick Exp $
  *
  * Describe a server's connection to a control.
  *
@@ -7,7 +7,7 @@
  *      Dick Balaska         <dick@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
- *      Bjï¿½rn Stabell        <bjoern@xpilot.org>
+ *      Bjørn Stabell        <bjoern@xpilot.org>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,6 +25,9 @@
  */
 /*
  *  $Log: ConnectionControlScoreServer.h,v $
+ *  Revision 1.13  2007/02/03 05:36:33  dick
+ *  hasWebHost becomes hasWebInfo and display the message even with no host
+ *
  *  Revision 1.12  2004/05/31 18:17:25  dick
  *  virtual destructors so subclasses don't leak.
  *
@@ -85,7 +88,7 @@ public:
 	int		RequestPlayerScore(Player* pl);
 	int		RequestPlayerRanks(bool onOff);
 	void	SendScoreEvent(PCSTR killer, PlayerType ptr, DFLOAT wscore,
-						   PCSTR killee, PlayerType pte, DFLOAT lscore,
+						   PCSTR killee, PlayerType pte, DFLOAT lscore, 
 						   ScoreType st);
 	void	SendPlayerEvent(Player* pl, ScorePlayerEvent pse);
 
@@ -114,7 +117,7 @@ private:
 	String	webHost;
 	int		webPort;
 	String	webMsg;
-	bool	hasWebHost;
+	bool	hasWebInfo;
 
 	bool	active;		// whether we can send events to the server
 						// This is so we can wait until after the verify cycle.

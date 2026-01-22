@@ -1,8 +1,8 @@
-/* $Id: pack.h,v 1.16 2004/05/23 23:52:07 dick Exp $
+/* $Id: pack.h,v 1.19 2007/02/12 07:49:02 dick Exp $
  *
  * XPilot, a multiplayer gravity war game.  Copyright (C) 1991-2001 by
  *
- *      Bjï¿½rn Stabell        <bjoern@xpilot.org>
+ *      Bjørn Stabell        <bjoern@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
  *      Dick Balaska         <dick@xpilot.org>
@@ -23,6 +23,17 @@
  */
 /*
  * $Log: pack.h,v $
+ * Revision 1.19  2007/02/12 07:49:02  dick
+ * Define PKT_ROBOT_WATCHDECO which displays stuff on the playfield.  Bump version to 0x5011.
+ *
+ * Revision 1.18  2007/01/18 20:59:42  dick
+ * Increase MAX_RELIABLE_DATA_PACKET_SIZE from 1024 to 2048
+ * to accomodate the RobotWatch messages which can be big.
+ * Will this break backwards compatibility?
+ *
+ * Revision 1.17  2007/01/17 08:56:27  dick
+ * 5010 supports PKT_ROBOT_WATCH
+ *
  * Revision 1.16  2004/05/23 23:52:07  dick
  * src/common/IniClient.Defaults.cpp
  *
@@ -76,7 +87,7 @@
  *   j    n    t    a            g
  *   o    o    c    t            i
  *   r    r    h    ?            c
- *
+ *  
  *
  * Reasons why it changed in the past:
  * 3.0.1:   Rewrite of contact pack protocol, because of different structure
@@ -96,7 +107,7 @@
  *          The score packet now also includes pl->mychar.
  * 3.0.4.1: New laser weapon introduces another packet change.
  *          Because there is an unofficial (and forbidden) 3.0.4 version
- *          floating around the sub patchlevel number is used to distinguish
+ *          floating around the sub patchlevel number is used to distinguish 
  *          versions.
  *          A new display packet to tell the server what the view sizes are
  *          and how many different debris intensities the client wants.
@@ -138,8 +149,11 @@
  * 5.0.0.0: XPilot5. New server control tool.  Player notification when
  *          someone's eyes change.  client cookies.  server programable client
  *          scoretable.
+ * 5.0.1.0: Robot Watch packet.
+ *          Increase MAX_RELIABLE_DATA_PACKET_SIZE from 1024 to 2048
+ * 5.0.1.1: Robot WatchDeco packet. (Puts Robot logic as objects on the playfield.)
  */
-#define	MAGIC		0x5000F4ED
+#define	MAGIC		0x5011F4ED
 
 #define MAGIC2VERSION(M)	(((M) >> 16) & 0xFFFF)
 #define VERSION2MAGIC(V)	((((V) & 0xFFFF) << 16) | (MAGIC & 0xFFFF))

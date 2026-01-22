@@ -5,7 +5,7 @@
  *
  * XPilot, a multiplayer gravity war game.  Copyright (C) 1991-2001 by
  *
- *      Bjï¿½rn Stabell        <bjoern@xpilot.org>
+ *      Bjørn Stabell        <bjoern@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
  *      Dick Balaska         <dick@xpilot.org>
@@ -215,7 +215,7 @@ void Ini::SetFileName(PCSTR fname)
 #else
     PCSTR home = getenv("HOME");
 
-    if (home == NULL)
+    if (home == NULL) 
     {
     	xpprintf(LOGERR, "$HOME not found\n");
 		xpprintf(LOGERR, "You will not be able to save any configuration data\n");
@@ -375,7 +375,7 @@ int Ini::GetStringResource(PCSTR resource, String* result, PCSTR prefix)
 	}
 	*dst = '\0';
 	*result = tmp;
-
+	
 	return val;
 }
 

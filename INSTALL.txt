@@ -1,4 +1,4 @@
-$Id: INSTALL.txt,v 1.6 2004/01/20 06:13:53 dick Exp $
+$Id: INSTALL.txt,v 1.7 2007/02/03 08:04:53 dick Exp $
 
 Following are the installation instructions for the
 UNIX version of XPilot.  For the Windows version
@@ -80,6 +80,13 @@ can it be? :)
             having problems building, then turning this on may help you find
             out what's going wrong.
 
+        --with-mysql[=DIR]
+            Default: no
+            Enable the building of the MySQL based score engines.  With no
+            argument, attempt to use system installed libraries.  Perhaps you
+            are like me and need to say something like:
+            --with-mysql=/usr/local/mysql-standard-5.0.17-linux-i686-glibc23
+
 ================================================================================
 3. Compile:
 
@@ -102,7 +109,7 @@ can it be? :)
 ================================================================================
 5. Play:
 
-    Start xpilotcontol
+    Start xpilot5
 
     You must pick a server first.  Either start a server locally by clicking
     on the Local Server button, or connect to a server on your lan or connect

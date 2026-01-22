@@ -1,4 +1,4 @@
-/* $Id: ScoreEngineBasic.h,v 1.13 2004/05/07 04:38:26 dick Exp $
+/* $Id: ScoreEngineBasic.h,v 1.14 2007/01/29 04:50:40 dick Exp $
  *
  * XPScoreServer - Who's on first?
  * ScoreEngineBasic - A simple score server Keeps Score/Kills/Deaths/Playtime
@@ -11,7 +11,7 @@
  *      Jarrod Miller        <jarrod@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
- *      Bjï¿½rn Stabell        <bjoern@xpilot.org>
+ *      Bjørn Stabell        <bjoern@xpilot.org>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -32,6 +32,9 @@
  */
 /*
  * $Log: ScoreEngineBasic.h,v $
+ * Revision 1.14  2007/01/29 04:50:40  dick
+ * FindPlayer becomes a polymorphic class function
+ *
  * Revision 1.13  2004/05/07 04:38:26  dick
  * Send rank data to the server.
  *
@@ -125,7 +128,7 @@ public:
 	static	ScoreEngineCfg*	Install();
 
 
-	SEBPlayer* ScoreEngineBasic::FindPlayer(PCSTR nick, PlayerType pt);
+	SEBPlayer* FindPlayer(PCSTR nick, PlayerType pt);
 
 // General ScoreServer functions
 protected:
@@ -147,14 +150,14 @@ protected:
 	virtual void ReceivePlayerEvent(PCSTR name, PlayerType pt, ScorePlayerEvent spe,
 									PCSTR real, PCSTR host, PCSTR addr, uint cookie);
 	virtual void ReceiveScoreEvent(PCSTR killer, PlayerType ptr, DFLOAT wscore,
-								   PCSTR killee, PlayerType pte, DFLOAT lscore,
+								   PCSTR killee, PlayerType pte, DFLOAT lscore, 
 								   ScoreType st);
 	virtual void ReceiveGetRanks(bool onOff);
 
 	// tell everyone if a player's rank has changed
 	void	SendChangedRankMessage(PCSTR nick, PlayerType pt);
 
-
+	
 	void	SendAllPlayingRanks();		// send the ranks of eveyone playing
 	void	SendRank(SEBPlayer* pl);	// send one player's rank to the server.
 
@@ -168,5 +171,8 @@ private:
 	ScoreEngineBasicCfg*	cfg;
 
 };
+
+extern	PCSTR	ScorePlayerEventText[];
+extern	PCSTR	PlayerTypeText[];
 
 #endif	// _SCOREENGINEBASE_H_

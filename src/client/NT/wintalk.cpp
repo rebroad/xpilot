@@ -2,7 +2,7 @@
  *
  * XPilot, a multiplayer gravity war game.  Copyright (C) 1991-2001 by
  *
- *      Bjï¿½rn Stabell        <bjoern@xpilot.org>
+ *      Bjørn Stabell        <bjoern@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
  *      Dick Balaska         <dick@xpilot.org>
@@ -107,7 +107,7 @@ void Talk_cursor(bool visible)
 
 void Talk_map_window(bool map)
 {
-
+    
 }
 
 /*
@@ -185,7 +185,7 @@ char *Get_msg_from_history(int* pos, char *message, keys_t direction) {
 	save_talk_str = false;
 	return NULL;
     }
-
+ 
     /* search for the next message, return it */
     for (i=0; i < maxLinesInHistory; i++) {
 	if (direction == KEY_TALK_CURSOR_UP) {
@@ -294,14 +294,14 @@ int Talk_paste(char *data, int data_len, bool overwrite) {
     int new_len;			/* after pasting */
     int char_width = XTextWidth(talkFont, talk_str, 1);
     int max_width  = (TALK_WINDOW_WIDTH - 2*TALK_INSIDE_BORDER - 5);
-
+ 
     int accept_len;			/* for still matching the window */
     char paste_buf[MAX_CHARS -2];	/* gets the XBuffer */
     char tmp_str[MAX_CHARS - 2];
     char talk_backup[MAX_CHARS - 2];	/* no `collision' with data */
     bool cursor_visible = false;
     int i;
-
+ 
     if (!selectionAndHistory || !data || data_len == 0 || strlen(data) == 0) {
 	return 0;
     }
@@ -350,7 +350,7 @@ int Talk_paste(char *data, int data_len, bool overwrite) {
             paste_buf[i] = ' ';
         }
     }
-
+ 
     if (overwrite) {
 	strncpy(tmp_str, paste_buf, accept_len);
 	tmp_str[accept_len] = '\0';
@@ -363,7 +363,7 @@ int Talk_paste(char *data, int data_len, bool overwrite) {
 	       &talk_backup[talk_cursor.point]);
 	new_len = str_len + accept_len;
     }
-
+ 
 
     /*
      * graphics
@@ -412,7 +412,7 @@ int Talk_paste(char *data, int data_len, bool overwrite) {
     }
     Talk_cursor(cursor_visible);
 
-    return accept_len;
+    return accept_len; 
 }
 
 
@@ -430,14 +430,14 @@ void Clear_talk_selection()
     selection.talk.state = SEL_NONE;
     selection.talk.incl_nl = false;
 }
-
+     
 void Clear_draw_selection()
 {
     selection.draw.x1 = selection.draw.x2
 	= selection.draw.y1 = selection.draw.y2 = 0;
     selection.draw.state = SEL_NONE;
 }
-
+    
 /*
  * show that someone else owns the selection now
  */

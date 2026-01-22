@@ -11,7 +11,7 @@
  *      Jarrod Miller        <jarrod@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
- *      Bjï¿½rn Stabell        <bjoern@xpilot.org>
+ *      Bjørn Stabell        <bjoern@xpilot.org>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -99,7 +99,7 @@ protected:
 	virtual void ReceivePlayerEvent(PCSTR name, PlayerType pt, ScorePlayerEvent spe,
 									PCSTR real, PCSTR host, PCSTR addr, uint cookie);
 	virtual void ReceiveScoreEvent(PCSTR killer, PlayerType ptr, DFLOAT wscore,
-								   PCSTR killee, PlayerType pte, DFLOAT lscore,
+								   PCSTR killee, PlayerType pte, DFLOAT lscore, 
 								   ScoreType st);
 
 private:

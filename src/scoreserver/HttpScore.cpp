@@ -10,7 +10,7 @@
  *      Jarrod Miller        <jarrod@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
- *      Bjï¿½rn Stabell        <bjoern@xpilot.org>
+ *      Bjørn Stabell        <bjoern@xpilot.org>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -297,7 +297,7 @@ void HttpScore::HandlePlayerLine()
 	rankList = new ObjList;
 	sortedList = new ObjList;
 	playerList = new ObjList;
-
+	
 	if (robots && robots->s[0] == 'n')
 	{
 		ObjSortable* o = (ObjSortable*)theApp.scoreEngine->playerList.GetHead();
@@ -313,7 +313,7 @@ void HttpScore::HandlePlayerLine()
 			}
 			o = (ObjSortable*)o->GetNext();
 		}
-
+		
 	}
 	else
 	{

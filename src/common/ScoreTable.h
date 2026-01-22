@@ -4,7 +4,7 @@
  *
  *      Dick Balaska         <dick@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
- *      Bjï¿½rn Stabell        <bjoern@xpilot.org>
+ *      Bjørn Stabell        <bjoern@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -40,7 +40,7 @@ enum ScoreTableType {
 	STKills,		// Kills/Deaths
 	STIPVer,		// IP+Version number
 	STRank,			// Rank info from the ScoreServer
-
+	
 	STMAX			// number of types available
 };
 

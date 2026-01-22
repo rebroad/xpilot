@@ -10,7 +10,7 @@
  *      Jarrod Miller        <jarrod@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
- *      Bjï¿½rn Stabell        <bjoern@xpilot.org>
+ *      Bjørn Stabell        <bjoern@xpilot.org>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -136,7 +136,7 @@ ScoreServerCfg::ScoreServerCfg()
 	startTime = time(NULL);
 
 /*
-	String	s(128);
+	String	s(128);	
 	if (!getcwd(s.s, 128))
 		xpprintf("%sFailed to get rootDirectory, errno=%d\n", showtime(), xperrno);
 	else

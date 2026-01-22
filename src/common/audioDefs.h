@@ -1,4 +1,4 @@
-/* $Id: audioDefs.h,v 1.1 2004/05/01 19:13:57 dick Exp $
+/* $Id: audioDefs.h,v 1.2 2007/02/17 06:11:12 dick Exp $
  *
  * XPilot, a multiplayer gravity war game.  Copyright (C) 1991-2001 by
  *
@@ -25,6 +25,9 @@
  */
 /*
  * $Log: audioDefs.h,v $
+ * Revision 1.2  2007/02/17 06:11:12  dick
+ * MAX_SOUNDS becomes MAX_SOUND_EVENTS
+ *
  * Revision 1.1  2004/05/01 19:13:57  dick
  * Break audio enum to its own file
  *
@@ -117,7 +120,7 @@ enum {
     CANNON_EXPLOSION_SOUND,
     ASTEROID_HIT_SOUND,
     ASTEROID_BREAK_SOUND,
-    MAX_SOUNDS
+    MAX_SOUND_EVENTS
 };
 
 

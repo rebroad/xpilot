@@ -1,8 +1,8 @@
-/* $Id: Alliance.cpp,v 1.11 2004/05/07 04:27:41 dick Exp $
+/* $Id: Alliance.cpp,v 1.12 2007/01/10 18:14:47 dick Exp $
  *
  * XPilot, a multiplayer gravity war game.  Copyright (C) 1991-2001 by
  *
- *      Bjï¿½rn Stabell        <bjoern@xpilot.org>
+ *      Bjørn Stabell        <bjoern@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
  *      Dick Balaska         <dick@xpilot.org>
@@ -24,6 +24,10 @@
  */
 /*
  * $Log: Alliance.cpp,v $
+ * Revision 1.12  2007/01/10 18:14:47  dick
+ * All robot actions are now handled through RobotMan.
+ * There is one RobotMan per World.
+ *
  * Revision 1.11  2004/05/07 04:27:41  dick
  * _visibility becomes Visibility.  global updateScores becomes a member of World.
  * Handle rank/rate data from the scoreserver and send it to the client.
@@ -72,7 +76,7 @@
 #include "global.h"
 #include "proto.h"
 #include "World.h"
-#include "Robot.h"
+#include "RobotMan.h"
 #include "bit.h"
 #include "error.h"
 #include "commonproto.h"
@@ -136,7 +140,7 @@ void Player::InvitePlayer(int ally_ind)
     /* set & send invitation */
     invite = ally->id;
     if (IS_ROBOT_PTR(ally)) {
-	Robot_invite(world, ally_ind, Ind());
+		this->world->robotMan->Invite(ally_ind, Ind());
     }
     else if (IS_HUMAN_PTR(ally)) {
 	char msg[MSG_LEN];
@@ -464,7 +468,7 @@ static void Dissolve_alliance(World* w, int id)
     for (i = 0; i < w->numPlayers; i++) {
 	if (w->players[i]->alliance == id) {
 	    Alliance_remove_player(alliance, w->players[i]);
-	    if (!w->options.announceAlliances->GetBool()
+	    if (!w->options.announceAlliances->GetBool() 
 			&& IS_HUMAN_IND(w, i))
 		{
 			w->players[i]->SetMessage(" < Your alliance has been dissolved >");

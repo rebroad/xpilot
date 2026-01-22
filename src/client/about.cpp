@@ -2,7 +2,7 @@
  *
  * XPilot, a multiplayer gravity war game.  Copyright (C) 1991-2001 by
  *
- *      Bjï¿½rn Stabell        <bjoern@xpilot.org>
+ *      Bjørn Stabell        <bjoern@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
  *      Dick Balaska         <dick@xpilot.org>
@@ -326,8 +326,8 @@ void Expose_about_window(void)
 	"ABOUT XPILOT\n"
 	"\n"
 	"The game was conceived in its orignal form at the "
-	"University of Tromsï¿½ (Norway) by Ken Ronny Schouten and "
-	"Bjï¿½rn Stabell during the fall of 1991, but much of the game today "
+	"University of Tromsø (Norway) by Ken Ronny Schouten and "
+	"Bjørn Stabell during the fall of 1991, but much of the game today "
 	"is the result of hard efforts by Bert Gijsbers of the "
 	"molecular cytology lab at the University of Amsterdam (The Netherlands).  "
 	"Bert joined the team in the spring of 1993.\n"
@@ -345,7 +345,7 @@ void Expose_about_window(void)
 	"You can report any bug you find to <xpilot@xpilot.org>.\n"
 	"\n\n"
 	"Good luck as a future xpilot,\n"
-	"Bjï¿½rn Stabell, Ken Ronny Schouten, Bert Gijsbers & Dick Balaska",
+	"Bjørn Stabell, Ken Ronny Schouten, Bert Gijsbers & Dick Balaska",
 	colors[WHITE].pixel, colors[BLACK].pixel);
 	break;
 
@@ -630,12 +630,12 @@ int Handle_motd(long off, char *buf, int len, long filesize)
 			motd_buf[i] = '\n';
 		}
 	}
-	else if (filesize < motd_size)
+	else if (filesize < motd_size) 
 	{
 		motd_size = filesize;
 		motd_buf[motd_size] = '\0';
 	}
-	if (off < motd_size && len > 0)
+	if (off < motd_size && len > 0) 
 	{
 		if (off + len > motd_size)
 			len = motd_size - off;
@@ -644,7 +644,7 @@ int Handle_motd(long off, char *buf, int len, long filesize)
 	else if (len == 0 && off > 0)
 		return 0;
 
-	if (motd_size == 0)
+	if (motd_size == 0) 
 	{
 		if (motd_auto_popup) {
 			if (motd_buf != NULL) {

@@ -9,7 +9,7 @@
  *      Jarrod Miller        <jarrod@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
- *      Bjï¿½rn Stabell        <bjoern@xpilot.org>
+ *      Bjørn Stabell        <bjoern@xpilot.org>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -247,7 +247,7 @@ bool ScoreServerNetClient::SendScore(PCSTR nick, PlayerType pt, uint cookie,
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-bool ScoreServerNetClient::SendRank(PCSTR nick, PlayerType pt,
+bool ScoreServerNetClient::SendRank(PCSTR nick, PlayerType pt, 
 									int rank, DFLOAT rate)
 {
 	xpprintf(LOGMED, "Sending rank %s %d %.2f\n", nick, rank, rate);
@@ -287,7 +287,7 @@ int ScoreServerNetClient::ReceiveSetScore()
 	int		deaths;
 	uint	cookie;
 
-	if (crbuf.scanf("%s%c%u%d%d%d", &name, &pt, &cookie,
+	if (crbuf.scanf("%s%c%u%d%d%d", &name, &pt, &cookie, 
 									&score, &kills, &deaths) <= 0)
 	{
 		emh(emhThis, EmError, "ReceiveSetScore: Can't parse name");
@@ -295,7 +295,7 @@ int ScoreServerNetClient::ReceiveSetScore()
 	}
 	xpprintf(LOGMIN, "Recv score %s %.2f k:%d d:%d\n",
 		name, (DFLOAT)(score/100.0), kills, deaths);
-	ss->ReceiveSetScore(name, (PlayerType)pt, (DFLOAT)(score/100.0),
+	ss->ReceiveSetScore(name, (PlayerType)pt, (DFLOAT)(score/100.0), 
 						kills, deaths, cookie);
 	return(1);
 }
@@ -365,7 +365,7 @@ int ScoreServerNetClient::ReceiveScoreEvent()
 	char		sType;
 	ScoreType	st;
 
-	if (crbuf.scanf("%s%c%s%c%d%d%c", &killer, &ptr, &killee, &pte,
+	if (crbuf.scanf("%s%c%s%c%d%d%c", &killer, &ptr, &killee, &pte, 
 		&wscore, &lscore, &sType) <= 0)
 	{
 		emh(emhThis, EmError, "ReceiveSetScoreEvent: Can't parse all");
@@ -373,12 +373,12 @@ int ScoreServerNetClient::ReceiveScoreEvent()
 	}
 	st = (ScoreType)sType;
 	xpprintf(LOGMED, "%sScoreEvent %s / %s %.2f/%.2f %s\n", showtime(),
-		killer, killee, (DFLOAT)(wscore/100.0), (DFLOAT)(lscore/100.0),
+		killer, killee, (DFLOAT)(wscore/100.0), (DFLOAT)(lscore/100.0), 
 		(st >= 0 && st < ScoreTypeMAX) ? scoreTypes[st] : scoreTypes[ScoreTypeMAX]);
-	ss->ReceiveScoreEvent(killer, (PlayerType)ptr, (DFLOAT)(wscore/100.0),
+	ss->ReceiveScoreEvent(killer, (PlayerType)ptr, (DFLOAT)(wscore/100.0), 
 						  killee, (PlayerType)pte, (DFLOAT)(lscore/100.0), st);
 	return(1);
-
+	
 }
 
 ///////////////////////////////////////////////////////////////////////////////

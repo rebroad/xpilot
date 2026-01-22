@@ -2,7 +2,7 @@
  *
  * XPilot, a multiplayer gravity war game.  Copyright (C) 1991-2001 by
  *
- *      Bjï¿½rn Stabell        <bjoern@xpilot.org>
+ *      Bjørn Stabell        <bjoern@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
  *      Dick Balaska         <dick@xpilot.org>
@@ -150,7 +150,7 @@ void World::SetItemChance(int item)
     if (options.itemProbMult->GetDouble() * items[item].prob > 0)
 	{
 		items[item].chance = (int)(1.0
-			/ (options.itemProbMult->GetDouble()
+			/ (options.itemProbMult->GetDouble() 
 			* items[item].prob * blockWidth * blockHeight * GetFPS()));
 		items[item].chance = MAX(items[item].chance, 1);
     } else {
@@ -225,7 +225,7 @@ void World::TuneAsteroidProb()
 	if (options.asteroidProb->GetDouble() > 0)
 	{
 		asteroids.chance = (int)(1.0
-			/ (options.asteroidProb->GetDouble()
+			/ (options.asteroidProb->GetDouble() 
 			* blockWidth * blockHeight * GetFPS()));
 		asteroids.chance = MAX(asteroids.chance, 1);
 	}

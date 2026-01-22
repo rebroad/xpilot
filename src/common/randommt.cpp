@@ -49,7 +49,7 @@
 **	Indentation.
 **	No typedefs in external interface.
 **
-** $Id: randommt.cpp,v 1.2 2004/02/03 03:39:52 dick Exp $
+** $Id: randommt.cpp,v 1.3 2007/01/19 20:33:24 dick Exp $
 */
 #include "StdAfx.h"
 
@@ -142,7 +142,7 @@ unsigned int reloadMT(void)
     register int j;
 
     if (left < -1)
-	seedMT(4357U);
+		seedMT(4357U);
 
     left = N - 1, next = state + 1;
 
@@ -165,7 +165,7 @@ unsigned int randomMT(void)
     uint32 y;
 
     if (--left < 0)
-	return (reloadMT());
+		return (reloadMT());
 
     y = *next++;
     y ^= (y >> 11);
@@ -174,6 +174,9 @@ unsigned int randomMT(void)
     return (y ^ (y >> 18));
 }
 
+int randomMT(int limit) {
+	return(randomMT() % limit);
+}
 
 #ifdef MT_MAIN
 

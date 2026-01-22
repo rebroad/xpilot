@@ -1,4 +1,4 @@
-/* $Id: const.h,v 1.10 2004/05/20 22:14:37 dick Exp $
+/* $Id: const.h,v 1.12 2007/02/17 06:11:43 dick Exp $
  *
  * XPilot, a multiplayer gravity war game.  Copyright (C) 1991-2001 by
  *
@@ -22,6 +22,12 @@
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
  *  $Log: const.h,v $
+ *  Revision 1.12  2007/02/17 06:11:43  dick
+ *  Add PATH_LEN of 260
+ *
+ *  Revision 1.11  2007/01/13 22:31:27  dick
+ *  Copy MAX_NAME_LEN here from pack.h.  Robots like it here
+ *
  *  Revision 1.10  2004/05/20 22:14:37  dick
  *  NO_ID is common through all projects, not just the server
  *
@@ -156,10 +162,12 @@ extern DFLOAT		tbl_cos[];
 #define	COOKIENOSUP		1		// older clients don't support cookies
 #define	COOKIESPECIAL	2		// less than this are special cookies
 
+#define	MAX_NAME_LEN	16
 #define MAX_CHARS		80
 #define MSG_LEN			256
 
 #define FONT_LEN		256
+#define	PATH_LEN		260
 
 #define NUM_MODBANKS		4
 

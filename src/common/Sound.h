@@ -1,4 +1,4 @@
-/* $Id: Audio.h,v 1.4 2004/05/05 01:01:06 dick Exp $
+/* $Id: Sound.h,v 1.2 2007/02/17 20:19:45 dick Exp $
  *
  * XPilot, a multiplayer gravity war game.
  *
@@ -23,15 +23,20 @@
  *
  * See the file COPYRIGHT.TXT for current copyright information.
  *
- * Original XPilot audio code provided by Greg Renda (greg@ncd.com).
- *
- * Audio Manager for XPilot5.
+ * Define a Sound for XPilot5.
  *
  * See http://www.openal.org for details of the engine
  */
 /*
- * $Log: Audio.h,v $
- * Revision 1.4  2004/05/05 01:01:06  dick
+ * $Log: Sound.h,v $
+ * Revision 1.2  2007/02/17 20:19:45  dick
+ * Move the #ifdef SOUND around so that the basic objects function even if they
+ * can't emit any audio. This allows the SoundEditor to work.
+ *
+ * Revision 1.1  2007/02/17 06:09:05  dick
+ * Sound moves from client to common, so the SoundEditor can get at it
+ *
+ * Revision 1.1  2004/05/05 01:01:06  dick
  * Make a list of Sounds and bind an array of SoundEvents to them.
  * This is so we don't load 20 sounds which are all the same.
  * Add support for volume/gain.  Server sends gain, client configures gain,
@@ -48,52 +53,40 @@
  *
  */
 
-#ifndef	_AUDIO_H_
-#define	_AUDIO_H_
+#ifndef	_SOUND_H_
+#define	_SOUND_H_
 
 #ifdef	SOUND
-
 #ifdef	_UNIX
 #include <AL/al.h>
 #else
 #include <al.h>
 #endif
+#endif
 
-#include "audioDefs.h"
-#include "Sound.h"
-#include "SoundEvent.h"
 
-class Audio
-{
+#include "Obj.h"
+
+#define	MAX_RANDOM_SOUNDS	6
+
+class Sound : public Obj {
 public:
-	Audio();
-	void	Init(PCSTR confFile);
-	void	Cleanup();
+	Sound();
+	virtual ~Sound();
 
-	void	SetGain(double newGain);
-	int		Handle(int type, int volume);
+	bool	Load(PCSTR file, double gain = 1.0);
 
-	void	ListenerPosition (ALfloat* position, ALfloat* angle);
-	void	SetSourcePosition (Sound& sound, float *position);
-	void	SetSourceVelocity (Sound& sound, float *velocity);
-
-private:
-	void	InitAL();
-	bool	Load(Sound& sound);
-
-private:
-	bool	audioEnabled;
-	double	gain;
-//	ALuint	nextBuffer;
-	float	playerPos[3];			// camera/listener position
-
-	SoundList	soundList;
-
-	SoundEvent	sounds[MAX_SOUNDS];
-
+//	String	filename;
+	double	gain;				// 0.0 - 1.0 = volume
+#ifdef	SOUND
+	ALuint	buffer;
+	ALuint	source;
+#endif
 };
 
-extern	Audio	audio;	// singleton
+class SoundList : public ObjList {
+public:
+	Sound*	Find(PCSTR file);
+};
 
-#endif		// SOUND
-#endif		// _AUDIO_H_
+#endif			// _SOUND_H_

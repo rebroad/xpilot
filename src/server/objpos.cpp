@@ -2,7 +2,7 @@
  *
  * XPilot, a multiplayer gravity war game.  Copyright (C) 1991-2001 by
  *
- *      Bjï¿½rn Stabell        <bjoern@xpilot.org>
+ *      Bjørn Stabell        <bjoern@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
  *      Dick Balaska         <dick@xpilot.org>
@@ -69,7 +69,7 @@ void Object_position_set_clicks(Object *obj, int cx, int cy)
     ObjPosition		*pos = &obj->pos;
 
 #if 0
-    if (cx < 0 || cx >= PIXEL_TO_CLICK(World.width) ||
+    if (cx < 0 || cx >= PIXEL_TO_CLICK(World.width) || 
 	cy < 0 || cy >= PIXEL_TO_CLICK(World.height)) {
 	printf("BUG!  Illegal object position %d,%d\n", cx, cy);
 	*(double *)(-1) = 4321.0;
@@ -105,7 +105,7 @@ void Player_position_set_clicks(Player *pl, int cx, int cy)
     ObjPosition		*pos = &pl->pos;
 
 #if 0
-    if (cx < 0 || cx >= PIXEL_TO_CLICK(World.width) ||
+    if (cx < 0 || cx >= PIXEL_TO_CLICK(World.width) || 
 	cy < 0 || cy >= PIXEL_TO_CLICK(World.height)) {
 	printf("BUG!  Illegal player position %d,%d\n", cx, cy);
 	*(double *)(-1) = 4321.0;

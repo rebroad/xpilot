@@ -8,4 +8,6 @@ xpilots.001
 xpilots.dep
 Release
 Debug
+XPilot__
+*.ini
 .exrc

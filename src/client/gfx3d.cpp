@@ -2,7 +2,7 @@
  *
  * XPilot, a multiplayer gravity war game.  Copyright (C) 1991-2001 by
  *
- *      Bjï¿½rn Stabell        <bjoern@xpilot.org>
+ *      Bjørn Stabell        <bjoern@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
  *      Dick Balaska         <dick@xpilot.org>
@@ -38,15 +38,15 @@
 int Angle_add(int x, int dx)
 {
     x += dx;
-    if ( x > RES)
+    if ( x > RES) 
 	x -= RES;
-    if ( x < 0)
+    if ( x < 0) 
 	x += RES;
     return x;
 }
 
 void Rotate_point3d(point3d *sv, point3d *v,
-		  int angle_x, int angle_y, int angle_z)
+		  int angle_x, int angle_y, int angle_z) 
 {
 
 
@@ -88,7 +88,7 @@ void Rotate_point3d(point3d *sv, point3d *v,
     v->z=(int)tempz;
 }
 
-void Project_point3d(point3d *v,int zOffset)
+void Project_point3d(point3d *v,int zOffset) 
 {
     v->x = v->x*70/(v->z+zOffset);
     v->y = -(v->y*70/(v->z+zOffset));

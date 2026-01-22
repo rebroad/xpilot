@@ -1,8 +1,8 @@
-/* $Id: World.cpp,v 1.33 2004/05/22 15:12:34 dick Exp $
+/* $Id: World.cpp,v 1.34 2007/01/10 18:14:47 dick Exp $
  *
  * XPilot, a multiplayer gravity war game.  Copyright (C) 1991-2002 by
  *
- *      Bjï¿½rn Stabell        <bjoern@xpilot.org>
+ *      Bjørn Stabell        <bjoern@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
  *      Dick Balaska         <dick@xpilot.org>
@@ -24,6 +24,10 @@
  */
 /*
  *  $Log: World.cpp,v $
+ *  Revision 1.34  2007/01/10 18:14:47  dick
+ *  All robot actions are now handled through RobotMan.
+ *  There is one RobotMan per World.
+ *
  *  Revision 1.33  2004/05/22 15:12:34  dick
  *  Remove #ifndef SILENT
  *
@@ -166,6 +170,7 @@
 #include "Cannon.h"
 #include "ConnectionControlScoreServer.h"
 #include "WildMap.h"
+#include "RobotMan.h"
 
 char map_version[] = VERSION;
 
@@ -233,11 +238,14 @@ World::World()
 	tag						= NO_ID;
 	updateScores			= true;
 	firewallPortList.Set("50000-50100");
+	robotMan				= NULL;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 World::~World()
 {
+	if (robotMan)
+		delete robotMan;
 	if (scoreServer)
 		delete scoreServer;
 }
@@ -475,7 +483,7 @@ bool World::GrokMap(void)
 		warn("Cannot teamplay while in race mode -- ignoring teamplay");
 		CLR_BIT(rules->mode, TEAM_PLAY);
 	}
-
+		
 	ServerOptionBlocks* sob = options.mapData;
 	_y = 0;
 	_x = -1;
@@ -493,8 +501,8 @@ bool World::GrokMap(void)
 //				_y--;
 				_y++;
 				continue;
-			}
-			else
+			} 
+			else 
 			{
 				/* make extra border of solid rock */
 				c = 'x';
@@ -503,28 +511,28 @@ bool World::GrokMap(void)
 		else
 		{
 			c = sob->blocks[_x][blockHeight-1-_y].cdata;
-			if (c == '\0' || c == EOF)
+			if (c == '\0' || c == EOF) 
 			{
 				if (_x < blockWidth)
 				{
 					/* not enough map data on this line */
 					Map_missing_error(blockHeight - _y);
 					c = ' ';
-				}
-				else
+				} 
+				else 
 				{
 					c = '\n';
 				}
-			}
-			else
+			} 
+			else 
 			{
-				if (c == '\n' && _x < blockWidth)
+				if (c == '\n' && _x < blockWidth) 
 				{
 					/* not enough map data on this line */
 					Map_missing_error(blockHeight - _y);
 					c = ' ';
-				}
-				else
+				} 
+				else 
 				{
 					//bd++;
 				}
@@ -537,12 +545,12 @@ bool World::GrokMap(void)
 			_x = -1;
 			continue;
 		}
-		/*
+		/* 
 		if (_x >= x || c == '\n')
 		{
 			_y--; _x = -1;
 			if (c != '\n')
-			{						// Get rest of line
+			{						// Get rest of line 
 				Map_extra_error(y - _y);
 				while (c != '\n' && c != EOF)
 				{
@@ -665,7 +673,7 @@ bool World::GrokMap(void)
 	}
 	if (numAsteroidConcs > 0
 		&& (asteroidConcs = (AsteroidConcentrator*)
-			malloc(numAsteroidConcs * sizeof(AsteroidConcentrator))) == NULL)
+			malloc(numAsteroidConcs * sizeof(AsteroidConcentrator))) == NULL) 
 	{
 		error("Out of memory - asteroid concentrators");
 		exit(-1);
@@ -1052,7 +1060,7 @@ bool World::GrokMap(void)
 		 */
 		if ((worm_norm) ? (worm_norm + worm_out < 2)
 			: (worm_in) ? (worm_out < 1)
-			: (worm_out > 0))
+			: (worm_out > 0)) 
 		{
 			int i;
 
@@ -1204,7 +1212,7 @@ void World::FindBaseDirection()
 		/*BASES SNAP TO UPWARDS ATTRACTOR FIRST*/
 		if (_y == blockHeight - 1
 			&& block[blockWidth][0] == BASE_ATTRACTOR
-			&& BIT(rules->mode, WRAP_PLAY))
+			&& BIT(rules->mode, WRAP_PLAY)) 
 		{  /*check wrapped*/
 			if (att == -1 || dir == DIR_UP)
 			{
@@ -1217,8 +1225,8 @@ void World::FindBaseDirection()
 			}
 		}
 		/*THEN DOWNWARDS ATTRACTORS*/
-		if (_y == 0
-			&& block[blockWidth][blockHeight-1] == BASE_ATTRACTOR
+		if (_y == 0 
+			&& block[blockWidth][blockHeight-1] == BASE_ATTRACTOR 
 			&& BIT(rules->mode, WRAP_PLAY))
 		{ /*check wrapped*/
 			if (att == -1 || dir == DIR_DOWN) {
@@ -1231,7 +1239,7 @@ void World::FindBaseDirection()
 			}
 		}
 		/*THEN RIGHTWARDS ATTRACTORS*/
-		if (_x == blockWidth - 1
+		if (_x == blockWidth - 1 
 			&& block[0][_y] == BASE_ATTRACTOR
 			&& BIT(rules->mode, WRAP_PLAY))
 		{ /*check wrapped*/

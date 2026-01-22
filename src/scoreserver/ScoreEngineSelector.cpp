@@ -1,4 +1,4 @@
-/* $Id: ScoreEngineSelector.cpp,v 1.8 2004/07/07 19:29:34 dick Exp $
+/* $Id: ScoreEngineSelector.cpp,v 1.11 2007/02/03 08:03:33 dick Exp $
  *
  * XPScoreServer - Who's on first?
  * ScoreEngineSelector - Create a ScoreEngine based on which one we want
@@ -31,6 +31,15 @@
  */
 /*
  * $Log: ScoreEngineSelector.cpp,v $
+ * Revision 1.11  2007/02/03 08:03:33  dick
+ * MYSQLFLAG becomes _MYSQLFLAG
+ *
+ * Revision 1.10  2007/01/30 06:56:04  dick
+ * Optionally build the sql engine
+ *
+ * Revision 1.9  2007/01/29 04:46:04  dick
+ * Add the SQL engine
+ *
  * Revision 1.8  2004/07/07 19:29:34  dick
  * Delete dead secfg
  *
@@ -82,8 +91,14 @@
 #include "engines/ScoreEngineBasicXML.h"
 #include "engines/ScoreEngineBasicXMLCfg.h"
 
+#ifdef	_MYSQLFLAG
+#include "engines/sql/ScoreEngineSoloSQL.h"
+#include "engines/sql/ScoreEngineSoloSQLCfg.h"
+#endif
+
 extern PCSTR	s_Basic;
 extern PCSTR	s_BasicXML;
+extern PCSTR	s_SoloSQL;
 
 #define	xarOBJECT	ScoreEngineSelector
 xarDECLARES;
@@ -91,6 +106,7 @@ xarDeclareToken(ScoreEngineSelector);
 xarDefineToken(ScoreEngineCfg);
 xarDefineToken(ScoreEngineBasicCfg);
 xarDefineToken(ScoreEngineBasicXMLCfg);
+xarDefineToken(ScoreEngineSoloSQLCfg);
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -110,17 +126,25 @@ void ScoreEngineSelector::Init()
 	list.Add((Obj*)ScoreEngine::Install());
 	list.Add((Obj*)ScoreEngineBasic::Install());
 	list.Add((Obj*)ScoreEngineBasicXML::Install());
+#ifdef	_MYSQLFLAG
+	list.Add((Obj*)ScoreEngineSoloSQL::Install());
+#endif
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 ScoreEngine* ScoreEngineSelector::Select(PCSTR engineName)
 {
+	xpprintf("Try selecting engine %s\n", engineName);
 	selectedSECfg = (ScoreEngineCfg*)list.Find(engineName);
 
 	if (!strcmp(engineName, s_Basic))
 		return(new ScoreEngineBasic(selectedSECfg));
 	if (!strcmp(engineName, s_BasicXML))
 		return(new ScoreEngineBasicXML(selectedSECfg));
+#ifdef	_MYSQLFLAG
+	if (!strcmp(engineName, s_SoloSQL))
+		return(new ScoreEngineSoloSQL(selectedSECfg));
+#endif
 	else
 		return(new ScoreEngine(selectedSECfg));
 }
@@ -151,6 +175,9 @@ void ScoreEngineSelector::XMLStartHandler(void *data, const char *el, const char
 	xarParseObject(ScoreEngineCfg);
 	xarParseObject(ScoreEngineBasicCfg);
 	xarParseObject(ScoreEngineBasicXMLCfg);
+#ifdef	_MYSQLFLAG
+	xarParseObject(ScoreEngineSoloSQLCfg);
+#endif
 }
 
 ///////////////////////////////////////////////////////////////////////////////

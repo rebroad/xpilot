@@ -1,4 +1,4 @@
-/* $Id: netclient.cpp,v 1.32 2004/06/03 06:14:27 dick Exp $
+/* $Id: netclient.cpp,v 1.38 2007/02/17 06:18:15 dick Exp $
  *
  * netclient - receive stuff from the server and decode it.
  *
@@ -6,7 +6,7 @@
  *
  * XPilot, a multiplayer gravity war game.	Copyright (C) 1991-2001 by
  *
- *		Bjï¿½rn Stabell		 <bjoern@xpilot.org>
+ *		Bjørn Stabell		 <bjoern@xpilot.org>
  *		Ken Ronny Schouten	 <ken@xpilot.org>
  *		Bert Gijsbers		 <bert@xpilot.org>
  *		Dick Balaska		 <dick@xpilot.org>
@@ -27,6 +27,27 @@
  */
 /*
  * $Log: netclient.cpp,v $
+ * Revision 1.38  2007/02/17 06:18:15  dick
+ * client/Audio becomes common/AudioMan.
+ *
+ * Revision 1.37  2007/02/12 07:57:18  dick
+ * Support RobotWatchDeco, which is decorated shapes displayed on the playfield.
+ *
+ * Revision 1.36  2007/01/18 21:09:55  dick
+ * Add an ErrHandler to the client.
+ *
+ * Revision 1.35  2007/01/17 21:35:15  dick
+ * Encapsulate all of the RobotWatch features into a RobotWatchMan object.
+ *
+ * Revision 1.34  2007/01/17 08:59:49  dick
+ * RobotWatch is a list of Strings sent from the client when a player is paused
+ * and watching a robot.  This list contains diagnostic information about
+ * what the heck the robot thinks it's doing.
+ * It's kinda like the Terminator view where he's looking at a 6502 dump.
+ *
+ * Revision 1.33  2007/01/09 21:35:19  dick
+ * Add support for a 'Mute' button on the menu.
+ *
  * Revision 1.32  2004/06/03 06:14:27  dick
  * winAudio.* is gone.
  *
@@ -188,9 +209,10 @@
 #include "Ini.h"
 #include "password.h"
 #include "ScoreTable.h"
+#include "RobotWatchMan.h"
 
 #ifdef	SOUND
-#include "Audio.h"
+#include "AudioMan.h"
 #endif
 
 char netclient_version[] = VERSION;
@@ -242,7 +264,7 @@ static char 			talk_str[MAX_CHARS];
 
 Connectparam		myConpar;
 
-/*
+/******************************************************************************
  * Initialize the function dispatch tables.
  * There are two tables.  One for the semi-important unreliable
  * data like frame updates.
@@ -295,6 +317,9 @@ static void Receive_init(void)
 	receive_tbl[PKT_WRECKAGE]	= Receive_wreckage;
 	receive_tbl[PKT_ASTEROID]	= Receive_asteroid;
 	receive_tbl[PKT_WORMHOLE]	= Receive_wormhole;
+	receive_tbl[PKT_ROBOT_WATCH]= ReceiveRobotWatch;
+	receive_tbl[PKT_ROBOT_WATCHDECO]= ReceiveRobotWatchDeco;
+	
 	for (i = 0; i < DEBRIS_TYPES; i++) {
 		receive_tbl[PKT_DEBRIS + i] = Receive_debris;
 	}
@@ -319,7 +344,7 @@ static void Receive_init(void)
 
 }
 
-/*
+/******************************************************************************
  * Uncompress the map which is compressed using a simple
  * Run-Length-Encoding algorithm.
  * The map object type is encoded in the lower seven bits
@@ -352,40 +377,40 @@ static int Uncompress_map(void)
 	/* Point to last uncompressed map byte */
 	ump = Setup->map_data + Setup->x * Setup->y - 1;
 
-	while (cmp >= Setup->map_data)
+	while (cmp >= Setup->map_data) 
 	{
-		for (p = cmp; p > Setup->map_data; p--)
+		for (p = cmp; p > Setup->map_data; p--) 
 		{
-			if ((p[-1] & SETUP_COMPRESSED) == 0)
+			if ((p[-1] & SETUP_COMPRESSED) == 0) 
 			{
 				break;
 			}
 		}
-		if (p == cmp)
+		if (p == cmp) 
 		{
 			*ump-- = *cmp--;
 			continue;
 		}
-		if ((cmp - p) % 2 == 0)
+		if ((cmp - p) % 2 == 0) 
 		{
 			*ump-- = *cmp--;
 		}
-		while (p < cmp)
+		while (p < cmp) 
 		{
 			count = *cmp--;
-			if (count < 2)
+			if (count < 2) 
 			{
 				seterrno(0);
 				error("Map compress count error %d", count);
 				return -1;
 			}
 			*cmp &= ~SETUP_COMPRESSED;
-			for (i = 0; i < count; i++)
+			for (i = 0; i < count; i++) 
 			{
 				*ump-- = *cmp;
 			}
 			cmp--;
-			if (ump < cmp)
+			if (ump < cmp) 
 			{
 				seterrno(0);
 				error("Map uncompression error (%d,%d)",
@@ -394,7 +419,7 @@ static int Uncompress_map(void)
 			}
 		}
 	}
-	if (ump != cmp)
+	if (ump != cmp) 
 	{
 		seterrno(0);
 		error("map uncompress error (%d,%d)",
@@ -405,7 +430,7 @@ static int Uncompress_map(void)
 	return 0;
 }
 
-/*
+/******************************************************************************
  * Receive the map data and some game parameters from
  * the server.	The map data may be in compressed form.
  */
@@ -452,7 +477,7 @@ int Net_setup(void)
 				if (Setup->map_data_len <= 0
 					|| Setup->x <= 0
 					|| Setup->y <= 0
-					|| Setup->map_data_len > Setup->x * Setup->y)
+					|| Setup->map_data_len > Setup->x * Setup->y) 
 				{
 						seterrno(0);
 					error("Got bad map specs from server (%d,%d,%d)",
@@ -462,7 +487,7 @@ int Net_setup(void)
 				Setup->width = Setup->x * BLOCK_SZ;
 				Setup->height = Setup->y * BLOCK_SZ;
 				if (Setup->map_order != SETUP_MAP_ORDER_XY
-					&& Setup->map_order != SETUP_MAP_UNCOMPRESSED)
+					&& Setup->map_order != SETUP_MAP_UNCOMPRESSED) 
 				{
 						seterrno(0);
 					error("Unknown map order type (%d)", Setup->map_order);
@@ -548,7 +573,7 @@ int Net_setup(void)
 	return 0;
 }
 
-/*
+/******************************************************************************
  * Send the first packet to the server with our name,
  * nick and display contained in it.
  * The server uses this data to verify that the packet
@@ -577,7 +602,7 @@ int Net_verify(Connectparam* conpar)
 			}
 			wbuf.Clear();
 /*				IFWINDOWS( Trace("Verifying to sock=%d\n", wbuf.sock); ) */
-			n = wbuf.printf("%c%s%s%s", PKT_VERIFY,
+			n = wbuf.printf("%c%s%s%s", PKT_VERIFY, 
 				(PCSTR)conpar->realName, (PCSTR)conpar->nick, (PCSTR)conpar->dispName);
 			if (conpar->serverVersion >= 0x5000)
 				wbuf.printf("%d", conpar->cookie);
@@ -656,7 +681,7 @@ int Net_verify(Connectparam* conpar)
 	return 0;
 }
 
-/*
+/******************************************************************************
  * Open the datagram socket and allocate the network data
  * structures like buffers.
  * Currently there are three different buffers used:
@@ -678,8 +703,8 @@ int Net_init(PCSTR server, int port)
 #endif
 
 	Receive_init();
-	if (!iniClient.clientPortStart
-		 || !iniClient.clientPortEnd
+	if (!iniClient.clientPortStart 
+		 || !iniClient.clientPortEnd 
 		 || (iniClient.clientPortStart > iniClient.clientPortEnd))
 	{
 		if (sock.OpenUdp(NULL, 0) == SOCK_IS_ERROR)
@@ -699,20 +724,21 @@ int Net_init(PCSTR server, int port)
 				break;
 			}
 		}
-		if (found_socket == 0)
+		if (found_socket == 0) 
 		{
 			error("Could not find a usable port in given port range");
 			return -1;
 		}
 	}
-
-
+	
+	
 	if (server && sock.Connect(server, port) == -1) {
 		error("Can't connect to server %s on port %d", server, port);
 		sock.Close();
 		return -1;
 	}
 	wbuf.sock = sock;
+
 	if (sock.SetNonBlocking(1) == -1) {
 		error("Can't make socket non-blocking");
 		return -1;
@@ -732,12 +758,17 @@ int Net_init(PCSTR server, int port)
 	for (i = 0; i < iniClient.receiveWindowSize; i++) {
 		Frames[i].loops = 0;
 		Frames[i].sbuf = new Sockbuf;
+		Frames[i].sbuf->SetErrMsgHandler(emh, emhThis);
+
 		if (Frames[i].sbuf->Init(&sock, CLIENT_RECV_SIZE,
 						 SOCKBUF_READ | SOCKBUF_DGRAM) == -1) {
 			error("No memory for read buffer (%u)", CLIENT_RECV_SIZE);
 			return -1;
 		}
 	}
+
+	cbuf.SetErrMsgHandler(emh, emhThis);
+	wbuf.SetErrMsgHandler(emh, emhThis);
 
 	/* reliable data buffer, not a valid socket filedescriptor needed */
 	if (cbuf.Init(NULL, CLIENT_RECV_SIZE,
@@ -766,7 +797,7 @@ int Net_init(PCSTR server, int port)
 	return 0;
 }
 
-/*
+/******************************************************************************
  * Cleanup all the network buffers and close the datagram socket.
  * Also try to send the server a quit packet if possible.
  * Because this quit packet may get lost we send one at the
@@ -818,7 +849,7 @@ void Net_cleanup(void)
 	}
 }
 
-/*
+/******************************************************************************
  * Calculate a new `keyboard-changed-id' which the server has to ack.
  */
 void Net_key_change(void)
@@ -827,7 +858,7 @@ void Net_key_change(void)
 	Key_update();
 }
 
-/*
+/******************************************************************************
  * Flush the network output buffer if it has some data in it.
  * Called by the main loop before blocking on a select(2) call.
  */
@@ -853,7 +884,7 @@ int Net_flush(void)
 	return 1;
 }
 
-/*
+/******************************************************************************
  * Return the socket filedescriptor for use in a select(2) call.
  */
 int Net_fd(void)
@@ -861,7 +892,7 @@ int Net_fd(void)
 	return rbuf.sock.fd;
 }
 
-/*
+/******************************************************************************
  * Try to send a `start play' packet to the server and get an
  * acknowledgement from the server.  This is called after
  * we have initialized all our other stuff like the user interface
@@ -1028,7 +1059,7 @@ void Net_init_lag_measurement(void)
 	}
 }
 
-/*
+/******************************************************************************
  * Process a packet which most likely is a frame update,
  * perhaps with some reliable data in it.
  */
@@ -1052,7 +1083,7 @@ static int Net_packet(void)
 
 		if (receive_tbl[type] == NULL) {
 				seterrno(0);
-			IFNWINDOWS(error("Received unknown packet type (%d, %d), dropping frame.",
+			IFNWINDOWS(error("Received unknown packet type (%d, %d), dropping frame.", 
 						type, prev_type);)
 			rbuf.Clear();
 			break;
@@ -1157,7 +1188,7 @@ static void Net_keyboard_track() {
 #endif
 }
 
-/*
+/******************************************************************************
  * Do some (simple) packet loss/drop measurement
  * the results of which can be drawn on the display.
  * This is mainly for debugging and analysis.
@@ -1202,7 +1233,8 @@ static void Net_measurement(long loop, int status)
    }
 }
 
-/* Do some lag measurement the results of which can
+/******************************************************************************
+ * Do some lag measurement the results of which can
  * be drawn on the display.  This is mainly for
  * debugging and analysis.
  */
@@ -1227,7 +1259,7 @@ static void Net_lag_measurement(long key_ack)
 		printf("N ");
 	}
 #endif
-
+	
 	num = 0;
 	sum = 0;
 	for (i = 0; i < KEYBOARD_STORE; i++) {
@@ -1242,7 +1274,7 @@ static void Net_lag_measurement(long key_ack)
 	}
 }
 
-/*
+/******************************************************************************
  * Read a packet into one of the input buffers.
  * If it is a frame update then we check to see
  * if it is an old or duplicate one.  If it isn't
@@ -1302,7 +1334,7 @@ static int Net_read(frame_buf_t *frame)
 		/*IFWINDOWS( Trace("Net_read: wbuf->len=%d\n", wbuf.len); )*/
 }
 
-/*
+/******************************************************************************
  * Read frames from the net until there are no more available.
  * If the server has floaded us with frame updates then we should
  * discard everything except the most recent ones.	The X server
@@ -1392,7 +1424,7 @@ int Net_input(void)
 		if ((i == iniClient.receiveWindowSize - 1 && i > 0)
 #if defined(_WINDOWS) && !defined(_CYGWIN)
 				|| drawPending
-				|| (iniClient.threadedDraw &&
+				|| (iniClient.threadedDraw && 
 								!WaitForSingleObject(dinfo.eventNotDrawing, 0) == WAIT_OBJECT_0)
 #endif
 				) {
@@ -1508,7 +1540,7 @@ int Net_input(void)
 	return 1 + (last_frame->loops > oldest_frame->loops);
 }
 
-/*
+/******************************************************************************
  * Receive the beginning of a new frame update packet,
  * which contains the loops number.
  */
@@ -1550,10 +1582,11 @@ int Receive_start(void)
 	if ((n = Handle_start(loops)) == -1) {
 		return -1;
 	}
+	robotWatchMan.FrameInit();
 	return 1;
 }
 
-/*
+/******************************************************************************
  * Receive the end of a new frame update packet,
  * which should contain the same loops number
  * as the frame head.  If this terminating packet
@@ -1575,7 +1608,7 @@ int Receive_end(void)
 	return 1;
 }
 
-/*
+/******************************************************************************
  * Receive a message string.  This currently is rather
  * inefficiently encoded as an ascii string.
  */
@@ -1594,7 +1627,7 @@ int Receive_message(void)
 	return 1;
 }
 
-/*
+/******************************************************************************
  * Receive the remaining playing time.
  */
 int Receive_time_left(void)
@@ -1612,7 +1645,7 @@ int Receive_time_left(void)
 	return 1;
 }
 
-/*
+/******************************************************************************
  * Receive the server MOTD.
  */
 int Receive_motd(void)
@@ -1637,7 +1670,7 @@ int Receive_motd(void)
 	return 1;
 }
 
-/*
+/******************************************************************************
  * Ask the server to send us the server MOTD.
  */
 int Net_ask_for_motd(long offset, long maxlen)
@@ -1688,9 +1721,9 @@ static void Check_view_dimensions(void)
 		ext_view_y_offset = (height_wanted - active_view_height) / 2;
 	}
 }
+  
 
-
-/*
+/******************************************************************************
  * Receive the packet with counts for all the items.
  * New since pack version 4203.
  */
@@ -1723,7 +1756,7 @@ int Receive_self_items(void)
 	return (rbuf.ptr - rbuf_ptr_start);
 }
 
-/*
+/******************************************************************************
  * Receive the packet with all player information for the HUD.
  * If this packet is missing from the frame update then the player
  * isn't actively playing, which means he's either damaged, dead,
@@ -1865,6 +1898,7 @@ int Receive_self(void)
 	return 1;
 }
 
+///////////////////////////////////////////////////////////////////////////////
 int Receive_modifiers(void)
 {
 	int 		n;
@@ -1879,6 +1913,7 @@ int Receive_modifiers(void)
 	return 1;
 }
 
+///////////////////////////////////////////////////////////////////////////////
 int Receive_refuel(void)
 {
 	int 		n;
@@ -1895,6 +1930,7 @@ int Receive_refuel(void)
 	return 1;
 }
 
+///////////////////////////////////////////////////////////////////////////////
 int Receive_connector(void)
 {
 	int 		n;
@@ -1911,6 +1947,7 @@ int Receive_connector(void)
 	return 1;
 }
 
+///////////////////////////////////////////////////////////////////////////////
 int Receive_laser(void)
 {
 	int 		n;
@@ -1927,6 +1964,7 @@ int Receive_laser(void)
 	return 1;
 }
 
+///////////////////////////////////////////////////////////////////////////////
 int Receive_missile(void)
 {
 	int 		n;
@@ -1942,6 +1980,7 @@ int Receive_missile(void)
 	return 1;
 }
 
+///////////////////////////////////////////////////////////////////////////////
 int Receive_ball(void)
 {
 	int 		n;
@@ -1957,6 +1996,7 @@ int Receive_ball(void)
 	return 1;
 }
 
+///////////////////////////////////////////////////////////////////////////////
 int Receive_ship(void)
 {
 	int 		n, shield, cloak, eshield, phased, deflector;
@@ -1981,6 +2021,7 @@ int Receive_ship(void)
 	return 1;
 }
 
+///////////////////////////////////////////////////////////////////////////////
 int Receive_mine(void)
 {
 	int 		n;
@@ -1997,6 +2038,7 @@ int Receive_mine(void)
 	return 1;
 }
 
+///////////////////////////////////////////////////////////////////////////////
 int Receive_item(void)
 {
 	int 		n;
@@ -2014,6 +2056,7 @@ int Receive_item(void)
 	return 1;
 }
 
+///////////////////////////////////////////////////////////////////////////////
 int Receive_destruct(void)
 {
 	int 		n;
@@ -2029,6 +2072,7 @@ int Receive_destruct(void)
 	return 1;
 }
 
+///////////////////////////////////////////////////////////////////////////////
 int Receive_shutdown(void)
 {
 	int 		n;
@@ -2044,6 +2088,7 @@ int Receive_shutdown(void)
 	return 1;
 }
 
+///////////////////////////////////////////////////////////////////////////////
 int Receive_thrusttime(void)
 {
 	int 		n;
@@ -2059,6 +2104,7 @@ int Receive_thrusttime(void)
 	return 1;
 }
 
+///////////////////////////////////////////////////////////////////////////////
 int Receive_shieldtime(void)
 {
 	int 		n;
@@ -2074,6 +2120,7 @@ int Receive_shieldtime(void)
 	return 1;
 }
 
+///////////////////////////////////////////////////////////////////////////////
 int Receive_phasingtime(void)
 {
 	int 		n;
@@ -2089,6 +2136,7 @@ int Receive_phasingtime(void)
 	return 1;
 }
 
+///////////////////////////////////////////////////////////////////////////////
 int Receive_rounddelay(void)
 {
 	int 		n;
@@ -2104,6 +2152,7 @@ int Receive_rounddelay(void)
 	return 1;
 }
 
+///////////////////////////////////////////////////////////////////////////////
 int Receive_fastshot(void)
 {
 	int 				n, r, type;
@@ -2124,6 +2173,7 @@ int Receive_fastshot(void)
 	return (r == -1) ? -1 : 1;
 }
 
+///////////////////////////////////////////////////////////////////////////////
 int Receive_debris(void)
 {
 	int 				n, r, type;
@@ -2142,6 +2192,7 @@ int Receive_debris(void)
 	return (r == -1) ? -1 : 1;
 }
 
+///////////////////////////////////////////////////////////////////////////////
 int Receive_wreckage(void)		/* since 3.8.0 */
 {
 	int 				n;
@@ -2162,6 +2213,7 @@ int Receive_wreckage(void)		/* since 3.8.0 */
 	return 1;
 }
 
+///////////////////////////////////////////////////////////////////////////////
 int Receive_asteroid(void)		/* since 4.4.0 */
 {
 	int 				n;
@@ -2182,6 +2234,43 @@ int Receive_asteroid(void)		/* since 4.4.0 */
 	return 1;
 }
 
+///////////////////////////////////////////////////////////////////////////////
+int ReceiveRobotWatch(void)		/* since 5.0.1 */
+{
+	int 				n;
+	short				y;
+	u_byte				ch;
+	char		msg[MSG_LEN];
+
+	if ((n = rbuf.scanf("%c%hd%S", &ch, &y, msg)) <= 0) {
+		return n;
+	}
+
+	if ((n = robotWatchMan.HandleRobotWatch(y, msg)) == -1) {
+		return -1;
+	}
+	return 1;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+int ReceiveRobotWatchDeco(void)		/* since 5.0.1 */
+{
+	int 				n;
+	short				x,y;
+	u_byte				type, radius, color;
+	u_byte				ch;
+
+	if ((n = rbuf.scanf("%c%c%hd%hd%c%c", &ch, &type, &x, &y, &radius, &color)) <= 0) {
+		return n;
+	}
+
+	if ((n = robotWatchMan.HandleRobotWatchDeco(type, x, y, radius, color)) == -1) {
+		return -1;
+	}
+	return 1;
+}
+
+///////////////////////////////////////////////////////////////////////////////
 int Receive_wormhole(void)		/* since 4.5.0 */
 {
 	int 				n;
@@ -2198,6 +2287,7 @@ int Receive_wormhole(void)		/* since 4.5.0 */
 	return 1;
 }
 
+///////////////////////////////////////////////////////////////////////////////
 int Receive_ecm(void)
 {
 	int 				n;
@@ -2213,6 +2303,7 @@ int Receive_ecm(void)
 	return 1;
 }
 
+///////////////////////////////////////////////////////////////////////////////
 int Receive_trans(void)
 {
 	int 				n;
@@ -2229,6 +2320,7 @@ int Receive_trans(void)
 	return 1;
 }
 
+///////////////////////////////////////////////////////////////////////////////
 int Receive_paused(void)
 {
 	int 				n;
@@ -2244,6 +2336,7 @@ int Receive_paused(void)
 	return 1;
 }
 
+///////////////////////////////////////////////////////////////////////////////
 int Receive_radar(void)
 {
 	int 				n;
@@ -2263,6 +2356,7 @@ int Receive_radar(void)
 	return 1;
 }
 
+///////////////////////////////////////////////////////////////////////////////
 int Receive_fastradar(void)
 {
 	int 				n, i, r = 1;
@@ -2298,6 +2392,7 @@ int Receive_fastradar(void)
 	return (r == -1) ? -1 : 1;
 }
 
+///////////////////////////////////////////////////////////////////////////////
 int Receive_damaged(void)
 {
 	int 				n;
@@ -2312,6 +2407,7 @@ int Receive_damaged(void)
 	return 1;
 }
 
+///////////////////////////////////////////////////////////////////////////////
 int Receive_leave(void)
 {
 	int 				n;
@@ -2327,6 +2423,7 @@ int Receive_leave(void)
 	return 1;
 }
 
+///////////////////////////////////////////////////////////////////////////////
 int Receive_war(void)
 {
 	int 				n;
@@ -2343,6 +2440,7 @@ int Receive_war(void)
 	return 1;
 }
 
+///////////////////////////////////////////////////////////////////////////////
 /*
  * Receive the id of the player we get frame updates for (game over mode),
  * or perhaps just who this player is locked on.
@@ -2354,13 +2452,14 @@ int Receive_eyes(void)
 	short 			watchedId;
 	u_byte			ch;
 
-	if ((n = cbuf.scanf("%c%hd%hd", &ch, &watcherId, &watchedId)) <= 0)
+	if ((n = cbuf.scanf("%c%hd%hd", &ch, &watcherId, &watchedId)) <= 0) 
 				return n;
 	if ((n = Handle_eyes(watcherId, watchedId)) == -1)
 				return -1;
 	return 1;
 }
 
+///////////////////////////////////////////////////////////////////////////////
 int Receive_seek(void)
 {
 	int 				n;
@@ -2377,6 +2476,7 @@ int Receive_seek(void)
 	return 1;
 }
 
+///////////////////////////////////////////////////////////////////////////////
 int Receive_player(void)
 {
 	int 				n;
@@ -2410,6 +2510,7 @@ int Receive_player(void)
 	return 1;
 }
 
+///////////////////////////////////////////////////////////////////////////////
 int Receive_score_object(void)
 {
 	int 				n;
@@ -2439,6 +2540,7 @@ int Receive_score_object(void)
 	return 1;
 }
 
+///////////////////////////////////////////////////////////////////////////////
 int Receive_score(void)
 {
 	int 		n;
@@ -2476,6 +2578,7 @@ int Receive_score(void)
 	return 1;
 }
 
+///////////////////////////////////////////////////////////////////////////////
 int ReceiveScoreTable()
 {
 	int		n;
@@ -2487,7 +2590,7 @@ int ReceiveScoreTable()
 	int		rate;
 	char	s[MAX_CHARS];
 	String	msg;
-
+	
 	if ((n = cbuf.scanf("%c%c", &ch, &sub)) <= 0)
 		return(n);
 	switch (sub) {
@@ -2511,6 +2614,7 @@ int ReceiveScoreTable()
 	return(1);
 }
 
+///////////////////////////////////////////////////////////////////////////////
 int Receive_team_score(void)
 {
 	int 				n;
@@ -2529,6 +2633,7 @@ int Receive_team_score(void)
 	return 1;
 }
 
+///////////////////////////////////////////////////////////////////////////////
 int Receive_timing(void)
 {
 	int 				n,
@@ -2550,6 +2655,7 @@ int Receive_timing(void)
 	return 1;
 }
 
+///////////////////////////////////////////////////////////////////////////////
 int Receive_fuel(void)
 {
 	int 				n;
@@ -2568,6 +2674,7 @@ int Receive_fuel(void)
 	return 1;
 }
 
+///////////////////////////////////////////////////////////////////////////////
 int Receive_cannon(void)
 {
 	int 				n;
@@ -2586,6 +2693,7 @@ int Receive_cannon(void)
 	return 1;
 }
 
+///////////////////////////////////////////////////////////////////////////////
 int Receive_target(void)
 {
 	int 				n;
@@ -2607,6 +2715,7 @@ int Receive_target(void)
 	return 1;
 }
 
+///////////////////////////////////////////////////////////////////////////////
 int Receive_base(void)
 {
 	int 				n;
@@ -2623,6 +2732,7 @@ int Receive_base(void)
 	return 1;
 }
 
+///////////////////////////////////////////////////////////////////////////////
 int Receive_magic(void)
 {
 	int 				n;
@@ -2634,6 +2744,7 @@ int Receive_magic(void)
 	return 1;
 }
 
+///////////////////////////////////////////////////////////////////////////////
 int Receive_string(void)
 {
 	int 				n;
@@ -2652,6 +2763,7 @@ int Receive_string(void)
 	return 1;
 }
 
+///////////////////////////////////////////////////////////////////////////////
 int Receive_loseitem(void)
 {
 	int 		n;
@@ -2665,6 +2777,7 @@ int Receive_loseitem(void)
 	return 1;
 }
 
+///////////////////////////////////////////////////////////////////////////////
 int Send_ack(long rel_loops)
 {
 	int 				n;
@@ -2680,6 +2793,7 @@ int Send_ack(long rel_loops)
 	return 1;
 }
 
+///////////////////////////////////////////////////////////////////////////////
 int Receive_reliable(void)
 {
 	int 				n;
@@ -2765,6 +2879,7 @@ int Receive_reliable(void)
 	return 1;
 }
 
+///////////////////////////////////////////////////////////////////////////////
 int Receive_reply(int *replyto, int *result)
 {
 	int 		n;
@@ -2783,6 +2898,7 @@ int Receive_reply(int *replyto, int *result)
 	return 1;
 }
 
+///////////////////////////////////////////////////////////////////////////////
 int Send_keyboard(u_byte *keyboard_vector)
 {
 	int 		size = KEYBOARD_SIZE;
@@ -2809,6 +2925,7 @@ int Send_keyboard(u_byte *keyboard_vector)
 	return 0;
 }
 
+///////////////////////////////////////////////////////////////////////////////
 int Send_shape(PCSTR str)
 {
 	ShipObj*	w;
@@ -2829,6 +2946,7 @@ int Send_shape(PCSTR str)
 	return 0;
 }
 
+///////////////////////////////////////////////////////////////////////////////
 int Send_power(DFLOAT power)
 {
 	if (wbuf.printf("%c%hd", PKT_POWER,
@@ -2838,6 +2956,7 @@ int Send_power(DFLOAT power)
 	return 0;
 }
 
+///////////////////////////////////////////////////////////////////////////////
 int Send_power_s(DFLOAT power_s)
 {
 	if (wbuf.printf("%c%hd", PKT_POWER_S,
@@ -2847,6 +2966,7 @@ int Send_power_s(DFLOAT power_s)
 	return 0;
 }
 
+///////////////////////////////////////////////////////////////////////////////
 int Send_turnspeed(DFLOAT turnspeed)
 {
 	if (wbuf.printf("%c%hd", PKT_TURNSPEED,
@@ -2856,6 +2976,7 @@ int Send_turnspeed(DFLOAT turnspeed)
 	return 0;
 }
 
+///////////////////////////////////////////////////////////////////////////////
 int Send_turnspeed_s(DFLOAT turnspeed_s)
 {
 	if (wbuf.printf("%c%hd", PKT_TURNSPEED_S,
@@ -2865,6 +2986,7 @@ int Send_turnspeed_s(DFLOAT turnspeed_s)
 	return 0;
 }
 
+///////////////////////////////////////////////////////////////////////////////
 int Send_turnresistance(DFLOAT turnresistance)
 {
 	if (wbuf.printf("%c%hd", PKT_TURNRESISTANCE,
@@ -2874,6 +2996,7 @@ int Send_turnresistance(DFLOAT turnresistance)
 	return 0;
 }
 
+///////////////////////////////////////////////////////////////////////////////
 int Send_turnresistance_s(DFLOAT turnresistance_s)
 {
 	if (wbuf.printf("%c%hd", PKT_TURNRESISTANCE_S,
@@ -2883,6 +3006,7 @@ int Send_turnresistance_s(DFLOAT turnresistance_s)
 	return 0;
 }
 
+///////////////////////////////////////////////////////////////////////////////
 int Receive_quit(void)
 {
 	unsigned char		pkt;
@@ -2907,7 +3031,7 @@ int Receive_quit(void)
 	return -1;
 }
 
-
+///////////////////////////////////////////////////////////////////////////////
 int Receive_audio(void)
 {
 	int 				n;
@@ -2917,14 +3041,14 @@ int Receive_audio(void)
 		return n;
 	}
 #ifdef SOUND
-	if ((n = audio.Handle(type, vol)) == -1) {
+	if ((n = audioMan.HandleEvent(type, vol)) == -1) {
 		return -1;
 	}
 #endif /* SOUND */
 	return 1;
 }
 
-
+///////////////////////////////////////////////////////////////////////////////
 int Receive_talk_ack(void)
 {
 	int 				n;
@@ -2940,6 +3064,7 @@ int Receive_talk_ack(void)
 	return 1;
 }
 
+///////////////////////////////////////////////////////////////////////////////
 int Receive_cookie(void)
 {
 	int 			n;
@@ -2954,7 +3079,7 @@ int Receive_cookie(void)
 	return 1;
 }
 
-
+///////////////////////////////////////////////////////////////////////////////
 int Net_talk(char *str)
 {
 	strlcpy(talk_str, str, sizeof talk_str);
@@ -2963,7 +3088,7 @@ int Net_talk(char *str)
 	return 0;
 }
 
-
+///////////////////////////////////////////////////////////////////////////////
 int Send_talk(void)
 {
 	if (talk_pending == 0) {
@@ -2980,7 +3105,7 @@ int Send_talk(void)
 	return 0;
 }
 
-
+///////////////////////////////////////////////////////////////////////////////
 int Send_display(void)
 {
 	int 				width_wanted = draw_width;
@@ -3016,7 +3141,7 @@ int Send_display(void)
 	return 0;
 }
 
-
+///////////////////////////////////////////////////////////////////////////////
 int Send_modifier_bank(int bank)
 {
 	if (bank < 0 || bank >= NUM_MODBANKS)
@@ -3027,6 +3152,7 @@ int Send_modifier_bank(int bank)
 	return 0;
 }
 
+///////////////////////////////////////////////////////////////////////////////
 int Send_pointer_move(int movement)
 {
 	if (version > 0x3201) {
@@ -3038,6 +3164,7 @@ int Send_pointer_move(int movement)
 	return 0;
 }
 
+///////////////////////////////////////////////////////////////////////////////
 int Send_audio_request(int onoff)
 {
 #ifdef DEBUG_SOUND
@@ -3056,6 +3183,7 @@ int Send_audio_request(int onoff)
 	return 0;
 }
 
+///////////////////////////////////////////////////////////////////////////////
 int Send_fps_request(int fps)
 {
 	if (version < 0x3280) {
@@ -3066,4 +3194,3 @@ int Send_fps_request(int fps)
 	}
 	return 0;
 }
-

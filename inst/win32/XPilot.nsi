@@ -1,11 +1,20 @@
 # XPilot.nsi - the script to NSIS, the NullSoft Install System.
-# $Id: XPilot.nsi,v 1.27 2007/01/06 18:37:43 dick Exp $
+# $Id: XPilot.nsi,v 1.30 2007/02/03 05:37:14 dick Exp $
 #              Copyright 2001 Jarno van der Kolk <jarno@j-a-r-n-o.nl>
 #              Released under GNU General Public License Version 2
 # The NullSoft Install System can be found here http://www.nullsoft.com/free/nsis/
 #
 #
 # $Log: XPilot.nsi,v $
+# Revision 1.30  2007/02/03 05:37:14  dick
+# Don't overwrite user's existing lib files
+#
+# Revision 1.29  2007/01/21 07:37:43  dick
+# Install robots5.txt instead of robots4a.txt
+#
+# Revision 1.28  2007/01/17 08:52:29  dick
+# Install robots4a.txt
+#
 # Revision 1.27  2007/01/06 18:37:43  dick
 # Client menu link to should point to client
 #
@@ -116,10 +125,18 @@ File "doc\Newbie Guide.url"
 
 # $/lib
 SetOutPath "$INSTDIR\lib"
-File "lib\defaults.txt"
-File "lib\robots.txt"
-File "lib\sounds.conf"
-
+IfFileExists "$INSTDIR\lib\defaults.txt" nodefaults
+	File "lib\defaults.txt"
+nodefaults:
+IfFileExists "$INSTDIR\lib\robots.txt" norobots
+	File "lib\robots.txt"
+norobots:
+IfFileExists "$INSTDIR\lib\robots5.txt" norobots5
+	File "lib\robots5.txt"
+norobots5:
+IfFileExists "$INSTDIR\lib\sounds.conf" nosoundsconf
+	File "lib\sounds.conf"
+nosoundsconf:
 IfFileExists "$INSTDIR\lib\XPilot.shp" noshp
   File "lib\XPilot.shp"
 noshp:

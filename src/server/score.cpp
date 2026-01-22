@@ -2,7 +2,7 @@
  *
  * XPilot, a multiplayer gravity war game.  Copyright (C) 1991-2001 by
  *
- *      Bjï¿½rn Stabell        <bjoern@xpilot.org>
+ *      Bjørn Stabell        <bjoern@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
  *      Dick Balaska         <dick@xpilot.org>
@@ -150,13 +150,13 @@ void TEAM_SCORE(World* w, int team, DFLOAT points)
 		return;
 
 	w->teams[team].score += points;
-	if (w->options.teamShareScore->GetBool())
+	if (w->options.teamShareScore->GetBool()) 
 	{
 		int i;
 		DFLOAT share = w->teams[team].score / w->teams[team].numMembers;
 		for (i = 0; i < w->numPlayers; i++)
 		{
-			if (w->players[i]->team == team)
+			if (w->players[i]->team == team) 
 			{
 				w->players[i]->score = share;
 			}
@@ -214,7 +214,7 @@ void Score_players(Player* winner, DFLOAT winner_score, char *winner_msg,
 		|| (winner->alliance != ALLIANCE_NOT_SET
 			&& winner->alliance == loser->alliance)
 		|| (IS_TANK_PTR(loser)
-			&& loser->world->getInd[loser->lock.pl_id] == winner->Ind()))
+			&& loser->world->getInd[loser->lock.pl_id] == winner->Ind())) 
 	{
 		if (winner_score > 0)
 			winner_score = -winner_score;
@@ -235,7 +235,7 @@ void Score_players(Player* winner, DFLOAT winner_score, char *winner_msg,
 
 ///////////////////////////////////////////////////////////////////////////////
 // ScoreServer has said to set the player's score to this.
-void World::SetPlayerScore(PCSTR nick, PlayerType pt, DFLOAT score,
+void World::SetPlayerScore(PCSTR nick, PlayerType pt, DFLOAT score, 
 						   int kills, int deaths, int cookie)
 {
 	D(Trace("SetPlayerScore: %s to %.2f k:%d d:%d\n", nick, score, kills, deaths);)

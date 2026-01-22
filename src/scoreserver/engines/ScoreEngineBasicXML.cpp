@@ -11,7 +11,7 @@
  *      Jarrod Miller        <jarrod@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
- *      Bjï¿½rn Stabell        <bjoern@xpilot.org>
+ *      Bjørn Stabell        <bjoern@xpilot.org>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -109,7 +109,7 @@ PCSTR	s_flushDelay		= "flushDelay";
 
 PCSTR ScoreEngineBasicXML::name = "BasicXML";
 PCSTR ScoreEngineBasicXML::title  = "Basic XML";
-PCSTR ScoreEngineBasicXML::description =
+PCSTR ScoreEngineBasicXML::description = 
 "This engine extends the basic score server and keeps statistics in an "
 "XML file that is read at startup and saved at shutdown.";
 
@@ -285,7 +285,7 @@ void ScoreEngineBasicXML::SaveData()
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void ScoreEngineBasicXML::XMLOut(XMLArchive& xar)
+void ScoreEngineBasicXML::XMLOut(XMLArchive& xar) 
 {
 	xar.WriteElementStart(PlayerData);
 	SEBPlayerXML*	p = (SEBPlayerXML*)playerList.GetHead();
@@ -324,7 +324,7 @@ bool ScoreEngineBasicXML::GetInitialScore(PCSTR nick, PlayerType pt, uint& cooki
 {
 	if (!dirtyTime)
 		dirtyTime = time(NULL);
-	return(ScoreEngineBasicXMLSUPERCLASS::GetInitialScore(nick, pt, cookie,
+	return(ScoreEngineBasicXMLSUPERCLASS::GetInitialScore(nick, pt, cookie, 
 														  score, kills, deaths));
 }
 
@@ -344,12 +344,12 @@ void ScoreEngineBasicXML::ReceivePlayerEvent(PCSTR name, PlayerType pt, ScorePla
 {
 	if (!dirtyTime)
 		dirtyTime = time(NULL);
-	ScoreEngineBasicXMLSUPERCLASS::ReceivePlayerEvent(name, pt, spe,
+	ScoreEngineBasicXMLSUPERCLASS::ReceivePlayerEvent(name, pt, spe, 
 													  real, host, addr, cookie);
 }
 ///////////////////////////////////////////////////////////////////////////////
 void ScoreEngineBasicXML::ReceiveScoreEvent(PCSTR killer, PlayerType ptr, DFLOAT wscore,
-								   PCSTR killee, PlayerType pte, DFLOAT lscore,
+								   PCSTR killee, PlayerType pte, DFLOAT lscore, 
 								   ScoreType st)
 {
 	if (!dirtyTime)
@@ -399,7 +399,7 @@ void SEBPlayerXML::XMLEndHandler(void *data, const char *el)
 
 
 ///////////////////////////////////////////////////////////////////////////////
-void SEBPlayerXML::XMLOut(XMLArchive& xar)
+void SEBPlayerXML::XMLOut(XMLArchive& xar) 
 {
 	xar.WriteElementStart(Player);
 	xar.WriteStringAttr(name);

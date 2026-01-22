@@ -2,7 +2,7 @@
  *
  * XPilot, a multiplayer gravity war game.  Copyright (C) 1991-2001 by
  *
- *      Bjï¿½rn Stabell        <bjoern@xpilot.org>
+ *      Bjørn Stabell        <bjoern@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
  *      Dick Balaska         <dick@xpilot.org>
@@ -58,7 +58,7 @@ Connectparam& Connectparam::operator=(const Connectparam& in)
 	serverAddr = in.serverAddr;
 	serverName = in.serverName;
 	dispName = in.dispName;
-	password = in.password;
+	password = in.password;	
     serverVersion = in.serverVersion;
     team = in.team;
     contactPort = in.contactPort;

@@ -134,14 +134,6 @@ SOURCE=..\about.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=..\Audio.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=..\Audio.h
-# End Source File
-# Begin Source File
-
 SOURCE=..\blockbitmaps.cpp
 # End Source File
 # Begin Source File
@@ -298,23 +290,15 @@ SOURCE=..\record.h
 # End Source File
 # Begin Source File
 
+SOURCE=..\RobotWatchMan.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=..\RobotWatchMan.h
+# End Source File
+# Begin Source File
+
 SOURCE=..\sim.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=..\Sound.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=..\Sound.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\SoundEvent.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=..\SoundEvent.h
 # End Source File
 # Begin Source File
 
@@ -468,6 +452,14 @@ SOURCE=..\..\common\audioDefs.h
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\common\AudioMan.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\common\AudioMan.h
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\common\bit.h
 # End Source File
 # Begin Source File
@@ -521,6 +513,10 @@ SOURCE=..\..\common\error.cpp
 # Begin Source File
 
 SOURCE=..\..\common\error.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\common\fileUtils.cpp
 # End Source File
 # Begin Source File
 
@@ -673,6 +669,22 @@ SOURCE=..\..\common\sockerrs.cpp
 # Begin Source File
 
 SOURCE=..\..\common\sockerrs.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\common\Sound.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\common\Sound.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\common\SoundEvent.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\common\SoundEvent.h
 # End Source File
 # Begin Source File
 

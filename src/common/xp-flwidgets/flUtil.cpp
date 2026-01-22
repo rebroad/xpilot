@@ -21,7 +21,10 @@
 *
 */
 /*
- * $Log: tools.cpp,v $
+ * $Log: flUtil.cpp,v $
+ * Revision 1.1  2007/02/17 06:14:28  dick
+ * Some general FLTK utilities
+ *
  * Revision 1.13  2004/03/03 07:54:35  dick
  * Don't make pixmaps at load time; wait until runtime init, after Strings have
  * actually been inited.

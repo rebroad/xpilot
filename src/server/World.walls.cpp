@@ -1,8 +1,8 @@
-/* $Id: World.walls.cpp,v 1.19 2004/04/29 16:08:27 dick Exp $
+/* $Id: World.walls.cpp,v 1.20 2007/01/10 18:14:47 dick Exp $
  *
  * XPilot, a multiplayer gravity war game.  Copyright (C) 1991-2001 by
  *
- *      Bjï¿½rn Stabell        <bjoern@xpilot.org>
+ *      Bjørn Stabell        <bjoern@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
  *      Dick Balaska         <dick@xpilot.org>
@@ -22,6 +22,10 @@
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
  *  $Log: World.walls.cpp,v $
+ *  Revision 1.20  2007/01/10 18:14:47  dick
+ *  All robot actions are now handled through RobotMan.
+ *  There is one RobotMan per World.
+ *
  *  Revision 1.19  2004/04/29 16:08:27  dick
  *  compile with SOUND enabled.
  *
@@ -117,7 +121,7 @@
 #include "click.h"
 #include "objpos.h"
 #include "Cannon.h"
-#include "Robot.h"
+#include "RobotMan.h"
 
 char walls_version[] = VERSION;
 
@@ -126,11 +130,11 @@ char walls_version[] = VERSION;
 	| FUEL_BIT | CANNON_BIT | TREASURE_BIT | TARGET_BIT \
 	| CHECK_BIT | WORMHOLE_BIT)
 
-unsigned SPACE_BLOCKS = (
-	SPACE_BIT | BASE_BIT | WORMHOLE_BIT |
-	POS_GRAV_BIT | NEG_GRAV_BIT | CWISE_GRAV_BIT | ACWISE_GRAV_BIT |
-	UP_GRAV_BIT | DOWN_GRAV_BIT | RIGHT_GRAV_BIT | LEFT_GRAV_BIT |
-	DECOR_LU_BIT | DECOR_LD_BIT | DECOR_RU_BIT | DECOR_RD_BIT |
+unsigned SPACE_BLOCKS = ( 
+	SPACE_BIT | BASE_BIT | WORMHOLE_BIT | 
+	POS_GRAV_BIT | NEG_GRAV_BIT | CWISE_GRAV_BIT | ACWISE_GRAV_BIT | 
+	UP_GRAV_BIT | DOWN_GRAV_BIT | RIGHT_GRAV_BIT | LEFT_GRAV_BIT | 
+	DECOR_LU_BIT | DECOR_LD_BIT | DECOR_RU_BIT | DECOR_RD_BIT | 
 	DECOR_FILLED_BIT | CHECK_BIT | ITEM_CONCENTRATOR_BIT |
 	FRICTION_BIT | ASTEROID_CONCENTRATOR_BIT
     );
@@ -151,7 +155,7 @@ void World::WalldistAlloc(void)
 	unsigned char		**wall_ptr;
 
 	walldist = (unsigned char **)malloc(
-				blockWidth * sizeof(unsigned char *)
+				blockWidth * sizeof(unsigned char *) 
 						+ blockWidth * blockHeight);
 	if (!walldist) {
 		error("No memory for walldist");
@@ -820,7 +824,7 @@ void World::MoveSegment(move_state_t *ms)
 			 */
 			int last = wormHoles[hole].lastdest;
 			if (last >= 0
-				&& (wormHoles[hole].countdown > 0
+				&& (wormHoles[hole].countdown > 0 
 						|| !options.wormTime->GetInt())
 				&& last < numWormholes
 				&& wormHoles[last].type != WORM_IN
@@ -1113,7 +1117,7 @@ void World::MoveSegment(move_state_t *ms)
 			if (mi->target_crashes) {
 				/*-BA This can be slow for large number of targets.
 				 *	   added itemID array for extra speed, (at cost of some memory.)
-				 *
+				 *	   
 				 *for (i = 0; ; i++) {
 				 *	  if (World.targets[i].pos.x == block.x
 				 *		&& World.targets[i].pos.y == block.y) {
@@ -1647,7 +1651,7 @@ void World::CannonDies(move_state_t *ms)
 		/* min,max dir	  */ (int)(cannon->dir - (RES * 0.2)), (int)(cannon->dir + (RES * 0.2)),
 		/* min,max speed  */ 20, 50,
 		/* min,max life   */ 8, 68
-		);
+		); 
 		MakeWreckage(
 		/* pos.x, pos.y   */ x, y,
 		/* vel.x, vel.y   */ 0.0, 0.0,
@@ -1669,7 +1673,7 @@ void World::CannonDies(move_state_t *ms)
 						pl = players[killer];
 				}
 		} else if (BIT(ms->mip->pl->used, HAS_SHIELD|HAS_EMERGENCY_SHIELD)
-						== (HAS_SHIELD|HAS_EMERGENCY_SHIELD))
+						== (HAS_SHIELD|HAS_EMERGENCY_SHIELD)) 
 		{
 				pl = ms->mip->pl;
 				killer = getInd[pl->id];
@@ -1678,14 +1682,14 @@ void World::CannonDies(move_state_t *ms)
 				DFLOAT	sc = 0;
 				if (options.cannonPoints->GetBool()) {
 						if (BIT(rules->mode, TEAM_PLAY)
-								&& options.teamCannons->GetBool())
+								&& options.teamCannons->GetBool()) 
 						{
-								TEAM_SCORE(this, cannon->team,
+								TEAM_SCORE(this, cannon->team, 
 										-options.cannonPoints->GetDouble());
 						}
 						if (pl->score <= options.cannonMaxScore->GetDouble()
 								&& !(BIT(rules->mode, TEAM_PLAY)
-								&& pl->team == cannon->team))
+								&& pl->team == cannon->team)) 
 						{
 								sc = options.cannonPoints->GetDouble();
 								SCORE(pl, sc,
@@ -2169,7 +2173,7 @@ void World::PlayerCrash(move_state_t *ms, int pt, bool turning)
 
 		case CrashCannon:
 				if (BIT(pl->used, HAS_SHIELD|HAS_EMERGENCY_SHIELD)
-						!= (HAS_SHIELD|HAS_EMERGENCY_SHIELD))
+						!= (HAS_SHIELD|HAS_EMERGENCY_SHIELD)) 
 				{
 						howfmt = "%s smashed%s against a cannon";
 						hudmsg = s_brCannon;
@@ -2315,13 +2319,13 @@ void World::PlayerCrash(move_state_t *ms, int pt, bool turning)
 
 						/* Robots will declare war on anyone who shoves them. */
 						i = (int)(rfrac() * num_pushers);
-						Robot_war(this, ind, getInd[pushers[i]->id]);
+						robotMan->War(ind, getInd[pushers[i]->id]);
 				}
 		}
 
 		if (BIT(pl->status, KILLED)
 				&& pl->score < 0
-				&& IS_ROBOT_PTR(pl))
+				&& IS_ROBOT_PTR(pl)) 
 		{
 				pl->home_base = 0;
 				pl->PickStartpos();

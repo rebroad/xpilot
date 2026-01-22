@@ -2,7 +2,7 @@
  *
  * XPilot, a multiplayer gravity war game.  Copyright (C) 1991-2001 by
  *
- *      Bjï¿½rn Stabell        <bjoern@xpilot.org>
+ *      Bjørn Stabell        <bjoern@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
  *      Dick Balaska         <dick@xpilot.org>
@@ -448,7 +448,7 @@ void NetServer::InstallTimerTick(TimerFunc func, int freq, void* data)
 	timer_freq = freq;
 	timer_data = data;
 	SetupTimer();
-}
+} 
 
 /*
  * Linked list of timeout callbacks.
@@ -715,7 +715,7 @@ void NetServer::Sched(void)
 //#if defined_UNIX) || defined(_CYGWIN)
 	if (schedIsLoop)
 	{
-		if (sched_running)
+		if (sched_running) 
 		{
 			error("sched already running");
 			exit(1);
@@ -727,7 +727,7 @@ void NetServer::Sched(void)
 		tv.tv_usec = 0;
 	}
 	while (1)
-//	while (sched_running)
+//	while (sched_running) 
 	{
 		if (schedIsLoop && !sched_running)
 			break;
@@ -737,7 +737,7 @@ void NetServer::Sched(void)
 //		if (theWorld[0]->numPlayers > theWorld[0]->numRobots + theWorld[0]->numPseudoPlayers
 //			|| login_in_progress != 0
 //			|| controlsConnected != 0	// really only needed during download options. Otherwise slow is fine.
-//			|| theWorld[0]->numQueuedPlayers > 0)
+//			|| theWorld[0]->numQueuedPlayers > 0) 
 		if (!schedIsLoop)
 		{
 
@@ -745,10 +745,10 @@ void NetServer::Sched(void)
 			tv.tv_sec = 0;
 			/* KOERBER */
 			/*	tv.tv_usec = 1000000 / (3 * timer_freq + 1); */
-			tv.tv_usec = 1000000 / (10 * timer_freq + 1);
+			tv.tv_usec = 1000000 / (10 * timer_freq + 1); 
 		}
 //		else {
-//			/* slow I/O checks are possible here... (2 times per second) */ ;
+//			/* slow I/O checks are possible here... (2 times per second) */ ; 
 //			tv.tv_sec = 0;
 //			tv.tv_usec = 500000;
 //		}
@@ -756,7 +756,7 @@ void NetServer::Sched(void)
 //#endif
 
 
-		if (io_todo == 0 && timers_used < timer_ticks)
+		if (io_todo == 0 && timers_used < timer_ticks) 
 		{
 			io_todo = 1 + (timer_ticks - timers_used);
 			tvp = &tv;

@@ -9,7 +9,7 @@
  *      Jarrod Miller        <jarrod@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
- *      Bjï¿½rn Stabell        <bjoern@xpilot.org>
+ *      Bjørn Stabell        <bjoern@xpilot.org>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -76,9 +76,9 @@ private:
 	DFLOAT Fl_Value_Input_Counter::CalcOffset(DFLOAT, DFLOAT, DFLOAT, DFLOAT, DFLOAT *);
 	Value_Types type;
 	int *intVal;
-	DFLOAT *fltVal;
+	DFLOAT *fltVal; 
 
-
+	
 	Fl_Value_Input*		text;
 	Fl_Repeat_Button*	up;
 	Fl_Repeat_Button*	down;

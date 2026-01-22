@@ -7,7 +7,7 @@
  *      Dick Balaska         <dick@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
- *      Bjï¿½rn Stabell        <bjoern@xpilot.org>
+ *      Bjørn Stabell        <bjoern@xpilot.org>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -144,7 +144,7 @@ PCSTR	s_generic = "generic";
 ///////////////////////////////////////////////////////////////////////////////
 void InitConnectionControl()
 {
-    for (int i = 0; i < PacketCtlTypesMAX; i++)
+    for (int i = 0; i < PacketCtlTypesMAX; i++) 
 	{
 		ctlReceive[i] = &ConnectionControl::ReceiveUndefined;
     }
@@ -322,7 +322,7 @@ int ConnectionControl::ReceiveSetOption()
 	so = world->options.FindOptionByName(name);
 	if (!so)
 	{
-		xpprintf("%s%s@%s Tried to set unknown option <%s>\n",
+		xpprintf("%s%s@%s Tried to set unknown option <%s>\n", 
 				 showtime(), (PCSTR)real, (PCSTR)dpy, (PCSTR)name);
 		return(FALSE);
 	}
@@ -332,10 +332,10 @@ int ConnectionControl::ReceiveSetOption()
 	so->Get(valueOut);
 	String	s;
 	if (valueOut == value)
-		s.printf("%s@%s set option %s to <%s>",
+		s.printf("%s@%s set option %s to <%s>", 
 				 (PCSTR)real, (PCSTR)dpy, (PCSTR)name, value);
 	else
-		s.printf("%s@%s set option %s to <%s> (limited from %s)",
+		s.printf("%s@%s set option %s to <%s> (limited from %s)", 
 				 (PCSTR)real, (PCSTR)dpy, (PCSTR)name, (PCSTR)valueOut, value);
 	xpprintf("%s%s\n", showtime(), (PCSTR)s);
 	if (world->options.notifyServerChanges->GetBool())
@@ -351,10 +351,10 @@ int ConnectionControl::ReceiveSetOption()
 ///////////////////////////////////////////////////////////////////////////////
 int ConnectionControl::SendOption(ServerOption* so)
 {
-	DCC(xpprintf("SendOption %s:%s %s\n",
+	DCC(xpprintf("SendOption %s:%s %s\n", 
 		so->name, (PCSTR)so->GetString(), (PCSTR)so->GetOrigin());)
 	if (strlen(so->name))
-		cw.printf("%c%c%s%c%S", PKT_CTL, SetOption,
+		cw.printf("%c%c%s%c%S", PKT_CTL, SetOption, 
 			(PCSTR)so->name, (uchar)so->optOrigin, (PCSTR)so->GetString());
 	else
 		cw.printf("%c%c%s%c%S", PKT_CTL, SetOption,

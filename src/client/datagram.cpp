@@ -2,7 +2,7 @@
  *
  * XPilot, a multiplayer gravity war game.  Copyright (C) 1991-2001 by
  *
- *      Bjï¿½rn Stabell        <bjoern@xpilot.org>
+ *      Bjørn Stabell        <bjoern@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
  *      Dick Balaska         <dick@xpilot.org>
@@ -93,7 +93,7 @@ int create_dgram_addr_socket(Sock* sock, PCSTR dotaddr, int port)
 		  && (!iniClient.clientPortEnd || iniClient.clientPortEnd > 65535)) {
 			iniClient.clientPortEnd = 65535;
 		}
-		if (iniClient.clientPortEnd
+		if (iniClient.clientPortEnd 
 		  && (!iniClient.clientPortStart || iniClient.clientPortStart < 1024)) {
 			iniClient.clientPortStart = 1024;
 		}

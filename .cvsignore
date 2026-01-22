@@ -10,8 +10,10 @@ bing_configure
 config.h
 config.log
 config.status
+nohup.out
 makeinclude
 sean_configure
+shirley_configure
 start_fishfight
 var
 xxpilots
@@ -19,3 +21,4 @@ xxpilots.fishfight
 xxpilots.fishfight.out
 xxpilots.out
 XPilot.ini
+XPilotServer.ini

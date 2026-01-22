@@ -11,7 +11,7 @@
  *      Jarrod Miller        <jarrod@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
- *      Bjï¿½rn Stabell        <bjoern@xpilot.org>
+ *      Bjørn Stabell        <bjoern@xpilot.org>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -216,7 +216,7 @@ void NetServerScoreServer::Contact(Sockbuf& ibuf)
 
 	// Handle version forks between 4.5.1 and 5.0.0
 	if (version > 0x4501 && version < 0x5000)
-		version = 0x4501;
+		version = 0x4501; 
 	/*
 	 * Read core of packet.
 	 */
@@ -270,7 +270,7 @@ void NetServerScoreServer::Contact(Sockbuf& ibuf)
 		}
 		if (reply_to == PASSWORD_pack)
 		{
-
+						
 			if (ibuf.scanf("%s", &str) <= 0)
 				return;
 //			if (options.password->GetString() == str)
@@ -379,7 +379,7 @@ int NetServerScoreServer::SetupConnectionControl(PCSTR real, PCSTR nick, PCSTR d
 		connp = (Connection*)netServer->conn[i];
 		if (!connp)	//  || connp->state == CONN_FREE) 	// DIK: checking _FREE is wrong, since we will leak this conn with the new below
 		{
-			if (free_conn_index == netServer->maxConnections)
+			if (free_conn_index == netServer->maxConnections) 
 			{
 				free_conn_index = i;
 			}

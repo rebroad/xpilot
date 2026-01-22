@@ -9,7 +9,7 @@
  *      Jarrod Miller        <jarrod@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
- *      Bjï¿½rn Stabell        <bjoern@xpilot.org>
+ *      Bjørn Stabell        <bjoern@xpilot.org>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -300,12 +300,12 @@ void HttpClose(SOCKET s)
 	int ret = shutdown(s, SD_SEND);
 	if (ret)
 	{
-		D(SOTRACE("http_close: shutdown() socket %d error %d (%s)\n",
+		D(SOTRACE("http_close: shutdown() socket %d error %d (%s)\n", 
 							s, h_errno, GetSockErrText(h_errno));)
 	}
 	if (closesocket(s))
 	{
-		D(SOTRACE("http_close: closesocket() socket %d error %d (%s)\n",
+		D(SOTRACE("http_close: closesocket() socket %d error %d (%s)\n", 
 						s, h_errno, GetSockErrText(h_errno));)
 	}
 	for (int i=0; i<SOMAXCONN; i++)
@@ -343,9 +343,9 @@ void HttpAccept(SOCKET s)
 			n->myhttps[i]->sock = n->connectsock[i];
 			n->myhttps[i]->SetNonBlockingMode();
 			n->myhttps[i]->connectAddr = s_in.sin_addr;
-			D(SOTRACE("_accept: sock %d @ %d sin_port %d\n",
+			D(SOTRACE("_accept: sock %d @ %d sin_port %d\n", 
 							n->connectsock[i], i, (int)s_in.sin_port);)
-/*			he = gethostbyaddr((const char*)&s_in.sin_addr,
+/*			he = gethostbyaddr((const char*)&s_in.sin_addr, 
 							   sizeof(struct in_addr), AF_INET);
 			if (!he)
 			{
@@ -448,7 +448,7 @@ void HttpRead(SOCKET s)
 			int ret = shutdown(s, SD_SEND);
 			if (ret)
 			{
-				D(SOTRACE("http_read: shutdown() socket %d error %d (%s)\n",
+				D(SOTRACE("http_read: shutdown() socket %d error %d (%s)\n", 
 								s, h_errno, GetSockErrText(h_errno));)
 			}
 			//closesocket(s);
@@ -479,7 +479,7 @@ void Http::LogHeaders(int level)
 
 		if (GetCfg()->logLevel == LOGMAX)
 			l = (LString*)l->GetNext();
-		else
+		else 
 			l = NULL;
 		if (!l || !l->name.GetLength())
 			return;
@@ -926,7 +926,7 @@ void Http::PrintHiddenField(PCSTR key, PCSTR value)
 // Use this one *after* a Print200 to let him know he's a no good.
 bool Http::AuthOK(AUTH auth)
 {
-	if (auth == authAdmin
+	if (auth == authAdmin 
 	  //&& this->connectAddr.S_un.S_addr == inet_addr(s_127_0_0_1))
 	  && this->connectAddr.s_addr == inet_addr(s_127_0_0_1))
 		return(true);
@@ -979,7 +979,7 @@ char* Http::ShowTime(time_t then)
 			    "Bug"
 			};
 	const time_t	sixmonths = 60*60*24*30*6;
-
+	
 	if (!then)
 		return("<CENTER>---</CENTER>");
     tmp = gmtime(&then);

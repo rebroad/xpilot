@@ -1,4 +1,4 @@
-/* $Id: xpcTypes.h,v 1.28 2004/06/01 23:13:00 dick Exp $
+/* $Id: xpcTypes.h,v 1.1 2007/02/17 06:14:04 dick Exp $
  *
  * xpcTypes - buttons for XPilot5
  *
@@ -27,6 +27,9 @@
  */
 /*
  * $Log: xpcTypes.h,v $
+ * Revision 1.1  2007/02/17 06:14:04  dick
+ * Move xpcTypes from control to common
+ *
  * Revision 1.28  2004/06/01 23:13:00  dick
  * You can't really make a new button from an object and stick it in a static.
  * (Who owns it if you open 2 MapEditors?)  So now each window keeps track of
@@ -140,7 +143,7 @@ public:
 		PCSTR pm=NULL);
 	~FunctionButton();
 	int id;
-	void draw();
+	virtual void draw();
 };
 
 ///////////////////////////////////////////////////////////////////////////////

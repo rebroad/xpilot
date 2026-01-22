@@ -5,7 +5,7 @@
  *
  * XPilot, a multiplayer gravity war game.  Copyright (C) 1991-2001 by
  *
- *      Bjï¿½rn Stabell        <bjoern@xpilot.org>
+ *      Bjørn Stabell        <bjoern@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
  *      Dick Balaska         <dick@xpilot.org>
@@ -318,9 +318,9 @@ void IniClient::ParseOptions(int *argcp, char **argvp, String& realName, int *po
 	{
 
 		if (GetStringResource("display", &dispName) == 0
-				|| dispName.IsEmpty())
+				|| dispName.IsEmpty()) 
 		{
-			if ((ptr = getenv(DISPLAY_ENV)) != NULL)
+			if ((ptr = getenv(DISPLAY_ENV)) != NULL) 
 				dispName = ptr;
 			else
 				dispName = DISPLAY_DEF;
@@ -363,7 +363,7 @@ void IniClient::ParseOptions(int *argcp, char **argvp, String& realName, int *po
 		error("Can't open keyboard '%s'", resValue);
 		exit(1);
 	}
-
+	
 	GetStringResource("visual", visualName, MAX_VISUAL_NAME);
 		// InitKeysyms();
 	GetFileDefaults(&rDB);
@@ -424,7 +424,7 @@ void IniClient::ParseOptions(int *argcp, char **argvp, String& realName, int *po
 			GetLoginName(realName);
 
 	}
-	if (CheckRealName(realName) == NAME_ERROR)
+	if (CheckRealName(realName) == NAME_ERROR) 
 	{
 		xpprintf("fixing name from \"%s\" ", (PCSTR)realName);
 		FixRealName(realname);
@@ -461,7 +461,7 @@ void IniClient::ParseOptions(int *argcp, char **argvp, String& realName, int *po
 			strlcpy(buf, realName, MAX_NAME_LEN);
 		buf[0] = CAP_LETTER(buf[0]);
 		/*
-		if (buf[0] < 'A' || buf[0] > 'Z')
+		if (buf[0] < 'A' || buf[0] > 'Z') 
 		{
 			error("Your player name \"%s\" should start with an uppercase letter",
 				  buf);
@@ -483,7 +483,7 @@ void IniClient::ParseOptions(int *argcp, char **argvp, String& realName, int *po
 	{
 		GetIntResource("team", my_team);
 //		IFWINDOWS( GetTeam(my_team); )
-		if (*my_team < 0 || *my_team > 9)
+		if (*my_team < 0 || *my_team > 9) 
 			*my_team = TEAM_NOT_SET;
 		team = *my_team;
 	}
@@ -702,15 +702,15 @@ void IniClient::ParseOptions(int *argcp, char **argvp, String& realName, int *po
 	*/
 	InitKeysyms();
 	maxKeyDefs = 2 * NUM_KEYS;
-	if (!(keyDefs = (KeyDef*)malloc(maxKeyDefs * sizeof(KeyDef))))
+	if (!(keyDefs = (KeyDef*)malloc(maxKeyDefs * sizeof(KeyDef)))) 
 	{
 		error("No memory for key bindings");
 		exit(1);
 	}
 	num = 0;
-	for (i = 0; i < numOptions; i++)
+	for (i = 0; i < numOptions; i++) 
 	{
-		if ((key = options[i].key) == KEY_DUMMY)
+		if ((key = options[i].key) == KEY_DUMMY) 
 				continue;
 		GetResource(options[i].name, resValue, sizeof resValue);
 		// xpprintf("ParseOptions: %d name \"%s\" value \"%s\"\n", i, options[i].name, resValue);
@@ -748,7 +748,7 @@ void IniClient::ParseOptions(int *argcp, char **argvp, String& realName, int *po
 			}
 
 			/* insertion sort. */
-			for (j = num; j > 0; j--)
+			for (j = num; j > 0; j--) 
 			{
 				if (ks >= keyDefs[j - 1].keySym)
 					break;
@@ -757,7 +757,7 @@ void IniClient::ParseOptions(int *argcp, char **argvp, String& realName, int *po
 			keyDefs[j].keySym = ks;
 			keyDefs[j].key = key;
 			num++;
-			if (!key)
+			if (!key) 
 			{
 				printf("bug key 0\n");
 				exit(1);
@@ -827,9 +827,9 @@ void IniClient::ParseOptions(int *argcp, char **argvp, String& realName, int *po
 void IniClient::ParseSwitches(int *argcp, char **argvp)
 {
 	int 			i;
-	for (i = 1; i < *argcp; i++)
+	for (i = 1; i < *argcp; i++) 
 	{
-		if (argvp[i][0] == '-' || argvp[i][0] == '+')
+		if (argvp[i][0] == '-' || argvp[i][0] == '+') 
 		{
 			if (!strcmp(&argvp[i][1], "team"))
 			{
@@ -1475,7 +1475,7 @@ void IniClient::InsertKeyDef(KeySym ks, keys_t key)
 		exit(1);
 	}
 	/* insertion sort. */
-	for (j = maxKeyDefs; j > 0; j--)
+	for (j = maxKeyDefs; j > 0; j--) 
 	{
 		if (ks >= keyDefs[j - 1].keySym)
 			break;

@@ -1,8 +1,8 @@
-/* $Id: laser.cpp,v 1.21 2004/04/29 16:08:27 dick Exp $
+/* $Id: laser.cpp,v 1.23 2007/01/19 07:14:49 dick Exp $
  *
  * XPilot, a multiplayer gravity war game.  Copyright (C) 1991-2001 by
  *
- *      Bjï¿½rn Stabell        <bjoern@xpilot.org>
+ *      Bjørn Stabell        <bjoern@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
  *      Dick Balaska         <dick@xpilot.org>
@@ -22,6 +22,13 @@
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
  *  $Log: laser.cpp,v $
+ *  Revision 1.23  2007/01/19 07:14:49  dick
+ *  Whitespace
+ *
+ *  Revision 1.22  2007/01/10 18:14:47  dick
+ *  All robot actions are now handled through RobotMan.
+ *  There is one RobotMan per World.
+ *
  *  Revision 1.21  2004/04/29 16:08:27  dick
  *  compile with SOUND enabled.
  *
@@ -107,7 +114,7 @@
 #include "portability.h"
 #include "objpos.h"
 #include "asteroid.h"
-#include "Robot.h"
+#include "RobotMan.h"
 
 
 char laser_version[] = VERSION;
@@ -130,7 +137,7 @@ public:
  * Type to hold info about all players
  * which may be hit by a laser pulse.
  */
-class Vicbuf
+class Vicbuf 
 {
 public:
     int			num_vic;	/* number of victims. */
@@ -182,7 +189,7 @@ void World::LaserPulseDestroyAll()
  * in a vicbuf structure.
  */
 void World::LaserPulseFindVictims(
-		Vicbuf* vicbuf,
+		Vicbuf* vicbuf, 
 		Pulse *pulse,
 		DFLOAT midx,
 		DFLOAT midy)
@@ -292,7 +299,7 @@ void World::LaserPulseHitsPlayer(
 	}
 
 	SoundPlaySensors(this, vicpl->pos.x, vicpl->pos.y,
-					   PLAYER_EAT_LASER_SOUND);
+					 PLAYER_EAT_LASER_SOUND);
 	if (BIT(vicpl->used, (HAS_SHIELD|HAS_EMERGENCY_SHIELD))
 		== (HAS_SHIELD|HAS_EMERGENCY_SHIELD))
 		return;
@@ -373,7 +380,7 @@ void World::LaserPulseHitsPlayer(
 			BroadcastPlayMessage(msg);
 			if (pl && pl->id != vicpl->id) {
 				pl->kills++;
-				Robot_war(this, victim->ind, ind);
+				this->robotMan->War(victim->ind, ind);
 			}
 		}
 		if (!BIT(vicpl->used, HAS_SHIELD)
@@ -692,7 +699,7 @@ void World::LaserPulseCollision()
 							SCORE(players[ind], options.asteroidPoints->GetDouble(),
 								  OBJ_X_IN_BLOCKS(ast), OBJ_Y_IN_BLOCKS(ast),
 								  "");
-								ScoreServerScoreEvent(players[ind], options.asteroidPoints->GetDouble(),
+								ScoreServerScoreEvent(players[ind], options.asteroidPoints->GetDouble(), 
 										s_brAsteroid, PlayerNone, 0, ScoreAsteroid);
 						}
 						break;

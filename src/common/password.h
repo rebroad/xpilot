@@ -7,7 +7,7 @@
  *      Jarrod Miller        <jarrod@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
- *      Bjï¿½rn Stabell        <bjoern@xpilot.org>
+ *      Bjørn Stabell        <bjoern@xpilot.org>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -39,11 +39,11 @@
 extern	PCSTR	s_localhost;
 
 extern	String	GetPassword(PCSTR host, int port);
-extern	bool	SetPassword(PCSTR host, int port,
+extern	bool	SetPassword(PCSTR host, int port, 
 							PCSTR password, String& error);
 
 extern	int		GetCookie(PCSTR host, int port);
-extern	bool	SetCookie(PCSTR host, int port,
+extern	bool	SetCookie(PCSTR host, int port, 
 						  uint cookie, String& error);
 
 #endif	// _PASSWORD_H_

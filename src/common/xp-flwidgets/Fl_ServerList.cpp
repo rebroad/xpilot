@@ -8,7 +8,7 @@
  *      Jarrod Miller        <jarrod@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
- *      Bjï¿½rn Stabell        <bjoern@xpilot.org>
+ *      Bjørn Stabell        <bjoern@xpilot.org>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -252,7 +252,7 @@ int Fl_ServerList::handle(int flags)
 	switch (flags)
 	{
 	case FL_PUSH:
-
+		
 		// Broken attempt to set the selection on button3
 		if (Fl::event_button3() && !Fl::event_button3())
 		{
@@ -300,7 +300,7 @@ int Fl_ServerList::handle(int flags)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void Fl_ServerList::SetServerList(ServerList* sl)
+void Fl_ServerList::SetServerList(ServerList* sl) 
 {
 	serverList = sl;
 	sl->SetWindow(this);
@@ -320,7 +320,7 @@ void Fl_ServerList::SetErrMsgHandler(ErrMsgHandler _emh, void* _emhThis)
 ///////////////////////////////////////////////////////////////////////////////
 void Fl_ServerList::SetCfg(ServerListCfg* slc)
 {
-	cfg = slc;
+	cfg = slc; 
 	SetColumnSizesFromCfg();
 }
 
@@ -373,7 +373,7 @@ void Fl_ServerList::FlCheckHandler()
 //	if you'd rather program the conditions...
 void Fl_ServerList::get_style( Flv_Style &s, int R, int C )
 {
-
+	
 	Fl_ServerListSUPERCLASS::get_style(s,R,C);			//	Get standard style
 	if (R<0)											//	Heading/Footing is bold
 		s.font( (Fl_Font)(s.font()+FL_BOLD));

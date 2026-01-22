@@ -9,7 +9,7 @@
  *      Jarrod Miller        <jarrod@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
- *      Bjï¿½rn Stabell        <bjoern@xpilot.org>
+ *      Bjørn Stabell        <bjoern@xpilot.org>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -91,7 +91,7 @@ Fl_KbCButton::Fl_KbCButton(int X, int Y, int W, int H, PCSTR keyCap)
 Fl_KbCButton::~Fl_KbCButton()
 {
 	// One would think that i own these, but apparently in fltk, not.
-	// So remove (and i would think, leak) all members before letting
+	// So remove (and i would think, leak) all members before letting 
 	// fltk delete them.
 	while (commands.RemoveHead());
 //	commands.Empty();
@@ -304,16 +304,16 @@ void Fl_KbCButton::Select()
 	if (config && !multiWindow && commands.GetCount() > 1)
 	{
 		DEBUGSELECTION(printf("create multiWindow %d/%d  %d/%d\n",
-							x()-MULTICOMM_BORDER,
-							y()-MULTICOMM_BORDER,
+							x()-MULTICOMM_BORDER, 
+							y()-MULTICOMM_BORDER, 
 							commands.GetCount() * BUTTON_WIDTH+MULTICOMM_BORDER*2,
 							BUTTON_HEIGHT+MULTICOMM_BORDER*2);)
 		multiWindow = new Fl_KbMultiComm(
-							x()-MULTICOMM_BORDER,
-							y()-MULTICOMM_BORDER,
+							x()-MULTICOMM_BORDER, 
+							y()-MULTICOMM_BORDER, 
 							commands.GetCount() * BUTTON_WIDTH+MULTICOMM_BORDER*2,
 							BUTTON_HEIGHT+MULTICOMM_BORDER*2);
-
+		
 		//config->add(*multiWindow);
 		((Fl_Group*)parent())->add(*multiWindow);
 		multiWindow->Init(config, this);

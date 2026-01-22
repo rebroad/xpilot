@@ -9,7 +9,7 @@
  *      Jarrod Miller        <jarrod@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
- *      Bjï¿½rn Stabell        <bjoern@xpilot.org>
+ *      Bjørn Stabell        <bjoern@xpilot.org>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -83,8 +83,8 @@ PCSTR	s_Host		= "Host";
 ///////////////////////////////////////////////////////////////////////////////
 Network::Network()
 {
-	sock = 0;
-	retryCount = 0;
+	sock = 0; 
+	retryCount = 0; 
 	retryTime = 0;
 	nosock = FALSE;
 }
@@ -104,7 +104,7 @@ bool	Network::SetRetryTime()
 		retryTime = now + 20;	// retry in 20 seconds
 	else if (retryCount < 10)	// >  1 minute  attempts 4,5,6,7,8,9
 		retryTime = now + 60;	// retry in 60 seconds
-	else if (retryCount < 30)	// > 11 minutes attempts 10-29
+	else if (retryCount < 30)	// > 11 minutes attempts 10-29 
 		retryTime = now + 600;	// retry in 10 minutes
 	else if (retryCount < 50)	// > 3.5 hours attempts 30-49
 		retryTime = now + 3600;	// retry in 1 hour
@@ -126,7 +126,7 @@ int Network::SetBlockingMode()
 	u_long	argp = 0;
 #if defined(_WINDOWS) && !defined(_CYGWIN)
 	if (GetCfg()->hWnd)
-		ret = WSAAsyncSelect(sock, GetCfg()->hWnd,
+		ret = WSAAsyncSelect(sock, GetCfg()->hWnd, 
 							 wMsg, NULL);
 	ret = ioctlsocket(sock, FIONBIO, &argp);			// set blocking mode
 #else
@@ -146,7 +146,7 @@ int Network::SetNonBlockingMode()
 	u_long	argp = 1;
 #if defined(_WINDOWS) && !defined(_CYGWIN)
 	SOTRACE("SetNonBlockingMode: socket %d\n", sock);
-	ret = WSAAsyncSelect(sock, GetCfg()->hWnd,
+	ret = WSAAsyncSelect(sock, GetCfg()->hWnd, 
 						 wMsg, FD_ACCEPT|FD_READ|FD_CLOSE);
 	if (ret)
 	{
@@ -207,7 +207,7 @@ LString* GetHostAsLstring()
 	hent = gethostbyname(buf);
 //	char buf1[MAXGETHOSTSTRUCT];
 	IN_ADDR*	b = (IN_ADDR*)hent->h_addr;
-	sprintf(buf, "%s:%d",
+	sprintf(buf, "%s:%d", 
 		inet_ntoa(*b), GetCfg()->webPort);
 	nf->s = buf;
 	return(nf);

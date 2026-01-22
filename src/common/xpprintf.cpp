@@ -8,7 +8,7 @@
  *      Jarrod Miller        <jarrod@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
- *      Bjï¿½rn Stabell        <bjoern@xpilot.org>
+ *      Bjørn Stabell        <bjoern@xpilot.org>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -112,7 +112,7 @@ int		logLevel = LOGMAX;
 #endif
 
 ///////////////////////////////////////////////////////////////////////////////
-PCSTR	versionBuildOpts =
+PCSTR	versionBuildOpts = 
 #ifdef	_WINDOWS
 	"Windows"
 #endif
@@ -153,7 +153,7 @@ static void	_xpprintf(const char** lpszFormat, va_list args, ...)
 		*t++ = *w++;
 	}
 	*t = '\0';
-
+	
 
 	int		l;
 
@@ -183,17 +183,17 @@ static void	_xpprintf(const char** lpszFormat, va_list args, ...)
 	MSG		msg;
 	BOOL	bRet;
  	while(bRet = PeekMessage(&msg, NULL, 0, 0, PM_REMOVE) != 0)
-	{
+	{ 
 		if (bRet == -1)
 		{
 			// handle the error and possibly exit
 		}
 		else
 		{
-			TranslateMessage(&msg);
-			DispatchMessage(&msg);
+			TranslateMessage(&msg); 
+			DispatchMessage(&msg); 
 		}
-	}
+	} 
 	Trace(u);
 	if (!printfWnd)		// maybe the message loop picked up a terminate command
 		return;

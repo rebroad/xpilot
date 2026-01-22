@@ -1,11 +1,11 @@
-/* $Id: IniClient.Defaults.cpp,v 1.9 2004/07/22 17:00:05 dick Exp $
+/* $Id: IniClient.Defaults.cpp,v 1.10 2007/01/17 08:54:29 dick Exp $
  *
  * Class to provide the client side resource file handling.
  * Unix this is ~/.xpilotrc and Windows is XPilot.ini
  *
  * XPilot, a multiplayer gravity war game.  Copyright (C) 1991-2001 by
  *
- *      Bjï¿½rn Stabell        <bjoern@xpilot.org>
+ *      Bjørn Stabell        <bjoern@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
  *      Dick Balaska         <dick@xpilot.org>
@@ -26,6 +26,9 @@
  */
 /*
  * $Log: IniClient.Defaults.cpp,v $
+ * Revision 1.10  2007/01/17 08:54:29  dick
+ * KEY_FLIP_ROBOT_PAGE cycles through the robot's brain pages
+ *
  * Revision 1.9  2004/07/22 17:00:05  dick
  * PCSTR defaultShipString is the chars for the default XPilot ship.
  *
@@ -1017,7 +1020,7 @@ Option clientOptions[] = {
 		"Which color number to use for drawing decorations on the radar.\n"
 		"Valid values are all even numbers smaller than maxColors.\n"
 	},
-	{
+	{	
 		"oldMessagesColor",
 		NULL,
 		"1",
@@ -1341,6 +1344,13 @@ Option clientOptions[] = {
 		"r",
 		KEY_TANK_DETACH,
 		"Detach the current tank.\n"
+	},
+	{
+		"keyFlipRobotPage",
+		NULL,
+		"r",
+		KEY_FLIP_ROBOT_PAGE,
+		"Flip to the next robot page (if watching).\n"
 	},
 	{
 		"keyIncreasePower",
@@ -1768,7 +1778,7 @@ Option clientOptions[] = {
 		KEY_DUMMY,
 		"Specifies the device name of the frame buffer.\n"
 	},
-#endif
+#endif	  
 #ifdef DEVELOPMENT
 	{
 		"test",

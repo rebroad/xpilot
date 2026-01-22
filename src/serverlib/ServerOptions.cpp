@@ -22,6 +22,9 @@
  */
 /*
  * $Log: ServerOptions.cpp,v $
+ * Revision 1.45  2007/01/16 06:01:20  dick
+ * Tune options after changing allowViewing
+ *
  * Revision 1.44  2004/05/30 16:23:10  dick
  * Empty the array in the destructor.
  * Use NUMPREFS in Init() because numPrefs hasn't been determined yet.
@@ -863,6 +866,16 @@ void ServerOptions::OptionsChanged(ServerOption* which)
 		b = tagGame->GetBool();
 		tagKillItMult->Activate(b);
 		tagItKillMult->Activate(b);
+	}
+	else if (which == allowViewing)
+	{
+		b = allowViewing->GetBool();
+		anonymousViewing->Activate(b);
+		allowFullViewing->Activate(b);
+		viewingReduceDelay->Activate(b);
+		viewingReduceRate->Activate(b);
+		viewingKeepaliveDelay->Activate(b);
+		viewingKeepaliveRate->Activate(b);
 	}
 	/* TODO
 	ok, now we need to count various objects,

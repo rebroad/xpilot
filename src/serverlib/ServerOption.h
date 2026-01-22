@@ -22,6 +22,9 @@
 */
 /*
  $Log: ServerOption.h,v $
+ Revision 1.25  2007/01/16 04:31:35  dick
+ Programmable frame reduction for paused players.
+
  Revision 1.24  2004/05/23 23:52:07  dick
  src/common/IniClient.Defaults.cpp
 
@@ -127,12 +130,12 @@
 
 enum ValType {
     valVoid,		/* variable is not a variable */
-    valInt,		/* variable is type int */
+    valInt,			/* variable is type int */
     valReal,		/* variable is type float */
     valBool,		/* variable is type bool */
     valIPos,		/* variable is type ipos */
     valString,		/* variable is type char* */
-    valSec,		/* variable is type int (converted to frames) */
+    valSec,			/* variable is type int (converted to frames) */
     valPerSec,		/* variable is type float (converted to per-frame) */
 	valList,		/* variable is an objlist */
 	valEvent,		/* variable is an event, i.e. pushbutton */

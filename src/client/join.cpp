@@ -1,8 +1,8 @@
-/* $Id: join.cpp,v 1.15 2004/06/03 02:21:48 dick Exp $
+/* $Id: join.cpp,v 1.16 2007/02/17 06:18:15 dick Exp $
  *
  * XPilot, a multiplayer gravity war game.	Copyright (C) 1991-2001 by
  *
- *		Bjï¿½rn Stabell		 <bjoern@xpilot.org>
+ *		Bjørn Stabell		 <bjoern@xpilot.org>
  *		Ken Ronny Schouten	 <ken@xpilot.org>
  *		Bert Gijsbers		 <bert@xpilot.org>
  *		Dick Balaska		 <dick@xpilot.org>
@@ -23,6 +23,9 @@
  */
 /*
  * $Log: join.cpp,v $
+ * Revision 1.16  2007/02/17 06:18:15  dick
+ * client/Audio becomes common/AudioMan.
+ *
  * Revision 1.15  2004/06/03 02:21:48  dick
  * Need (PCSTR) on String serverAddr
  *
@@ -109,7 +112,7 @@
 #include "portability.h"
 #include "Ini.h"
 #include "Connectparam.h"
-#include "Audio.h"
+#include "AudioMan.h"
 
 char join_version[] = VERSION;
 
@@ -160,7 +163,7 @@ static void Input_loop(void)
 	max = (clientfd > netfd) ? clientfd : netfd;
 	for (tfds = rfds; ; rfds = tfds) {
 	if ((scoresChanged != 0 && ++scoresChanged > SCORE_UPDATE_DELAY)
-		|| result > 1)
+		|| result > 1) 
 	{
 		if (scoresChanged > 2 * SCORE_UPDATE_DELAY) {
 			Client_score_table();
@@ -245,7 +248,7 @@ static void Input_loop(void)
 void xpilotShutdown()
 {
 #ifdef SOUND
-    audio.Cleanup();
+    audioMan.Cleanup();
 #endif /* SOUND */
 	Net_cleanup();
 	Client_cleanup();

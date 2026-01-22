@@ -10,7 +10,7 @@
  *      Jarrod Miller        <jarrod@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
- *      Bjï¿½rn Stabell        <bjoern@xpilot.org>
+ *      Bjørn Stabell        <bjoern@xpilot.org>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -175,9 +175,9 @@ void IniServer::ParseOptions(int *argcp, char **argvp)
 void IniServer::ParseSwitches(int *argcp, char **argvp)
 {
 	int 			i;
-	for (i = 1; i < *argcp; i++)
+	for (i = 1; i < *argcp; i++) 
 	{
-/*		if (argvp[i][0] == '-' || argvp[i][0] == '+')
+/*		if (argvp[i][0] == '-' || argvp[i][0] == '+') 
 		{
 			if (!strcmp(&argvp[i][1], "team"))
 			{

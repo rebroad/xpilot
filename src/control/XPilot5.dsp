@@ -42,7 +42,7 @@ RSC=rc.exe
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_CONSOLE" /D "_MBCS" /YX /FD /c
-# ADD CPP /nologo /MT /W3 /GX /O2 /I "..\common" /I "..\common\fltk-widgets" /I "..\common\xp-flwidgets" /I "..\serverlib" /I "..\common\xp-flwidgets\kbconfig" /D "WIN32" /D "_WINDOWS" /D "NDEBUG" /D "_CONSOLE" /D "_MBCS" /D "_XPILOTEDIT_" /D "FLTK" /Yu"StdAfx.h" /FD /c
+# ADD CPP /nologo /MT /W3 /GX /O2 /I "..\common" /I "..\common\fltk-widgets" /I "..\common\xp-flwidgets" /I "..\serverlib" /I "..\common\xp-flwidgets\kbconfig" /D "WIN32" /D "_WINDOWS" /D "NDEBUG" /D "_CONSOLE" /D "_MBCS" /D "_XPILOTEDIT_" /D "FLTK" /D "SOUND" /Yu"StdAfx.h" /FD /c
 # ADD BASE RSC /l 0x409 /d "NDEBUG"
 # ADD RSC /l 0x409 /d "NDEBUG"
 BSC32=bscmake.exe
@@ -50,7 +50,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:console /machine:I386
-# ADD LINK32 fltk.lib fltkimages.lib fltkpng.lib fltkz.lib wsock32.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib comctl32.lib /nologo /subsystem:windows /machine:I386
+# ADD LINK32 alut.lib openal32.lib fltk.lib fltkimages.lib fltkpng.lib fltkz.lib wsock32.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib comctl32.lib /nologo /subsystem:windows /machine:I386
 # SUBTRACT LINK32 /pdb:none
 
 !ELSEIF  "$(CFG)" == "XPilot5 - Win32 Debug"
@@ -67,7 +67,7 @@ LINK32=link.exe
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_CONSOLE" /D "_MBCS" /YX /FD /GZ /c
-# ADD CPP /nologo /MTd /W3 /Gm /GX /ZI /Od /I "..\common" /I "..\common\fltk-widgets" /I "..\common\xp-flwidgets" /I "..\serverlib" /I "..\common\xp-flwidgets\kbconfig" /D "WIN32" /D "_WINDOWS" /D "_DEBUG" /D "_CONSOLE" /D "_MBCS" /D "_XPILOTEDIT_" /D "FLTK" /FR /Yu"StdAfx.h" /FD /GZ /c
+# ADD CPP /nologo /MTd /W3 /Gm /GX /ZI /Od /I "..\common" /I "..\common\fltk-widgets" /I "..\common\xp-flwidgets" /I "..\serverlib" /I "..\common\xp-flwidgets\kbconfig" /D "WIN32" /D "_WINDOWS" /D "_DEBUG" /D "_CONSOLE" /D "_MBCS" /D "_XPILOTEDIT_" /D "FLTK" /D "SOUND" /FR /Yu"StdAfx.h" /FD /GZ /c
 # ADD BASE RSC /l 0x409 /d "_DEBUG"
 # ADD RSC /l 0x409 /d "_DEBUG"
 BSC32=bscmake.exe
@@ -75,7 +75,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:console /debug /machine:I386 /pdbtype:sept
-# ADD LINK32 fltkd.lib fltkimagesd.lib fltkpngd.lib fltkzd.lib wsock32.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib comctl32.lib /nologo /subsystem:windows /debug /machine:I386 /nodefaultlib:"libcd" /pdbtype:sept
+# ADD LINK32 alut.lib openal32.lib fltkd.lib fltkimagesd.lib fltkpngd.lib fltkzd.lib wsock32.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib comctl32.lib /nologo /subsystem:windows /debug /machine:I386 /nodefaultlib:"libcd" /pdbtype:sept
 # SUBTRACT LINK32 /pdb:none
 
 !ENDIF
@@ -358,19 +358,11 @@ SOURCE=.\StdAfx.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\tools.cpp
-# End Source File
-# Begin Source File
-
 SOURCE=.\XPClientConfig.cpp
 # End Source File
 # Begin Source File
 
 SOURCE=.\XPClientConfig.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\xpcTypes.h
 # End Source File
 # Begin Source File
 
@@ -439,6 +431,14 @@ SOURCE=..\common\Archive.h
 # End Source File
 # Begin Source File
 
+SOURCE=..\common\AudioMan.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=..\common\AudioMan.h
+# End Source File
+# Begin Source File
+
 SOURCE=..\common\bit.h
 # End Source File
 # Begin Source File
@@ -492,6 +492,14 @@ SOURCE=..\common\cstring.h
 # Begin Source File
 
 SOURCE=..\common\error.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=..\common\fileUtils.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=..\common\fileUtils.h
 # End Source File
 # Begin Source File
 
@@ -688,6 +696,26 @@ SOURCE=..\common\sockerrs.cpp
 # Begin Source File
 
 SOURCE=..\common\sockerrs.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\common\Sound.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=..\common\Sound.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\common\SoundEvent.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=..\common\SoundEvent.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\common\soundNames.cpp.h
 # End Source File
 # Begin Source File
 
@@ -941,6 +969,58 @@ SOURCE="..\common\fltk-widgets\readme.txt"
 # Begin Group "xp-flwidgets"
 
 # PROP Default_Filter ""
+# Begin Group "audio"
+
+# PROP Default_Filter ""
+# Begin Source File
+
+SOURCE="..\common\xp-flwidgets\audio\Fl_EventSoundConnector.cpp"
+# End Source File
+# Begin Source File
+
+SOURCE="..\common\xp-flwidgets\audio\Fl_EventSoundConnector.h"
+# End Source File
+# Begin Source File
+
+SOURCE="..\common\xp-flwidgets\audio\Fl_MainGainSlider.cpp"
+# End Source File
+# Begin Source File
+
+SOURCE="..\common\xp-flwidgets\audio\Fl_MainGainSlider.h"
+# End Source File
+# Begin Source File
+
+SOURCE="..\common\xp-flwidgets\audio\Fl_SoundEventList.cpp"
+# End Source File
+# Begin Source File
+
+SOURCE="..\common\xp-flwidgets\audio\Fl_SoundEventList.h"
+# End Source File
+# Begin Source File
+
+SOURCE="..\common\xp-flwidgets\audio\Fl_SoundList.cpp"
+# End Source File
+# Begin Source File
+
+SOURCE="..\common\xp-flwidgets\audio\Fl_SoundList.h"
+# End Source File
+# Begin Source File
+
+SOURCE="..\common\xp-flwidgets\audio\SoundUndoableCommand.cpp"
+# End Source File
+# Begin Source File
+
+SOURCE="..\common\xp-flwidgets\audio\SoundUndoableCommand.h"
+# End Source File
+# Begin Source File
+
+SOURCE="..\common\xp-flwidgets\audio\SoundWindow.cpp"
+# End Source File
+# Begin Source File
+
+SOURCE="..\common\xp-flwidgets\audio\SoundWindow.h"
+# End Source File
+# End Group
 # Begin Source File
 
 SOURCE="..\common\xp-flwidgets\.cvsignore"
@@ -984,6 +1064,14 @@ SOURCE="..\common\xp-flwidgets\Fl_XPColors.cpp"
 # Begin Source File
 
 SOURCE="..\common\xp-flwidgets\Fl_XPColors.h"
+# End Source File
+# Begin Source File
+
+SOURCE="..\common\xp-flwidgets\flUtil.cpp"
+# End Source File
+# Begin Source File
+
+SOURCE="..\common\xp-flwidgets\flUtil.h"
 # End Source File
 # Begin Source File
 
@@ -1044,6 +1132,10 @@ SOURCE="..\common\xp-flwidgets\XPChoice.cpp"
 # Begin Source File
 
 SOURCE="..\common\xp-flwidgets\XPChoice.h"
+# End Source File
+# Begin Source File
+
+SOURCE="..\common\xp-flwidgets\xpcTypes.h"
 # End Source File
 # Begin Source File
 

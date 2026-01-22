@@ -1,4 +1,4 @@
-/* $Id: packet.h,v 1.9 2004/05/23 23:52:07 dick Exp $
+/* $Id: packet.h,v 1.12 2007/02/12 07:49:02 dick Exp $
  *
  * XPilot, a multiplayer gravity war game.  Copyright (C) 1991-2001 by
  *
@@ -22,6 +22,17 @@
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
  * $Log: packet.h,v $
+ * Revision 1.12  2007/02/12 07:49:02  dick
+ * Define PKT_ROBOT_WATCHDECO which displays stuff on the playfield.  Bump version to 0x5011.
+ *
+ * Revision 1.11  2007/01/18 20:59:42  dick
+ * Increase MAX_RELIABLE_DATA_PACKET_SIZE from 1024 to 2048
+ * to accomodate the RobotWatch messages which can be big.
+ * Will this break backwards compatibility?
+ *
+ * Revision 1.10  2007/01/17 08:56:53  dick
+ * PKT_ROBOT_WATCH sends brain strings to the client
+ *
  * Revision 1.9  2004/05/23 23:52:07  dick
  * src/common/IniClient.Defaults.cpp
  *
@@ -33,6 +44,10 @@
 
 #ifndef PACKET_H
 #define PACKET_H
+
+//#define MAX_RELIABLE_DATA_PACKET_SIZE	1024
+#define MAX_RELIABLE_DATA_PACKET_SIZE	2048
+
 
 /* before version 3.8.0 this was 8 bytes. */
 #define KEYBOARD_SIZE		9
@@ -144,8 +159,8 @@
 #define PKT_NOP				83	// 53	/* Keep alive ping no-op */
 #define PKT_COOKIE			84	// 54
 #define PKT_SCORE_TABLE		85	// 55
-#define PKT_NOT_USED_86		86	// 56
-#define PKT_NOT_USED_87		87	// 57
+#define PKT_ROBOT_WATCH		86	// 56
+#define PKT_ROBOT_WATCHDECO	87	// 57
 #define PKT_NOT_USED_88		88	// 58
 #define PKT_NOT_USED_89		89	// 59
 

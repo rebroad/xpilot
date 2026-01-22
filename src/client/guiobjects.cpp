@@ -6,7 +6,7 @@
  *
  * XPilot, a multiplayer gravity war game.  Copyright (C) 1991-2001 by
  *
- *      Bjï¿½rn Stabell        <bjoern@xpilot.org>
+ *      Bjørn Stabell        <bjoern@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
  *      Dick Balaska         <dick@xpilot.org>
@@ -61,7 +61,7 @@
  * Encapsulate all client resources into new class Ini (Linux cleanups)
  *
  * Revision 1.3  2001/09/11 07:33:44  dick
- * Encap ï¿½late all client resources into new class Ini.
+ * Encap îlate all client resources into new class Ini.
  *
  * Revision 1.2  2001/07/27 05:47:39  dick
  * Client builds and runs in C++
@@ -191,7 +191,7 @@ void Gui_paint_ball_connecter(int x1, int y1, int x2, int y2)
 
 ///////////////////////////////////////////////////////////////////////////////
 /* used by Paint_mine */
-static void Gui_paint_mine_name(int x, int y, PCSTR name)
+static void Gui_paint_mine_name(int x, int y, PCSTR name) 
 {
 	int 		name_len, name_width;
 
@@ -261,14 +261,14 @@ void Gui_paint_mine(int x, int y, int teammine, PCSTR name)
 		if (teammine == 0) {
 			SET_FG(colors[BLUE].pixel);
 			rd.fillRectangle(iniClient.dpy, p_draw, gc,
-						WINSCALE(x - 7), WINSCALE(y - 2),
+						WINSCALE(x - 7), WINSCALE(y - 2), 
 						WINSCALE(15), WINSCALE(5));
 		}
 
 		SET_FG(colors[WHITE].pixel);
 		rd.drawLines(iniClient.dpy, p_draw, gc,
 				   mine_points, 21, CoordModePrevious);
-		Erase_rectangle( WINSCALE(x - 8) - 1, WINSCALE(y - 4) - 1,
+		Erase_rectangle( WINSCALE(x - 8) - 1, WINSCALE(y - 4) - 1, 
 						WINSCALE(17)+2, WINSCALE(9)+2);
 
 		if (name) {
@@ -300,14 +300,14 @@ void Gui_paint_spark(int color, int x, int y)
 {
 	color = spark_color[color];
 
-	Rectangle_add(color,
+	Rectangle_add(color, 
 				x - iniClient.sparkSize/2,
 				y - iniClient.sparkSize/2,
 				iniClient.sparkSize, iniClient.sparkSize);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void Gui_paint_wreck(int x, int y, bool deadly, int wtype, int rot, int size)
+void Gui_paint_wreck(int x, int y, bool deadly, int wtype, int rot, int size) 
 {
 	int color, cnt, tx, ty;
 	static XPoint points[NUM_WRECKAGE_POINTS+2];
@@ -356,8 +356,8 @@ static void Gui_paint_nastyshot(int color, int x, int y, int size)
 		int z = size;
 
 	if (rfrac() < 0.5f) {
-		Segment_add(color,
-					x - z, y - z,
+		Segment_add(color, 
+					x - z, y - z, 
 					x + z, y + z);
 		Segment_add(color,
 					x + z, y - z,
@@ -437,7 +437,7 @@ void Gui_paint_missile(int x, int y, int len, int dir)
 	y1 = Y(y);
 	x2 = (int)(x1 - tcos(dir) * len);
 	y2 = (int)(y1 + tsin(dir) * len);
-	rd.drawLine(iniClient.dpy, p_draw, gc,
+	rd.drawLine(iniClient.dpy, p_draw, gc, 
 			WINSCALE(x1), WINSCALE(y1), WINSCALE(x2), WINSCALE(y2));
 	Erase_segment(4, WINSCALE(x1) , WINSCALE(y1),
 				  WINSCALE(x2) , WINSCALE(y2));
@@ -598,7 +598,7 @@ void Gui_paint_transporter(int x0, int y0, int x1, int y1)
 #endif
 
 	rd.drawLine(iniClient.dpy, p_draw, gc,
-			  WINSCALE(X(x0)), WINSCALE(Y(y0)),
+			  WINSCALE(X(x0)), WINSCALE(Y(y0)), 
 				  WINSCALE(X(x1)), WINSCALE(Y(y1)));
 	Erase_segment(1, WINSCALE(X(x0)), WINSCALE(Y(y0)),
 				  WINSCALE(X(x1)), WINSCALE(Y(y1)));
@@ -793,7 +793,7 @@ static void Gui_paint_shields_deflectors(int x, int y, int radius, int shield,
 /*	  IFWINDOWS(Trace("shield=%d deflector=%d eshield=%d\n",
 		shield, deflector, eshield);)
 */
-	if (shield)
+	if (shield) 
 		scolor = ship_color;
 	if (deflector)
 		ecolor = loops & 0x02 ? RED : BLUE;
@@ -808,8 +808,8 @@ static void Gui_paint_shields_deflectors(int x, int y, int radius, int shield,
 
 	if (ecolor != -1) { 		/* outer shield */
 			SET_FG(colors[ecolor].pixel);
-		rd.drawArc(iniClient.dpy, p_draw, gc,
-				   WINSCALE(X(x - half_e_radius)),
+		rd.drawArc(iniClient.dpy, p_draw, gc, 
+				   WINSCALE(X(x - half_e_radius)), 
 				   WINSCALE(Y(y + half_e_radius)),
 				   WINSCALE(e_radius), WINSCALE(e_radius),
 				   0, 64 * 360);
@@ -820,8 +820,8 @@ static void Gui_paint_shields_deflectors(int x, int y, int radius, int shield,
 	}
 	if (scolor != -1) {
 			SET_FG(colors[scolor].pixel);
-			rd.drawArc(iniClient.dpy, p_draw, gc,
-					   WINSCALE(X(x - half_radius)),
+			rd.drawArc(iniClient.dpy, p_draw, gc, 
+					   WINSCALE(X(x - half_radius)), 
 					   WINSCALE(Y(y + half_radius)),
 					   WINSCALE(radius), WINSCALE(radius),
 					   0, 64 * 360);
@@ -963,9 +963,9 @@ void Gui_paint_ship(int x, int y, int dir, int id, int cloak, int phased,
 		else {
 			if (ship_color == BLUE)
 				ship_shape = BM_SHIP_FRIEND;
-			else if (self != NULL && self->id != id)
+			else if (self != NULL && self->id != id) 
 				ship_shape = BM_SHIP_ENEMY;
-			else
+			else 
 				ship_shape = BM_SHIP_SELF;
 
 			generic_paint_ship(x, y, dir, ship_shape);
@@ -983,8 +983,8 @@ void Gui_paint_ship(int x, int y, int dir, int id, int cloak, int phased,
 	}
 	if (shield || deflector) {
 		Set_drawstyle_dashed(ship_color, cloak);
-		Gui_paint_shields_deflectors(x, y, ship->shield_radius,
-									shield, deflector,
+		Gui_paint_shields_deflectors(x, y, ship->shield_radius, 
+									shield, deflector, 
 									eshield, ship_color);
-	}
+	}	
 }

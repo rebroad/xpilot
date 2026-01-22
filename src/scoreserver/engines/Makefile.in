@@ -1,7 +1,7 @@
-# $Id: Makefile.in,v 1.4 2004/01/30 16:18:00 dick Exp $
+# $Id: Makefile.in,v 1.5 2007/01/30 06:55:37 dick Exp $
 # @configure_input@
 #
-# Makefile.in for xpilot++'s ScoreServer engine library
+# Makefile.in for xpilot5's ScoreServer engine library
 # ./src/scoreserver/engines/Makefile.in
 #
 # This library contains the plugin engines for the ScoreServer
@@ -26,6 +26,9 @@
 # Please report all bugs and problems to "xpilot++@buckosoft.com".
 #
 # $Log: Makefile.in,v $
+# Revision 1.5  2007/01/30 06:55:37  dick
+# Optionally build the sql engine
+#
 # Revision 1.4  2004/01/30 16:18:00  dick
 # Add the score engine config objects
 #
@@ -41,7 +44,7 @@
 
 LIBNAME = libscoreengines.a
 
-SUBDIRS =
+SUBDIRS = @MYSQLBUILD@
 
 CPPFILES = \
 	ScoreEngine.cpp ScoreEngineCfg.cpp \
@@ -60,7 +63,14 @@ XPCXXFLAGS = $(SERVERLIBINC) $(COMMONINC) $(EXPATLIBINC) $(WEBLIBINC)
 
 OBJECTS = $(CPPFILES:.cpp=.o) $(CFILES:.c=.o)
 
-all:	$(LIBNAME)
+all::	$(SUBDIRS)
+	@for dir in $(SUBDIRS); do\
+		echo "=== making $$dir ===";\
+		(cd $$dir; $(MAKE) $(MFLAGS)) || exit 1;\
+	done
+
+all::	$(LIBNAME)
+
 
 $(LIBNAME): $(OBJECTS)
 	echo $(LIBCOMMAND) $@ ...
@@ -69,13 +79,25 @@ $(LIBNAME): $(OBJECTS)
 
 
 clean :
+	@for dir in $(SUBDIRS); do\
+		echo "=== cleaning $$dir ===";\
+		(cd $$dir; $(MAKE) $(MFLAGS) clean) || exit 1;\
+	done
 	-@ rm -f *.o *.do $(LIBNAME) $(CLEAN) core *~ .depend cmap
 	-@ touch .depend
 
 distclean: clean
+	@for dir in $(SUBDIRS); do\
+		echo "=== distcleaning $$dir ===";\
+		(cd $$dir; $(MAKE) $(MFLAGS) distclean) || exit 1;\
+	done
 	-@ rm -f Makefile
 
 depend:
+	@for dir in $(SUBDIRS); do\
+		echo "=== making dependencies in $$dir ===";\
+		(cd $$dir; $(MAKE) $(MFLAGS) depend) || exit 1;\
+	done
 	-@ makedepend $(XPCXXFLAGS) $(FLTKINC) -f .depend $(CPPFILES) $(CFILES)
 
 include .depend
@@ -85,5 +107,5 @@ include .depend
 install:
 
 #
-# End of "$Id: Makefile.in,v 1.4 2004/01/30 16:18:00 dick Exp $".
+# End of "$Id: Makefile.in,v 1.5 2007/01/30 06:55:37 dick Exp $".
 #

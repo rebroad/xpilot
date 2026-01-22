@@ -8,7 +8,7 @@
  *      Jarrod Miller        <jarrod@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
- *      Bjï¿½rn Stabell        <bjoern@xpilot.org>
+ *      Bjørn Stabell        <bjoern@xpilot.org>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -53,7 +53,7 @@
 #include "portability.h"
 
 #if defined(_WINDOWS) && !defined(_CYGWIN)
-#include <winsock.h>
+#include <winsock.h> 
 #else
 #include <sys/socket.h>
 #include <netinet/in.h>

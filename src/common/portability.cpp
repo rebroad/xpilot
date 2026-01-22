@@ -1,4 +1,4 @@
-/* $Id: portability.cpp,v 1.9 2004/02/03 03:39:52 dick Exp $
+/* $Id: portability.cpp,v 1.10 2007/02/17 06:12:06 dick Exp $
  *
  * XPilot, a multiplayer gravity war game.  Copyright (C) 1991-2001 by
  *
@@ -61,6 +61,14 @@
 
 
 char portability_version[] = VERSION;
+
+#ifdef	_WINDOWS
+PCSTR	eol = "\r\n";
+PCSTR	fileEol = "\n";
+#else
+PCSTR	eol = "\n";
+PCSTR	fileEol = "\n";
+#endif
 
 
 int GetProcessId(void)
@@ -144,4 +152,5 @@ double rint(double x)
     return floor((x < 0.0) ? (x - 0.5) : (x + 0.5));
 }
 #endif
+
 

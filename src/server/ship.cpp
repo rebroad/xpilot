@@ -1,4 +1,4 @@
-/* $Id: ship.cpp,v 1.25 2004/05/07 04:27:41 dick Exp $
+/* $Id: ship.cpp,v 1.26 2007/01/14 22:10:15 dick Exp $
  *
  * XPilot, a multiplayer gravity war game.  Copyright (C) 1991-2001 by
  *
@@ -22,6 +22,10 @@
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
  *  $Log: ship.cpp,v $
+ *  Revision 1.26  2007/01/14 22:10:15  dick
+ *  Robot4 is the original xpilot 4 series robot.
+ *  Robot4a is dick's playing around with making them better.
+ *
  *  Revision 1.25  2004/05/07 04:27:41  dick
  *  _visibility becomes Visibility.  global updateScores becomes a member of World.
  *  Handle rank/rate data from the scoreserver and send it to the client.
@@ -512,7 +516,7 @@ void Tank_handle_detach(Player *pl)
 	dummy->status = (DEF_BITS & ~KILL_BITS) | PLAYING | GRAVITY | THRUSTING;
 	dummy->have = DEF_HAVE;
 	dummy->used = (DEF_USED & ~USED_KILL & pl->have) | HAS_SHIELD;
-	if (w->options.allowShields->GetBool() == 0) {
+	if (w->options.allowShields->GetBool() == false) {
 		dummy->shield_time = 30 * w->GetFPS();
 		dummy->have |= HAS_SHIELD;
 	}

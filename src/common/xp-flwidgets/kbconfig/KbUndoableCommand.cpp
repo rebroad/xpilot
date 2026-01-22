@@ -8,7 +8,7 @@
  *      Jarrod Miller        <jarrod@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
- *      Bjï¿½rn Stabell        <bjoern@xpilot.org>
+ *      Bjørn Stabell        <bjoern@xpilot.org>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -98,7 +98,7 @@ void KbUndoableCommand::Do()
 		AddCommand(myKbConfig->kb->GetCopyButton(), t);
 		myKbConfig->kb->UpdateAllCommands(); // possibly inserted a command, screwing the pointers
 	}
-	else
+	else 
 	{
 		// Change the value of the source button to be the dest button
 		for (i=0; i<iniClient.maxKeyDefs; i++)

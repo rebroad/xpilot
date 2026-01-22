@@ -1,8 +1,8 @@
-/* $Id: portability.h,v 1.24 2005/03/17 22:12:13 kps Exp $
+/* $Id: portability.h,v 1.26 2007/02/17 20:27:15 dick Exp $
  *
  * XPilot, a multiplayer gravity war game.  Copyright (C) 1991-2001 by
  *
- *      Bjï¿½rn Stabell        <bjoern@xpilot.org>
+ *      Bjørn Stabell        <bjoern@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
  *      Dick Balaska         <dick@xpilot.org>
@@ -23,6 +23,12 @@
  */
 /*
  * $Log: portability.h,v $
+ * Revision 1.26  2007/02/17 20:27:15  dick
+ * Linux needs cstring.h
+ *
+ * Revision 1.25  2007/02/17 06:12:06  dick
+ * Add fileEol, a string which is the EOL for this OS
+ *
  * Revision 1.24  2005/03/17 22:12:13  kps
  * Get rid of warnings from makedepend about "non-portable whitespace".
  *
@@ -82,6 +88,8 @@
 #ifndef	_WINDOWS
 #define	_UNIX	1		// opposite of _WINDOWS
 #endif
+
+#include "cstring.h"
 
 #ifdef _WINDOWS
 #undef max
@@ -222,14 +230,14 @@ extern int is_this_windows(void);
 extern double rint(double x);
 #endif
 
-/*
+/* 
  * errno
  *
  * Windows defines at least 3 different errno(s) !!!
  * The one we are interested in is WSAGetLastError
  * which deals with network errno
  *
- * XPilot++ should use xperrno only, and we'll map it
+ * XPilot5 should use xperrno only, and we'll map it
  * to the correct one.
  */
 #if defined(_UNIX) || defined(_CYGWIN)
@@ -244,5 +252,8 @@ extern double rint(double x);
 #define	seterrno(__i)
 #endif
 
+// System specific end of line string
+extern	PCSTR	eol;
+extern	PCSTR	fileEol;
 
 #endif /* PORTABILITY_H_INCLUDED */

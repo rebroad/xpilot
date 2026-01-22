@@ -10,7 +10,7 @@
  *      Jarrod Miller        <jarrod@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
- *      Bjï¿½rn Stabell        <bjoern@xpilot.org>
+ *      Bjørn Stabell        <bjoern@xpilot.org>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -151,7 +151,7 @@ static	void main_loop()
 		readmask = selset;
 		exceptmask = exceptset;
 		retsel = select(maxfd+1, &readmask, 0, 0, &tv);
-
+		
 		if (retsel < 0)
 		{
 			xpprintf("select error %d (%s)\n", errno, GetSockErrText(errno));
@@ -164,7 +164,7 @@ static	void main_loop()
 		}
 		for (i=minfd; i<maxfd+1; i++)
 		{
-			if (FD_ISSET(i, &readmask))
+			if (FD_ISSET(i, &readmask)) 
 			{
 				n = FindHttpListener();		// should eventually be type network
 				if (n)

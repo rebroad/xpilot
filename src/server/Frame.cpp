@@ -1,8 +1,8 @@
-/* $Id: Frame.cpp,v 1.23 2004/05/22 15:15:08 dick Exp $
+/* $Id: Frame.cpp,v 1.28 2007/02/17 20:29:18 dick Exp $
  *
  * XPilot, a multiplayer gravity war game.  Copyright (C) 1991-2002 by
  *
- *      Bjï¿½rn Stabell        <bjoern@xpilot.org>
+ *      Bjørn Stabell        <bjoern@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
  *      Dick Balaska         <dick@xpilot.org>
@@ -24,6 +24,21 @@
  */
 /*
  *  $Log: Frame.cpp,v $
+ *  Revision 1.28  2007/02/17 20:29:18  dick
+ *  Wrap Trace(...) debug with D().
+ *
+ *  Revision 1.27  2007/02/12 07:55:27  dick
+ *  Support RobotWatchDeco, which is decorated shapes displayed on the playfield.
+ *
+ *  Revision 1.26  2007/01/17 21:37:13  dick
+ *  Retab
+ *
+ *  Revision 1.25  2007/01/17 09:06:22  dick
+ *  Send the RobotWatch packets to the client
+ *
+ *  Revision 1.24  2007/01/16 04:31:35  dick
+ *  Programmable frame reduction for paused players.
+ *
  *  Revision 1.23  2004/05/22 15:15:08  dick
  *  myEyes becomes a id instead of an ind
  *
@@ -124,6 +139,7 @@
 #include "portability.h"
 #include "Cannon.h"
 #include "randommt.h"
+#include "Robot.h"
 
 char frame_version[] = VERSION;
 
@@ -485,7 +501,7 @@ int Frame::Status(int ind)
 #endif
 			&& BIT(world->players[lock_ind]->status, PLAYING|GAME_OVER) == PLAYING
 			&& (world->options.playersOnRadar->GetBool()
-				|| inview(world->players[lock_ind]->pos.x,
+				|| inview(world->players[lock_ind]->pos.x, 
 								  world->players[lock_ind]->pos.y))
 			&& pl->lock.distance != 0) {
 			SET_BIT(pl->lock.tagged, LOCK_VISIBLE);
@@ -569,7 +585,7 @@ int Frame::Status(int ind)
 	}
 
 	if (world->roundDelaySend > 0) {
-		SendRoundDelay(world->roundDelay,
+		SendRoundDelay(world->roundDelay, 
 				world->options.roundDelay->GetInt() * world->GetFPS());
 	}
 
@@ -625,7 +641,7 @@ void Frame::Map(int ind)
 		targ = &world->targets[i];
 		if (BIT(targ->update_mask, conn_bit)
 			|| (BIT(targ->conn_mask, conn_bit) == 0
-			&& block_inview(&bv, targ->pos.x, targ->pos.y)))
+			&& block_inview(&bv, targ->pos.x, targ->pos.y))) 
 		{
 			SendTarget(i, targ->dead_time, targ->damage);
 			pl->last_target_update = i;
@@ -666,11 +682,11 @@ void Frame::Map(int ind)
 		}
 		if (BIT(world->fuels[i].conn_mask, conn_bit) == 0) {
 			if (world->block[world->fuels[i].blk_pos.x]
-			   [world->fuels[i].blk_pos.y] == FUEL)
+			   [world->fuels[i].blk_pos.y] == FUEL) 
 			{
 				if (block_inview(&bv,
 								 world->fuels[i].blk_pos.x,
-								 world->fuels[i].blk_pos.y))
+								 world->fuels[i].blk_pos.y)) 
 				{
 					SendFuel(i, (int) world->fuels[i].fuel);
 					pl->last_fuel_update = i;
@@ -956,10 +972,10 @@ void Frame::Shots(int ind)
 						confused = 1;
 				}
 				if (mine->id != NO_ID
-						&& BIT(world->players[world->getInd[mine->id]]->status, PAUSE))
+						&& BIT(world->players[world->getInd[mine->id]]->status, PAUSE)) 
 				{
 						laid_by_team = 1;
-				} else
+				} else 
 				{
 						laid_by_team = (pl->TeamImmune(mine->id)
 										|| (BIT(mine->status, OWNERIMMUNE)
@@ -1000,90 +1016,90 @@ void Frame::Ships(int ind)
 	int 				i, j, k, color, dir;
 	DFLOAT				x, y;
 
-		for (j = 0; j < world->numPulses; j++) {
-				pulse = world->pulses[j];
-				if (pulse->len <= 0) {
-						continue;
-				}
-				x = pulse->pos.x;
-				y = pulse->pos.y;
-				if (BIT (world->rules->mode, WRAP_PLAY)) {
-						if (x < 0) {
-								x += world->width;
-						}
-						else if (x >= world->width) {
-								x -= world->width;
-						}
-						if (y < 0) {
-								y += world->height;
-						}
-						else if (y >= world->height) {
-								y -= world->height;
-						}
-				}
-				if (inview(x, y)) {
-						dir = pulse->dir;
-				} else {
-						x += tcos(pulse->dir) * pulse->len;
-						y += tsin(pulse->dir) * pulse->len;
-						if (BIT (world->rules->mode, WRAP_PLAY)) {
-								if (x < 0) {
-										x += world->width;
-								}
-								else if (x >= world->width) {
-										x -= world->width;
-								}
-								if (y < 0) {
-										y += world->height;
-								}
-								else if (y >= world->height) {
-								y -= world->height;
-								}
-						}
-						if (inview(x, y)) {
-								dir = MOD2(pulse->dir + RES/2, RES);
-						}
-						else {
-								continue;
-						}
-				}
-				if (pl->TeamImmune(pulse->id)) {
-						color = BLUE;
-				} else if (pulse->id == pl->id
-										&& world->options.selfImmunity->GetBool()) {
-						color = BLUE;
-				} else {
-						color = RED;
-				}
-				SendLaser(color, (int)x, (int)y, pulse->len, dir);
+	for (j = 0; j < world->numPulses; j++) {
+		pulse = world->pulses[j];
+		if (pulse->len <= 0) {
+			continue;
 		}
+		x = pulse->pos.x;
+		y = pulse->pos.y;
+		if (BIT (world->rules->mode, WRAP_PLAY)) {
+			if (x < 0) {
+				x += world->width;
+			}
+			else if (x >= world->width) {
+				x -= world->width;
+			}
+			if (y < 0) {
+				y += world->height;
+			}
+			else if (y >= world->height) {
+				y -= world->height;
+			}
+		}
+		if (inview(x, y)) {
+				dir = pulse->dir;
+		} else {
+			x += tcos(pulse->dir) * pulse->len;
+			y += tsin(pulse->dir) * pulse->len;
+			if (BIT (world->rules->mode, WRAP_PLAY)) {
+				if (x < 0) {
+					x += world->width;
+				}
+				else if (x >= world->width) {
+					x -= world->width;
+				}
+				if (y < 0) {
+					y += world->height;
+				}
+				else if (y >= world->height) {
+					y -= world->height;
+				}
+			}
+			if (inview(x, y)) {
+					dir = MOD2(pulse->dir + RES/2, RES);
+			}
+			else {
+					continue;
+			}
+		}
+		if (pl->TeamImmune(pulse->id)) {
+				color = BLUE;
+		} else if (pulse->id == pl->id
+								&& world->options.selfImmunity->GetBool()) {
+				color = BLUE;
+		} else {
+				color = RED;
+		}
+		SendLaser(color, (int)x, (int)y, pulse->len, dir);
+	}
 	for (i = 0; i < world->numEcms; i++) {
-				Ecm *ecm = world->ecms[i];
-				SendEcm((int)ecm->pos.x, (int)ecm->pos.y, ecm->size);
+		Ecm *ecm = world->ecms[i];
+		SendEcm((int)ecm->pos.x, (int)ecm->pos.y, ecm->size);
 	}
 	for (i = 0; i < world->numTransporters; i++) {
-				Transporter* trans = world->transporters[i];
-				Player* victim = world->players[world->getInd[trans->target]];
-				Player* pl = (trans->id == NO_ID ? NULL : world->players[world->getInd[trans->id]]);
-				DFLOAT	x = (pl ? pl->pos.x : trans->pos.x);
-				DFLOAT	y = (pl ? pl->pos.y : trans->pos.y);
-				SendTrans(victim->pos.x, victim->pos.y, (int)x, (int)y);
+		Transporter* trans = world->transporters[i];
+		Player* victim = world->players[world->getInd[trans->target]];
+		Player* pl = (trans->id == NO_ID ? NULL : world->players[world->getInd[trans->id]]);
+		DFLOAT	x = (pl ? pl->pos.x : trans->pos.x);
+		DFLOAT	y = (pl ? pl->pos.y : trans->pos.y);
+		SendTrans(victim->pos.x, victim->pos.y, (int)x, (int)y);
 	}
 	for (i = 0; i < world->numCannons; i++) {
-				Cannon *cannon = world->cannons + i;
-				if (cannon->tractor_count > 0) {
-						Player *t = world->players[world->getInd[cannon->tractor_target]];
-						if (inview(t->pos.x, t->pos.y)) {
-								int j;
-								for (j = 0; j < 3; j++) {
-										SendConnector(
-												(int)(t->pos.x + t->ship->pts[j][t->dir].x),
-												(int)(t->pos.y + t->ship->pts[j][t->dir].y),
-												(int)cannon->pix_pos.x,
-												(int)cannon->pix_pos.y, 1);
-								}
-						}
+		Cannon *cannon = world->cannons + i;
+		if (cannon->tractor_count > 0) {
+			Player *t = world->players[world->getInd[cannon->tractor_target]];
+			if (inview(t->pos.x, t->pos.y)) {
+				int j;
+				for (j = 0; j < 3; j++) {
+					SendConnector(
+						(int)(t->pos.x + t->ship->pts[j][t->dir].x),
+						(int)(t->pos.y + t->ship->pts[j][t->dir].y),
+						(int)cannon->pix_pos.x,
+						(int)cannon->pix_pos.y, 1);
 				}
+			}
+		}
 	}
 
 	for (k = 0; k < num_player_shuffle; k++) {
@@ -1100,8 +1116,8 @@ void Frame::Ships(int ind)
 		}
 		if (BIT(pl_i->status, PAUSE)) {
 			SendPaused(pl_i->pos.x,
-								   pl_i->pos.y,
-								   pl_i->count);
+					   pl_i->pos.y,
+					   pl_i->count);
 			continue;
 		}
 
@@ -1113,25 +1129,24 @@ void Frame::Ships(int ind)
 			/*
 			 * Transmit ship information
 			 */
-			SendShip(
-					  pl_i->pos.x,
-					  pl_i->pos.y,
-					  pl_i->id,
-					  pl_i->dir,
-					  BIT(pl_i->used, HAS_SHIELD) != 0,
-					  BIT(pl_i->used, HAS_CLOAKING_DEVICE) != 0,
-					  BIT(pl_i->used, HAS_EMERGENCY_SHIELD) != 0,
-					  BIT(pl_i->used, HAS_PHASING_DEVICE) != 0,
-					  BIT(pl_i->used, HAS_DEFLECTOR) != 0
+			SendShip(pl_i->pos.x,
+					 pl_i->pos.y,
+					 pl_i->id,
+					 pl_i->dir,
+					 BIT(pl_i->used, HAS_SHIELD) != 0,
+					 BIT(pl_i->used, HAS_CLOAKING_DEVICE) != 0,
+					 BIT(pl_i->used, HAS_EMERGENCY_SHIELD) != 0,
+					 BIT(pl_i->used, HAS_PHASING_DEVICE) != 0,
+					 BIT(pl_i->used, HAS_DEFLECTOR) != 0
 			);
 		}
 		if (BIT(pl_i->used, HAS_REFUEL)) {
 			if (inview(world->fuels[pl_i->fs].pix_pos.x,
 					   world->fuels[pl_i->fs].pix_pos.y)) {
 				SendRefuel((int)world->fuels[pl_i->fs].pix_pos.x,
-								   (int)world->fuels[pl_i->fs].pix_pos.y,
-								   pl_i->pos.x,
-								   pl_i->pos.y);
+						   (int)world->fuels[pl_i->fs].pix_pos.y,
+						   pl_i->pos.x,
+						   pl_i->pos.y);
 			}
 		}
 		if (BIT(pl_i->used, HAS_REPAIR)) {
@@ -1341,29 +1356,33 @@ void Frame_update(World* w)
 
 	if (w->options.gameDuration->GetDouble() > 0.0
 		&& game_over_called == false
-		&& oldTimeLeft != (newTimeLeft = gameOverTime - time(NULL)))
+		&& oldTimeLeft != (newTimeLeft = gameOverTime - time(NULL))) 
 	{
 		/*
 		* Do this once a second.
 		*/
-		if (newTimeLeft <= 0)
+		if (newTimeLeft <= 0) 
 		{
 			w->GameOver();
 			w->shutdownServer = 30 * w->GetFPS();	/* Shutdown in 30 seconds */
 			game_over_called = true;
 		}
 	}
+	int	viewingReduceRate =	w->options.viewingReduceRate->GetInt();
+	int viewingReduceDelay = w->options.viewingReduceDelay->GetInt() * w->GetFPS();
+	int	viewingKeepaliveRate = w->options.viewingKeepaliveRate->GetInt();
+	int	viewingKeepaliveDelay = w->options.viewingKeepaliveDelay->GetInt() * w->GetFPS();
 
-	for (i = 0; i < num_player_shuffle; i++)
+	for (i = 0; i < num_player_shuffle; i++) 
 	{
 		pl = w->players[i];
-		if (!pl->conn)
+		if (!pl->conn) 
 			continue;
 		connp = pl->conn;
 		frame = (Frame*)connp;
 		if (BIT(pl->status, PAUSE|GAME_OVER)
-			&& !w->options.allowViewing->GetBool()
-			&& !pl->isowner)
+			// && !w->options.allowViewing->GetBool()
+			&& !pl->isowner) 
 		{
 			/*
 			* Lower the frame rate for non-playing players
@@ -1371,37 +1390,56 @@ void Frame_update(World* w)
 			* Owner always gets full framerate even if paused.
 			* With allowViewing on, everyone gets full framerate.
 			*/
-			if (BIT(pl->status, PAUSE))
+			/*
+			if (BIT(pl->status, PAUSE)) 
 			{
-				if (frame_loops & 0x03)
+				if (frame_loops & 0x03) 
 					continue;
 			}
-			else
+			else 
 			{
-				if (frame_loops & 0x01)
+				if (frame_loops & 0x01) 
 					continue;
+			}
+			*/
+			if (viewingReduceRate) {
+				long pausedFrameCount = frame_loops - pl->frame_last_busy;
+				if (pausedFrameCount == viewingKeepaliveDelay) {
+					pl->SetMessage("Reducing paused player to keepalive frame rate");
+				}
+				else if (pausedFrameCount == viewingReduceDelay) {
+					pl->SetMessage("Reducing paused player frame rate");
+				}
+				if (pausedFrameCount > viewingKeepaliveDelay) {
+					if (pausedFrameCount % viewingKeepaliveRate)
+						continue;
+				}
+				else if (pausedFrameCount > viewingReduceDelay) {
+					if (pausedFrameCount % viewingReduceRate)
+						continue;
+				}
 			}
 		}
 
 		/*
 		* Reduce frame rate to player's own rate.
 		*/
-		if (pl->player_count > 0)
+		if (pl->player_count > 0) 
 		{
 			pl->player_round++;
-			if (pl->player_round >= pl->player_count)
+			if (pl->player_round >= pl->player_count) 
 			{
 				pl->player_round = 0;
 				continue;
 			}
 		}
 
-		if (frame->SendStartOfFrame() == -1)
+		if (frame->SendStartOfFrame() == -1) 
 			continue;
 		if (newTimeLeft != oldTimeLeft) {
 			frame->SendTimeLeft(newTimeLeft);
 		} else if (w->options.maxRoundTime->GetInt() > 0
-			&& w->roundTime >= 0)
+			&& w->roundTime >= 0) 
 		{
 			frame->SendTimeLeft((w->roundTime+w->GetFPS()-1) / w->GetFPS());
 		}
@@ -1416,7 +1454,7 @@ void Frame_update(World* w)
 		* determining which data should be used (ind, set below) and
 		* one determining which connection to send it to (conn).
 		*/
-		if (BIT(pl->lock.tagged, LOCK_PLAYER))
+		if (BIT(pl->lock.tagged, LOCK_PLAYER)) 
 		{
 			int eyesId = NO_ID;
 			if ((BIT(pl->status, (GAME_OVER|PLAYING)) == (GAME_OVER|PLAYING))
@@ -1426,31 +1464,53 @@ void Frame_update(World* w)
 						&& pl->team != TEAM_NOT_SET
 						&& pl->team == w->players[w->getInd[pl->lock.pl_id]]->team)
 					|| pl->isowner
-					|| w->options.allowViewing->GetBool())))
+					|| w->options.allowViewing->GetBool()))) 
 			{
 				ind = w->getInd[pl->lock.pl_id];
 				eyesId = pl->lock.pl_id;
-			}
-			else
+			} 
+			else 
 			{
 				ind = i;
 				eyesId = w->getInd[i];
 			}
-			if (!w->options.anonymousViewing->GetBool() && pl->IsPaused())
+			if (!w->options.anonymousViewing->GetBool() && pl->IsPaused()) {
 				pl->SetEyes(eyesId);
-		}
-		else
+				// Trace("+++\n");
+				if (!pl->robotWatchList.IsEmpty()) {
+					// Trace("===\n");
+					RobotWatch* rw = (RobotWatch*)pl->robotWatchList.GetHead();
+					while (rw) {
+						frame->SendRobotWatch(rw->line, (PCSTR)rw->s);
+						// Trace("%d %s", rw->line, (PCSTR)rw->s);
+						rw = (RobotWatch*)rw->GetNext();
+					}
+					pl->robotWatchList.Empty();
+				}
+				if (!pl->robotWatchDecoList.IsEmpty()) {
+					D(Trace("Deco count %d\n", pl->robotWatchDecoList.GetCount());)
+					RobotWatchDeco* rwd = (RobotWatchDeco*)pl->robotWatchDecoList.GetHead();
+					while (rwd) {
+						frame->SendRobotWatchDeco(rwd);
+						rwd = (RobotWatchDeco*)rwd->GetNext();
+					}
+					pl->robotWatchDecoList.Empty();
+				}
+				pl->robotWatchFull = false;
+			}
+		} 
+		else 
 		{
 			ind = i;
 		}
-		if (w->players[ind]->damaged > 0)
+		if (w->players[ind]->damaged > 0) 
 		{
 			frame->SendDamaged(w->players[ind]->damaged);
 		}
-		else
+		else 
 		{
 			frame->Parameters(ind);
-			if (frame->Status(ind) <= 0)
+			if (frame->Status(ind) <= 0) 
 			{
 				continue;
 			}
@@ -1459,7 +1519,7 @@ void Frame_update(World* w)
 			frame->Shots(ind);
 			frame->Radar(ind);
 			frame->LoseItemState(ind);
-			if (pl->lose_item_state != 0)
+			if (pl->lose_item_state != 0) 
 			{
 				frame->SendLoseItem(pl->lose_item);
 				if (pl->lose_item_state == 1)

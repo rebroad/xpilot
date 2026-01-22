@@ -1,4 +1,4 @@
-/* $Id: Robot.h,v 1.5 2004/02/23 01:58:13 dick Exp $
+/* $Id: Robot.h,v 1.5 2007/02/12 07:51:05 dick Exp $
  *
  * XPilot, a multiplayer gravity war game.  Copyright (C) 1991-2001 by
  *
@@ -22,6 +22,33 @@
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
  *  $Log: Robot.h,v $
+ *  Revision 1.5  2007/02/12 07:51:05  dick
+ *  Support RobotWatchDeco(*) which displays Robot debug objects on the playfield.
+ *
+ *  Revision 1.4  2007/01/19 07:11:13  dick
+ *  Cleanup unused Watch cruft.
+ *
+ *  Revision 1.3  2007/01/17 09:17:08  dick
+ *  RobotWatch is a list of Strings sent from the client when a player is paused
+ *  and watching a robot.  This list contains diagnostic information about
+ *  what the heck the robot thinks it's doing.
+ *  It's kinda like the Terminator view where he's looking at a 6502 dump.
+ *
+ *  Revision 1.2  2007/01/13 22:27:28  dick
+ *  Now, a Robot* is a member of Player.
+ *  Robot contains the interface to drive a robot.
+ *  Robot4 is the old robotdef.cpp handler.
+ *
+ *  Revision 1.1  2007/01/11 04:18:57  dick
+ *  Robots move to their own subdirectory
+ *
+ *  Revision 1.7  2007/01/11 00:16:35  dick
+ *  enum robot_talk_t moves to RobotMan
+ *
+ *  Revision 1.6  2007/01/10 18:14:47  dick
+ *  All robot actions are now handled through RobotMan.
+ *  There is one RobotMan per World.
+ *
  *  Revision 1.5  2004/02/23 01:58:13  dick
  *  Move Robot's proto.h decls to here
  *
@@ -97,99 +124,101 @@
  * specific initialisation function prototype in robot.c and add one
  * function pointer to the robot_type_setups array.
  */
+/*
+ * Watching is a development time concept.
+ * If we are paused while playing the game and watching a robot,
+ * it would be nice to try to figure out what the heck the robot
+ * is thinking.
+ */
 
 #ifndef _ROBOT_H_
 #define _ROBOT_H_
 
+#include "Obj.h"
 #include "pack.h"
 
-class RobotType
-{
-public:
-    const char		*name;
-    void		(*round_tick)(World* w);
-    void		(*create)(World* w, int ind, char *str);
-    void		(*go_home)(World* w, int ind);
-    void		(*play)(World* w, int ind);
-    void		(*set_war)(World* w, int ind, int killer);
-    int			(*war_on_player)(World* w, int ind);
-    void		(*message)(World* w, int ind, const char *str);
-    void		(*destroy)(World* w, int ind);
-	void		(*invite)(World* w, int ind, int inv_ind);
+class World;
+class Player;
+class ObjPosition;
+
+// An object to describe what and how to send robotWatch data to the client
+class RobotWatch : public Obj {
+  public:
+	int		line;
+	String	s;
 };
 
-/*
- * Different talk commands.
- * The talk code is done by the robot manager,
- * not by the robot type implementation.
- */
-enum robot_talk_t {
-    ROBOT_TALK_ENTER,
-    ROBOT_TALK_LEAVE,
-    ROBOT_TALK_KILL,
-    ROBOT_TALK_WAR,
-    NUM_ROBOT_TALK_TYPES
+///////////////////////////////////////////////////////////////////////////////
+enum RobotWatchDecoType {
+	WatchHollowCircle,
+	WatchFilledCicle,
+	WatchHollowRect,
+	WatchFilledRect
 };
 
-/*
- * Configuration data for each robot available.
- */
-class Robot {
-public:
-    char	driver[MAX_NAME_LEN];	/* Which code controls robot? */
-    char	name[MAX_NAME_LEN];	/* Name of this robot. */
-    char	config[MAX_CHARS];	/* Attack + defense ~ 100 */
-    uint	used;			/* How often has this robot been used */
-    char	shape[2*MSG_LEN];	/* shipshape string definition */
+///////////////////////////////////////////////////////////////////////////////
+class RobotWatchDeco : public Obj {
+  public:
+	RobotWatchDecoType		type;
+	int		x, y;
+	int		radius;
+	int		color;
 };
 
-/*
- * Robot manager data for each robot instance.
- */
-class RobotData
-{
-public:
-    int		robots_ind;		/* index into Robots[] */
+///////////////////////////////////////////////////////////////////////////////
+// base class for a robot driver
+class Robot : public Obj {
+	friend	class RobotMan;
+
+  public:
+	Robot();
+	virtual ~Robot();
+
+	void	SetWorld(World* w);
+
+	virtual	void	RoundTick();
+	virtual	void	Create(char* str);
+	virtual	void	GoHome();
+	virtual	void	Play();
+	virtual	void	SetWar(int killer);
+	virtual	int		WarOnPlayer();
+	virtual	void	Message(PCSTR str);
+	virtual	void	Destroy();
+	virtual	void	Invite(int invInd);
+
+    String			name;
+
+	static	PCSTR	driverName;
+	static	PCSTR	description;
+	static	Robot*	Factory();
+	static	PCSTR	robotHostName;
+
+	// Robot development and debugging.
+	// When a player is paused, robot logic can be displayed in the upper right of the screen
+
+	void	SetWatch(int pageNumber);	// Someone is watching this robot.
+	void	SetWatchFull();				// after one play frame, lock the watch buffer until a client empties it.
+	virtual	int	GetWatchPageCount();
+
+  protected:
+    int		robots_ind;			/* index into robotFactory[] */
     int		robot_types_ind;	/* index into robot_types[] */
-    void	*private_data;		/* robot type private data */
+	Player*	pl;					// which player are we attached to
+	World*	w;
+	bool	IsWatch(int pageNumber);
+	void	Watch(int pageNumber, PCSTR s, ...);
+	void	Watch(int pageNumber, int lineNumber, PCSTR s, ...);
+	void	WatchPlay(int pageNumber, RobotWatchDecoType dt, int color,
+					  ObjPosition* pos, int radius);
+
+
+  private:
+	void	_Watch(int pageNumber, int lineNumber, PCSTR* lpszFormat, va_list args, ...);
 };
 
-/*
- * The private robot instance data for the default robot.
- */
-//typedef struct robot_default_data {
-class RobotDefaultData
-{
-public:
-    int		robot_lock;		/* lock mode */
-    int		robot_lock_id;		/* target player if in war mode */
-    int		robot_mode;		/* ultrashort term mode of robot. */
-    int		robot_count;		/* Misc timings, minimizes rand use */
-    int		attack;			/* how aggressive (1-99) */
-    int		defense;		/* how defensive (1-99) */
-    DFLOAT	robot_normal_speed;
-    DFLOAT	robot_attack_speed;
-    DFLOAT	robot_max_speed;
-    int		last_used_ecm;          /* relative to robot_count */
-    int		last_dropped_mine;      /* relative to robot_count */
-    int		last_fired_missile;     /* relative to robot_count */
-    int		last_thrown_ball;	/* relative to robot_count */
-    int		longterm_mode;		/* long term robot mode */
-    int		lock_last_seen;		/* last time robot saw target */
-    position	lock_last_pos;		/* last known position of target */
-};
+inline	void Robot::SetWorld(World* _w) { w = _w; }
+inline	int  Robot::GetWatchPageCount() { return(0); }
+#define DEFAULT_ROBOT_TYPE	"robot4"
 
-void Parse_robot_file(World* w);
-void Robot_init(World* w);
-void Robot_delete(World* w, int ind, int kicked);
-void Robot_destroy(World* w, int ind);
-void Robot_update(World* world);
-void Robot_invite(World* w, int ind, int inv_ind);
-void Robot_war(World* w, int ind, int killer);
-void Robot_reset_war(World* w, int ind);
-int Robot_war_on_player(World* w, int ind);
-void Robot_go_home(World* w, int ind);
-void Robot_program(World* w, int ind, int victim_id);
-void Robot_message(World* w, int ind, const char *message);
 
 #endif		// _ROBOT_H_

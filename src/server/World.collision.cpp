@@ -1,8 +1,8 @@
-/* $Id: World.collision.cpp,v 1.11 2004/05/04 21:07:17 dick Exp $
+/* $Id: World.collision.cpp,v 1.13 2007/01/17 09:07:23 dick Exp $
  *
  * XPilot, a multiplayer gravity war game.  Copyright (C) 1991-2001 by
  *
- *      Bjï¿½rn Stabell        <bjoern@xpilot.org>
+ *      Bjørn Stabell        <bjoern@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
  *      Dick Balaska         <dick@xpilot.org>
@@ -22,6 +22,13 @@
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
  *  $Log: World.collision.cpp,v $
+ *  Revision 1.13  2007/01/17 09:07:23  dick
+ *  enum Items becomes ITEM
+ *
+ *  Revision 1.12  2007/01/10 18:14:47  dick
+ *  All robot actions are now handled through RobotMan.
+ *  There is one RobotMan per World.
+ *
  *  Revision 1.11  2004/05/04 21:07:17  dick
  *  Need randommnt.h
  *
@@ -142,7 +149,7 @@
 #include "asteroid.h"
 #include "commonproto.h"
 #include "randommt.h"
-#include "Robot.h"
+#include "RobotMan.h"
 
 char collision_version[] = VERSION;
 
@@ -150,7 +157,7 @@ char collision_version[] = VERSION;
 /*
  * The very first "analytical" collision patch, XPilot 3.6.2
  * Faster than other patches and accurate below half warp-speed
- * Trivial common subexpressions are eliminated by any reasonable compiler,
+ * Trivial common subexpressions are eliminated by any reasonable compiler, 
  * and kept here for readability.
  * Written by Pontus (Rakk, Kepler) pontus@ctrl-c.liu.se Jan 1998
  * Kudos to Svenske and Mad Gurka for beta testing, and Murx for
@@ -169,7 +176,7 @@ static int in_range_acd(
 	long				dx, dy, dox, doy;
 
 	/*
-	 * Get the wrapped coordinates straight
+	 * Get the wrapped coordinates straight 
 	 */
 	if (BIT(World.rules->mode, WRAP_PLAY)) {
 		if (ABS(p2x - p1x) > World.width / 2) {
@@ -214,7 +221,7 @@ static int in_range_acd(
 	dqy = WRAP_DY(q2y - q1y);
 
 	/*
-	 * Do the detection
+	 * Do the detection 
 	 */
 	fac1 = dpx - dqx;
 	fac2 = dpy - dqy;
@@ -242,7 +249,7 @@ int World::InRangeAcd(
 	bool		mpx, mpy, mqx, mqy;
 
 	/*
-	 * Get the wrapped coordinates straight
+	 * Get the wrapped coordinates straight 
 	 */
 	if (BIT(rules->mode, WRAP_PLAY)) {
 		if ((mpx = (ABS(p2x - p1x) > width / 2))) {
@@ -292,7 +299,7 @@ int World::InRangeAcd(
 	}
 
 	/*
-	 * Do the detection
+	 * Do the detection 
 	 */
 	if ((p2x - q2x) * (p2x - q2x) + (p2y - q2y) * (p2y - q2y) < r * r)
 		return 1;
@@ -372,11 +379,11 @@ void World::PlayerCollision()
 				if (BIT(players[j]->used, HAS_PHASING_DEVICE))
 					continue;
 				if (!InRangeAcd(pl->prevpos.x, pl->prevpos.y,
-								  pl->pos.x, pl->pos.y,
+								  pl->pos.x, pl->pos.y, 
 								  players[j]->prevpos.x,
-								  players[j]->prevpos.y,
-								  players[j]->pos.x, players[j]->pos.y,
-								  2*SHIP_SZ-6))
+								  players[j]->prevpos.y, 
+								  players[j]->pos.x, players[j]->pos.y, 
+								  2*SHIP_SZ-6)) 
 				{
 					continue;
 				}
@@ -397,19 +404,19 @@ void World::PlayerCollision()
 				* The choosing of the first line may not be easy however.
 				*/
 
-				if (pl->TeamImmune(players[j]->id)
+				if (pl->TeamImmune(players[j]->id) 
 				 || PSEUDO_TEAM(i, j)) {
 					continue;
 				}
 				SoundPlaySensors(this, pl->pos.x, pl->pos.y, PLAYER_HIT_PLAYER_SOUND);
 				if (BIT(rules->mode, BOUNCE_WITH_PLAYER)) {
 					if (BIT(pl->used, (HAS_SHIELD|HAS_EMERGENCY_SHIELD)) !=
-					(HAS_SHIELD|HAS_EMERGENCY_SHIELD))
+					(HAS_SHIELD|HAS_EMERGENCY_SHIELD)) 
 					{
 						Add_fuel(&(pl->fuel), (long)ED_PL_CRASH);
 						Item_damage(pl, options.destroyItemInCollisionProb->GetDouble());
 					}
-					if (BIT(players[j]->used, (HAS_SHIELD|HAS_EMERGENCY_SHIELD))
+					if (BIT(players[j]->used, (HAS_SHIELD|HAS_EMERGENCY_SHIELD)) 
 						!= (HAS_SHIELD|HAS_EMERGENCY_SHIELD)) {
 							Add_fuel(&(players[j]->fuel), (long)ED_PL_CRASH);
 							Item_damage(players[j], options.destroyItemInCollisionProb->GetDouble());
@@ -424,13 +431,13 @@ void World::PlayerCollision()
 
 				if (pl->fuel.sum <= 0
 				  || (!BIT(pl->used, HAS_SHIELD)
-				  && !BIT(pl->have, HAS_ARMOR)))
+				  && !BIT(pl->have, HAS_ARMOR))) 
 				{
 					SET_BIT(pl->status, KILLED);
 				}
 				if (players[j]->fuel.sum <= 0
 				 || (!BIT(players[j]->used, HAS_SHIELD)
-				 && !BIT(players[j]->have, HAS_ARMOR)))
+				 && !BIT(players[j]->have, HAS_ARMOR))) 
 				{
 					SET_BIT(players[j]->status, KILLED);
 				}
@@ -483,7 +490,7 @@ void World::PlayerCollision()
 						}
 						sprintf(msg, "%s ran over %s.",	pl->name, players[j]->name);
 						BroadcastPlayMessage(msg);
-						SoundPlaySensors(this,
+						SoundPlaySensors(this, 
 										   players[j]->pos.x,
 										   players[j]->pos.y,
 										   PLAYER_RAN_OVER_PLAYER_SOUND);
@@ -514,7 +521,7 @@ void World::PlayerCollision()
 						sprintf(msg, "%s ran over %s.",
 						players[j]->name, pl->name);
 						BroadcastPlayMessage(msg);
-						SoundPlaySensors(this, pl->pos.x, pl->pos.y,
+						SoundPlaySensors(this, pl->pos.x, pl->pos.y, 
 							PLAYER_RAN_OVER_PLAYER_SOUND);
 						players[j]->kills++;
 						if (IS_TANK_IND(this, j)) {
@@ -533,15 +540,15 @@ void World::PlayerCollision()
 
 				if (BIT(players[j]->status, KILLED)) {
 					if (IS_ROBOT_IND(this, j)
-					 && Robot_war_on_player(this, j) == pl->id) {
-						Robot_reset_war(this, j);
+					 && robotMan->WarOnPlayer(j) == pl->id) {
+						robotMan->ResetWar(j);
 					}
 				}
 
 				if (BIT(pl->status, KILLED)) {
 					if (IS_ROBOT_PTR(pl)
-					 && Robot_war_on_player(this, i) == players[j]->id) {
-						Robot_reset_war(this, i);
+					 && robotMan->WarOnPlayer(i) == players[j]->id) {
+						robotMan->ResetWar(i);
 					}
 					/* cannot crash with more than one player at the same time? */
 					/* hmm, if 3 players meet at the same point at the same time? */
@@ -580,7 +587,7 @@ void World::PlayerCollision()
 				}
 			}
 		}
-		else
+		else 
 		{
 			/*
 			* We want a separate list of balls to avoid searching
@@ -634,7 +641,7 @@ void World::PlayerCollision()
 	}
 }
 
-int IsOffensiveItem(Items i)
+int IsOffensiveItem(ITEM i)
 {
     if (BIT(1 << i,
 	    ITEM_BIT_WIDEANGLE |
@@ -647,12 +654,12 @@ int IsOffensiveItem(Items i)
     return false;
 }
 
-int IsDefensiveItem(Items i)
+int IsDefensiveItem(ITEM i)
 {
 	if (BIT(1 << i,
 		ITEM_BIT_CLOAK |
 		ITEM_BIT_ECM |
-		ITEM_BIT_TRANSPORTER |
+		ITEM_BIT_TRANSPORTER | 
 		ITEM_BIT_TRACTOR_BEAM |
 		ITEM_BIT_EMERGENCY_SHIELD |
 		ITEM_BIT_MIRROR |
@@ -668,9 +675,9 @@ int IsDefensiveItem(Items i)
 
 int CountOffensiveItems(Player *pl)
 {
-    return (pl->item[ITEM_WIDEANGLE] + pl->item[ITEM_REARSHOT] +
-	    pl->item[ITEM_MINE] + pl->item[ITEM_MISSILE] +
-	    pl->item[ITEM_LASER]);
+    return (pl->item[ITEM_WIDEANGLE] + pl->item[ITEM_REARSHOT] + 
+	    pl->item[ITEM_MINE] + pl->item[ITEM_MISSILE] + 
+	    pl->item[ITEM_LASER]); 
 }
 
 int CountDefensiveItems(Player *pl)
@@ -678,11 +685,11 @@ int CountDefensiveItems(Player *pl)
 	int count;
 
 	count = pl->item[ITEM_CLOAK] + pl->item[ITEM_ECM] + pl->item[ITEM_ARMOR] +
-			pl->item[ITEM_TRANSPORTER] + pl->item[ITEM_TRACTOR_BEAM] +
+			pl->item[ITEM_TRANSPORTER] + pl->item[ITEM_TRACTOR_BEAM] + 
 			pl->item[ITEM_EMERGENCY_SHIELD] + pl->fuel.num_tanks +
 			pl->item[ITEM_DEFLECTOR] + pl->item[ITEM_HYPERJUMP] +
 			pl->item[ITEM_PHASING] + pl->item[ITEM_MIRROR];
-	if (pl->emergency_shield_left)
+	if (pl->emergency_shield_left) 
 		count++;
 	if (pl->phasing_left)
 		count++;
@@ -737,7 +744,7 @@ void World::PlayerObjectCollision(int ind)
 				else if (options.selfImmunity->GetBool()) {
 					continue;
 				}
-			} else if (options.selfImmunity->GetBool()
+			} else if (options.selfImmunity->GetBool() 
 						&& IS_TANK_PTR(pl)
 						&& (pl->lock.pl_id == obj->id)) {
 				continue;
@@ -923,7 +930,7 @@ void World::PlayerCollidesWithBall(int ind, Object *obj, int radius)
 			Score_players(players[killer], sc, pl->name,
 						  pl, -sc, players[killer]->name, ScoreBall);
 				ScoreServerScoreEvent(players[killer], sc, pl, -sc, ScoreBall);
-			Robot_war(this, ind, killer);
+			robotMan->War(ind, killer);
 		}
 	}
 	BroadcastPlayMessage(msg);
@@ -935,34 +942,34 @@ void World::PlayerCollidesWithItem(int ind, Object *obj)
 {
 	Player* 	pl = players[ind];
 	int 		old_have;
-	Items		item_index;
+	ITEM		item_index;
 
-	if (IsOffensiveItem((Items) obj->info)) {
+	if (IsOffensiveItem((ITEM) obj->info)) {
 		int off_items = CountOffensiveItems(pl);
 		if (off_items >= options.maxOffensiveItems->GetInt()) {
 			/* Set_player_message(pl, "No space left for offensive items."); */
 			Delta_mv((Object *)pl, obj);
 			return;
-		}
+		} 
 		else if (obj->count > 1
 				 && off_items + obj->count > options.maxOffensiveItems->GetInt()) {
 			obj->count = options.maxOffensiveItems->GetInt() - off_items;
 		}
-	}
-	else if (IsDefensiveItem((Items) obj->info)) {
+	} 
+	else if (IsDefensiveItem((ITEM) obj->info)) {
 		int def_items = CountDefensiveItems(pl);
 		if (def_items >= options.maxDefensiveItems->GetInt()) {
 			/* Set_player_message(pl, "No space for left for defensive items."); */
 			Delta_mv((Object *)pl, obj);
 			return;
-		}
+		} 
 		else if (obj->count > 1
 				 && def_items + obj->count > options.maxDefensiveItems->GetInt()) {
 			obj->count = options.maxDefensiveItems->GetInt() - def_items;
 		}
 	}
 
-	item_index = (Items) obj->info;
+	item_index = (ITEM) obj->info;
 
 	switch (item_index) {
 	case ITEM_WIDEANGLE:
@@ -1235,7 +1242,7 @@ void World::PlayerCollidesWithDebris(int ind, Object *obj)
 	if (obj->type == OBJ_WRECKAGE
 		&& options.wreckageCollisionMayKill->GetBool()
 		&& !BIT(pl->used, HAS_SHIELD)
-		&& BIT(pl->have, HAS_ARMOR))
+		&& BIT(pl->have, HAS_ARMOR)) 
 	{
 			pl->HitArmor();
 	}
@@ -1252,14 +1259,14 @@ void World::PlayerCollidesWithAsteroid(int ind, WireObject *ast)
     ast->life += (long)ASTEROID_FUEL_HIT(ED_PL_CRASH, ast->size);
     if (ast->life < 0)
 	ast->life = 0;
-    if (ast->life == 0
+    if (ast->life == 0 
 		&& options.asteroidPoints->GetInt() > 0
-		&& options.asteroidMaxScore->GetInt())
+		&& options.asteroidMaxScore->GetInt()) 
 	{
 		SCORE(pl, options.asteroidPoints->GetInt(),
 			OBJ_X_IN_BLOCKS(ast),
 			OBJ_Y_IN_BLOCKS(ast), "");
-		ScoreServerScoreEvent(pl, options.asteroidPoints->GetInt(),
+		ScoreServerScoreEvent(pl, options.asteroidPoints->GetInt(), 
 			s_brAsteroid, PlayerNone, 0, ScoreAsteroid);
     }
     if (BIT(pl->used, (HAS_SHIELD|HAS_EMERGENCY_SHIELD))
@@ -1269,7 +1276,7 @@ void World::PlayerCollidesWithAsteroid(int ind, WireObject *ast)
 	if (options.asteroidCollisionMayKill->GetBool()
 		&& (pl->fuel.sum == 0
 			|| (!BIT(pl->used, HAS_SHIELD)
-			&& !BIT(pl->have, HAS_ARMOR))))
+			&& !BIT(pl->have, HAS_ARMOR)))) 
 	{
 		DFLOAT	sc;
 		SET_BIT(pl->status, KILLED);
@@ -1286,8 +1293,8 @@ void World::PlayerCollidesWithAsteroid(int ind, WireObject *ast)
 			  OBJ_Y_IN_BLOCKS(pl),
 			  s_brAsteroid);
 		ScoreServerScoreEvent(s_brAsteroid, PlayerNone, 0, pl, -sc, ScoreAsteroid);
-		if (IS_TANK_PTR(pl)
-			&& options.asteroidPoints->GetInt() > 0)
+		if (IS_TANK_PTR(pl) 
+			&& options.asteroidPoints->GetInt() > 0) 
 		{
 			int owner = getInd[pl->lock.pl_id];
 			if (players[owner]->score <= options.asteroidMaxScore->GetDouble())
@@ -1302,7 +1309,7 @@ void World::PlayerCollidesWithAsteroid(int ind, WireObject *ast)
     }
 	if (options.asteroidCollisionMayKill->GetBool()
 		&& !BIT(pl->used, HAS_SHIELD)
-		&& BIT(pl->have, HAS_ARMOR))
+		&& BIT(pl->have, HAS_ARMOR)) 
 	{
 		pl->HitArmor();
     }
@@ -1333,7 +1340,7 @@ void World::PlayerCollidesWithKillingShot(int ind, Object *obj)
 	|| BIT(pl->have, HAS_ARMOR)
 	|| (obj->type == OBJ_TORPEDO
 	    && BIT(obj->mods.nuclear, NUCLEAR)
-	    && (int)(rfrac() >= 0.25f)))
+	    && (int)(rfrac() >= 0.25f))) 
 	{
 		switch (obj->type)
 		{
@@ -1351,7 +1358,7 @@ void World::PlayerCollidesWithKillingShot(int ind, Object *obj)
 			break;
 		}
 
-		switch(obj->type)
+		switch(obj->type) 
 		{
 		case OBJ_TORPEDO:
 		case OBJ_HEAT_SHOT:
@@ -1385,7 +1392,7 @@ void World::PlayerCollidesWithKillingShot(int ind, Object *obj)
 					DFLOAT rel_velocity = LENGTH(pl->vel.x - obj->vel.x,
 												 pl->vel.y - obj->vel.y);
 					drainfactor = (rel_velocity * rel_velocity * ABS(obj->mass))
-								  / (options.shotSpeed->GetDouble()
+								  / (options.shotSpeed->GetDouble() 
 								   * options.shotSpeed->GetDouble()
 								   * options.shotMass->GetDouble());
 				} else {
@@ -1411,7 +1418,7 @@ void World::PlayerCollidesWithKillingShot(int ind, Object *obj)
     } else
 	{
 		DFLOAT factor;
-		switch (obj->type)
+		switch (obj->type) 
 		{
 		case OBJ_TORPEDO:
 		case OBJ_SMART_SHOT:
@@ -1430,7 +1437,7 @@ void World::PlayerCollidesWithKillingShot(int ind, Object *obj)
 				sc = Rate(0, pl->score) * options.unownedKillScoreMult->GetDouble();
 
 			} else {
-				sprintf(msg, "%s was killed by %s from %s.",
+				sprintf(msg, "%s was killed by %s from %s.", 
 					pl->name,
 					Describe_shot(obj->type, obj->status,
 								  obj->mods, 1),
@@ -1445,7 +1452,7 @@ void World::PlayerCollidesWithKillingShot(int ind, Object *obj)
 					sc = Rate(players[killer]->score, pl->score);
 				}
 			}
-			switch (obj->type)
+			switch (obj->type) 
 			{
 			case OBJ_SHOT:
 				if (BIT(obj->mods.warhead, CLUSTER)) {
@@ -1499,7 +1506,7 @@ void World::PlayerCollidesWithKillingShot(int ind, Object *obj)
 
 				Score_players(players[killer], sc, pl->name,
 							  pl, -sc, players[killer]->name, st);
-				Robot_war(this, ind, killer);
+				robotMan->War(ind, killer);
 			}
 
 			BroadcastPlayMessage(msg);
@@ -1535,7 +1542,7 @@ void World::PlayerPassCheckpoint(int ind)
 		for (j = 0; j < numObjs; j++) {
 		    if (objs[j]->type == OBJ_BALL) {
 			BallObject* ball = BALL_PTR(objs[j]);
-
+			
 			if (ball->owner == pl->id)
 			    ball->owner = NO_ID;
 		    }
@@ -1559,7 +1566,7 @@ void World::PlayerPassCheckpoint(int ind)
 		    (DFLOAT) pl->last_lap_time / GetFPS(),
 		    (DFLOAT) pl->best_lap / GetFPS());
 	} else {
-	    sprintf(msg, "%s starts lap 1 of %d", pl->name,
+	    sprintf(msg, "%s starts lap 1 of %d", pl->name, 
 			options.raceLaps->GetInt());
 	}
 	BroadcastPlayMessage(msg);
@@ -1701,7 +1708,7 @@ void World::AsteroidCollision(void)
 		}
 		if (sound) {
 		    SoundPlaySensors(this, ast->pos.x, ast->pos.y,
-				       ASTEROID_HIT_SOUND);
+				       ASTEROID_HIT_SOUND);    
 		}
 		if (ast->life < 0) {
 		    ast->life = 0;
@@ -1774,7 +1781,7 @@ void World::BallCollision()
 	    Player *owner = players[owner_ind];
 
 	    if (!options.ballRaceConnected->GetBool()
-			|| ball->id == owner->id) {
+			|| ball->id == owner->id) { 
 		if (WrapLength(ball->pos.x
 				 - check[owner->check].x * BLOCK_SZ,
 				ball->pos.y
@@ -1788,7 +1795,7 @@ void World::BallCollision()
 	/* Ball - object */
 	if (!options.ballCollisions->GetBool())
 	    continue;
-
+	
 	CellGetObjects(OBJ_X_IN_BLOCKS(ball), OBJ_Y_IN_BLOCKS(ball),
 			 4, 300,
 			 &obj_list, &obj_count);
@@ -1831,7 +1838,7 @@ void World::BallCollision()
 			break;
 		    }
 		}
-
+		
 		/* if the collision was too violent, destroy ball and object */
 		if ((sqr(ball->vel.x - obj->vel.x) +
 		     sqr(ball->vel.y - obj->vel.y)) >
@@ -1871,7 +1878,7 @@ void World::MineCollision()
     Object*		obj;
     MineObject*	mine;
     int			collide_object_types;
-
+    
     if (!options.mineShotDetonateDistance->GetBool())
 	return;
 
@@ -1894,7 +1901,7 @@ void World::MineCollision()
 	    mine->life <= 0) {		/* dying mine */
 	    continue;
 	}
-
+	
 	CellGetObjects(OBJ_X_IN_BLOCKS(mine), OBJ_Y_IN_BLOCKS(mine),
 			 4, 300,
 			 &obj_list, &obj_count);

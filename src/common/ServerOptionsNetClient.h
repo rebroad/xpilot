@@ -1,4 +1,4 @@
-/* $Id: ServerOptionsNetClient.h,v 1.12 2004/05/23 23:52:07 dick Exp $
+/* $Id: ServerOptionsNetClient.h,v 1.13 2007/02/03 09:22:31 dick Exp $
  *
  * ServerOptionsNetClient - connect a ServerOptions to a server
  *
@@ -30,6 +30,9 @@
  */
 /*
  * $Log: ServerOptionsNetClient.h,v $
+ * Revision 1.13  2007/02/03 09:22:31  dick
+ * Remove the listeners before deleting the netclient
+ *
  * Revision 1.12  2004/05/23 23:52:07  dick
  * src/common/IniClient.Defaults.cpp
  *
@@ -113,13 +116,13 @@ public:
 	virtual ~ServerOptionsNetClient();
 
 	void	SetServerOptions(ServerOptions* _so);
+	ServerOptions*	GetServerOptions();
+	void	RemoveServerOptions();
+
 	void	SetServer(PCSTR hostname, PCSTR ip, int contactPort);
 	void	SetServer(const ServerSite& ss);
 	void	operator=(const ServerSite& ss)		{ SetServer(ss); };
 	//void	SetWindow(ServerPrefsWindow* _spw);
-
-	ServerOptions*	GetServerOptions();
-
 
 	// override from superclass
 protected:
@@ -149,6 +152,7 @@ protected:
 
 private:
 	void		InitListeners();
+	void		RemoveListeners();
 	static void	HandleListener(void* myThis, ServerOption* so);
 
 	void		RequestOptions();

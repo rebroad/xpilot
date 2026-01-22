@@ -1,8 +1,8 @@
-/* $Id: painthud.cpp,v 1.16 2004/06/03 06:04:42 dick Exp $
+/* $Id: painthud.cpp,v 1.18 2007/01/17 21:35:15 dick Exp $
  *
  * XPilot, a multiplayer gravity war game.  Copyright (C) 1991-2001 by
  *
- *      Bjï¿½rn Stabell        <bjoern@xpilot.org>
+ *      Bjørn Stabell        <bjoern@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
  *      Dick Balaska         <dick@xpilot.org>
@@ -23,6 +23,15 @@
  */
 /*
  * $Log: painthud.cpp,v $
+ * Revision 1.18  2007/01/17 21:35:15  dick
+ * Encapsulate all of the RobotWatch features into a RobotWatchMan object.
+ *
+ * Revision 1.17  2007/01/17 08:59:49  dick
+ * RobotWatch is a list of Strings sent from the client when a player is paused
+ * and watching a robot.  This list contains diagnostic information about
+ * what the heck the robot thinks it's doing.
+ * It's kinda like the Terminator view where he's looking at a 6502 dump.
+ *
  * Revision 1.16  2004/06/03 06:04:42  dick
  * struct other_t becomes class Other.
  * array Others becomes ObjList others.
@@ -116,11 +125,11 @@
 char painthud_version[] = VERSION;
 
 
-extern setup_t			*Setup;
-extern int				RadarHeight;
-extern score_object_t	score_objects[MAX_SCORE_OBJECTS];
-extern int				score_object;
-extern XGCValues		gcv;
+extern	setup_t*			Setup;
+extern	int					RadarHeight;
+extern	score_object_t		score_objects[MAX_SCORE_OBJECTS];
+extern	int					score_object;
+extern	XGCValues			gcv;
 
 //int	hudColor;				/* Color index for HUD drawing */
 //int	hudLockColor;			/* Color index for lock on HUD drawing */
@@ -187,7 +196,7 @@ static void Paint_meter(int xoff, int y, const char *title, int val, int max)
 		Segment_add(WHITE, x+mw3_4, y-1,		x+mw3_4, y+METER_HEIGHT+1);
 	} else {
 		int width = WINSCALE((int)(((METER_WIDTH-3)*val)/(max?max:1)));
-
+		
 		PaintMeter(p_draw, BM_METER,
 				   WINSCALE(x), WINSCALE(y),
 				   WINSCALE(METER_WIDTH), WINSCALE(11),
@@ -228,7 +237,7 @@ static int wrap(int *xp, int *yp)
 
 
 ///////////////////////////////////////////////////////////////////////////////
-void Paint_score_objects(void)
+void Paint_score_objects()
 {
 	int 		i, x, y;
 
@@ -370,14 +379,14 @@ static void Paint_lock(int hud_pos_x, int hud_pos_y)
 	}
 
 	if (BIT(Setup->mode, LIMITED_LIVES)) { /* lives left is a better info than distance in team games MM */
-		sprintf(str, "%03d", target->life);
+		sprintf(str, "%03d", target->life); 
 	} else {
 		sprintf(str, "%03d", lock_dist / BLOCK_SZ);
 	}
 
 	if (BIT(Setup->mode, LIMITED_LIVES) || lock_dist !=0) {
 
-		if (BIT(Setup->mode, LIMITED_LIVES) && target->life == 0)
+		if (BIT(Setup->mode, LIMITED_LIVES) && target->life == 0) 
 			SET_FG(colors[RED].pixel);
 		else
 			SET_FG(colors[iniClient.hudColor].pixel);
@@ -424,7 +433,7 @@ static void Paint_lock(int hud_pos_x, int hud_pos_y)
 						 WINSCALE(size), WINSCALE(size), 0, 64*360);
 				Erase_rectangle(WINSCALE(x), WINSCALE(y),
 								 WINSCALE(size), WINSCALE(size));
-				SET_FG(colors[iniClient.hudColor].pixel);
+				SET_FG(colors[iniClient.hudColor].pixel);		
 			}
 		}
 	}
@@ -438,7 +447,7 @@ void Paint_hudradar(void)
 	int 		hrscale = 3;
 	int 		hrw = hrscale * 256;
 	int 		hrh = hrscale * RadarHeight;
-	float		xf = (float)hrw / (float)Setup->width,
+	float		xf = (float)hrw / (float)Setup->width, 
 				yf = (float)hrh / (float)Setup->height;
 
 	for (i = 0; i < num_radar; i++) {
@@ -448,10 +457,10 @@ void Paint_hudradar(void)
 		/* skip non-enemy objects */
 		if ((sz & 0x80) == 0) {
 
-			int x = (int)(radar_ptr[i].x * hrscale -
+			int x = (int)(radar_ptr[i].x * hrscale - 
 				(world.x + ext_view_width / 2) * xf);
 
-			int y = (int)(radar_ptr[i].y * hrscale -
+			int y = (int)(radar_ptr[i].y * hrscale - 
 				(world.y + ext_view_height / 2) * yf);
 
 			/* skip objects that would be drawn over our ship */
@@ -476,8 +485,8 @@ void Paint_hudradar(void)
 			sz = (sz > 0) ? sz * hrscale : hrscale;
 
 			Arc_add(iniClient.hudColor,
-					x + ext_view_width / 2 - sz / 2,
-					-y + ext_view_height / 2 - sz / 2,
+					x + ext_view_width / 2 - sz / 2, 
+					-y + ext_view_height / 2 - sz / 2, 
 					sz, sz, 0, 64*360);
 		}
 	}
@@ -513,7 +522,7 @@ void Paint_HUD(void)
 					(int)(ext_view_height / 2 + iniClient.ptrMoveFact*vel.y));
 	}
 
-		if (BIT(iniClient.instruments, SHOW_HUD_RADAR))
+		if (BIT(iniClient.instruments, SHOW_HUD_RADAR)) 
 				Paint_hudradar();
 
 	if (!BIT(iniClient.instruments, SHOW_HUD_INSTRUMENTS)) {
@@ -608,9 +617,9 @@ void Paint_HUD(void)
 			int len, width;
 
 			/* Paint item symbol */
-			Paint_item_symbol((u_byte)i, p_draw, gc,
+			Paint_item_symbol((u_byte)i, p_draw, gc, 
 						horiz_pos - ITEM_SIZE,
-						vert_pos,
+						vert_pos, 
 						ITEM_HUD);
 
 			if (i == lose_item) {
@@ -618,7 +627,7 @@ void Paint_HUD(void)
 					if (lose_item_active < 0) {
 						lose_item_active++;
 					}
-					rd.drawRectangle(iniClient.dpy, p_draw, gc,
+					rd.drawRectangle(iniClient.dpy, p_draw, gc, 
 								horiz_pos-ITEM_SIZE-2,
 								vert_pos-2, ITEM_SIZE+2, ITEM_SIZE+2);
 				}
@@ -778,9 +787,9 @@ void Paint_HUD(void)
 		return;
 
 	rd.drawRectangle(iniClient.dpy, p_draw, gc,
-				  WINSCALE(hud_pos_x + HUD_SIZE - HUD_OFFSET
+				  WINSCALE(hud_pos_x + HUD_SIZE - HUD_OFFSET 
 						+ FUEL_GAUGE_OFFSET) - 1,
-				  WINSCALE(hud_pos_y - HUD_SIZE + HUD_OFFSET
+				  WINSCALE(hud_pos_y - HUD_SIZE + HUD_OFFSET 
 						+ FUEL_GAUGE_OFFSET) - 1,
 				  WINSCALE(HUD_OFFSET - (2*FUEL_GAUGE_OFFSET)) + 3,
 				  WINSCALE(HUD_FUEL_GAUGE_SIZE) + 3);
@@ -793,15 +802,15 @@ void Paint_HUD(void)
 
 	size = (HUD_FUEL_GAUGE_SIZE * fuelSum) / fuelMax;
 	rd.fillRectangle(iniClient.dpy, p_draw, gc,
-				   WINSCALE(hud_pos_x + HUD_SIZE - HUD_OFFSET
+				   WINSCALE(hud_pos_x + HUD_SIZE - HUD_OFFSET 
 						+ FUEL_GAUGE_OFFSET) + 1,
-				   WINSCALE(hud_pos_y - HUD_SIZE + HUD_OFFSET
+				   WINSCALE(hud_pos_y - HUD_SIZE + HUD_OFFSET 
 						+ FUEL_GAUGE_OFFSET + HUD_FUEL_GAUGE_SIZE - size) + 1,
 				   WINSCALE(HUD_OFFSET - (2*FUEL_GAUGE_OFFSET)),
 				   WINSCALE(size));
-	Erase_rectangle(WINSCALE(hud_pos_x + HUD_SIZE - HUD_OFFSET
+	Erase_rectangle(WINSCALE(hud_pos_x + HUD_SIZE - HUD_OFFSET 
 						+ FUEL_GAUGE_OFFSET),
-					WINSCALE(hud_pos_y - HUD_SIZE + HUD_OFFSET
+					WINSCALE(hud_pos_y - HUD_SIZE + HUD_OFFSET 
 						+ FUEL_GAUGE_OFFSET + HUD_FUEL_GAUGE_SIZE - size),
 					HUD_OFFSET - (2*FUEL_GAUGE_OFFSET) + 1, size + 1);
 
@@ -866,7 +875,7 @@ void Paint_messages(void)
 				msg->life = 0;
 				continue;
 			}
-		}
+		} 
 #ifdef _WINDOWS
 		else if (msg->life-- <= 0) {
 				msg->txt[0] = '\0';
@@ -875,7 +884,7 @@ void Paint_messages(void)
 				continue;
 			}
 #endif
-
+		
 		if (i < iniClient.maxMessages) {
 			x = BORDER;
 			y = top_y;
@@ -899,7 +908,7 @@ void Paint_messages(void)
 
 #ifndef _WINDOWS
 		/*
-		 * it's an emphasized talk message
+		 * it's an emphasized talk message 
 		 */
 		if (iniClient.selectionAndHistory && selection.draw.state == SEL_EMPHASIZED
 			&& i < iniClient.maxMessages
@@ -987,7 +996,7 @@ void Paint_messages(void)
 					l3 = len - selection.draw.x2 - 1;
 				}
 			} /* last line */
-
+				
 
 			if (ptr) {
 				XSetForeground(iniClient.dpy, messageGC, colors[msg_color].pixel);
@@ -1093,7 +1102,7 @@ static void _AddMessage(PCSTR message)
 		if (show_reverse_scroll && last_msg_index == iniClient.maxMessages - 1) {
 			scrolling = true;
 		}
-
+		
 		/*
 		 * keep the emphasizing (`jumping' from talk window to talk messages)
 		 */
@@ -1135,7 +1144,7 @@ static void _AddMessage(PCSTR message)
 			 * the emphasizing vanishes, as it's `last' line
 			 * is `scrolled away'
 			 */
-			selection.draw.state = SEL_SELECTED;
+			selection.draw.state = SEL_SELECTED;		
 		} else {
 			if (scrolling) {
 				selection.draw.y2--;
@@ -1176,12 +1185,12 @@ static void _AddMessage(PCSTR message)
 #endif
 
 	msg_set[0]->pixelLen = XTextWidth(messageFont, msg_set[0]->txt, msg_set[0]->len);
-
+		
 	/* Print messages to standard output.
 	 */
-	if (iniClient.messagesToStdout == 2
+	if (iniClient.messagesToStdout == 2 
 	  || (iniClient.messagesToStdout == 1
-	  && message[0]
+	  && message[0] 
 	  && message[strlen(message)-1] == ']'))
 	{
 		xpprintf("%s\n", message);

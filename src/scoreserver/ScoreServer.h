@@ -10,7 +10,7 @@
  *      Jarrod Miller        <jarrod@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
- *      Bjï¿½rn Stabell        <bjoern@xpilot.org>
+ *      Bjørn Stabell        <bjoern@xpilot.org>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -95,12 +95,12 @@ public:
 	void	ReceiveGetRanks(bool onOff);
 
 	void	ReceiveGetScore(PCSTR nick, PlayerType pt, uint cookie);
-	void	ReceiveSetScore(PCSTR nick, PlayerType pt, DFLOAT score,
+	void	ReceiveSetScore(PCSTR nick, PlayerType pt, DFLOAT score, 
 							int kills, int deaths, uint cookie);
 	void	ReceivePlayerEvent(PCSTR name, PlayerType pt, ScorePlayerEvent pse,
 							   PCSTR real, PCSTR host, PCSTR addr, uint cookie);
 	void	ReceiveScoreEvent(PCSTR killer, PlayerType ptr, DFLOAT wscore,
-							  PCSTR killee, PlayerType pte, DFLOAT lscore,
+							  PCSTR killee, PlayerType pte, DFLOAT lscore, 
 							  ScoreType st);
 
 	void	SendPlayerMessage(PCSTR message, PCSTR player = NULL, PlayerType = PlayerAny);

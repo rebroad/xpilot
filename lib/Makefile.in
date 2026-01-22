@@ -1,4 +1,4 @@
-# $Id: Makefile.in,v 1.10 2004/05/13 16:21:19 dick Exp $
+# $Id: Makefile.in,v 1.12 2007/01/19 20:32:31 dick Exp $
 # @configure_input@
 #
 # Makefile.in for xpilot++'s lib
@@ -26,6 +26,12 @@
 # Please report all bugs and problems to "xpilot++@buckosoft.com".
 #
 # $Log: Makefile.in,v $
+# Revision 1.12  2007/01/19 20:32:31  dick
+# Rename Robot4a to Robot5 to promote the xp5 brand.
+#
+# Revision 1.11  2007/01/16 06:06:52  dick
+# Add robot4a to the mix
+#
 # Revision 1.10  2004/05/13 16:21:19  dick
 # Linux needs to have a shipfile too.
 # Note on Windows, XPilot.shp moves to $/lib .
@@ -64,7 +70,7 @@ LIBNAME =
 
 SUBDIRS = maps scoreserver textures @CLIENTSOUNDDIR@
 
-INSTALLFILES = defaults robots XPilot.shp @CLIENTSOUNDCONF@
+INSTALLFILES = defaults robots.txt robots5.txt XPilot.shp @CLIENTSOUNDCONF@
 
 CPPFILES =
 
@@ -136,5 +142,5 @@ install:
 	done
 
 #
-# End of "$Id: Makefile.in,v 1.10 2004/05/13 16:21:19 dick Exp $".
+# End of "$Id: Makefile.in,v 1.12 2007/01/19 20:32:31 dick Exp $".
 #

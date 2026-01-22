@@ -4,7 +4,7 @@
  *
  * XPilot, a multiplayer gravity war game.  Copyright (C) 1991-2003 by
  *
- *      Bjï¿½rn Stabell        <bjoern@xpilot.org>
+ *      Bjørn Stabell        <bjoern@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
  *      Dick Balaska         <dick@xpilot.org>
@@ -269,13 +269,13 @@ Connection::~Connection()
  * Initialize the function dispatch tables for the various client
  * connection states.  Some states use the same table.
  */
-//static
+//static 
 void Connection::InitReceiveTables()
 {
     int			i;
 
 //	InitConnectionControl();
-    for (i = 0; i < 256; i++)
+    for (i = 0; i < 256; i++) 
 	{
 		loginReceive[i] = &Connection::ReceiveUndefined;
 		playingReceive[i] = &Connection::ReceiveUndefined;
@@ -376,7 +376,7 @@ int Connection::SendReply(int replyto, int result)
 	int			n;
 
 	n = cw.printf("%c%c%c", PKT_REPLY, replyto, result);
-	if (n == -1)
+	if (n == -1) 
 	{
 		DestroyConnection("write error");
 		return -1;
@@ -703,7 +703,7 @@ int Connection::SendReliable()
 	read_buf = cw.buf;
 	max_todo = cw.len;
 	rel_off = reliable_offset;
-	if (w.len > 0)
+	if (w.len > 0) 
 	{
 		/* We are piggybacking on a frame update. */
 		if (w.len >= max_packet_size - min_send_size)
@@ -718,7 +718,7 @@ int Connection::SendReliable()
 			max_todo = max_packet_size - w.len;
 		}
 	}
-	if (retransmit_at_loop > netServer->mainLoops)
+	if (retransmit_at_loop > netServer->mainLoops) 
 	{
 	   /*
 		* It is not time to retransmit yet.
@@ -765,8 +765,8 @@ int Connection::SendReliable()
 			{
 				acks = 0;
 				break;
-			}
-			else
+			} 
+			else 
 			{
 				emh(emhThis, EmError, "Cannot flush reliable data (%d)", n);
 				DestroyConnection("flush error");
@@ -786,7 +786,7 @@ int Connection::SendReliable()
 
 	last_send_loops = netServer->mainLoops;
 
-	if (max_todo - todo <= 0)
+	if (max_todo - todo <= 0) 
 	{
 	   /*
 		* We have not transmitted anything at all.
@@ -798,22 +798,22 @@ int Connection::SendReliable()
 	/*
 	* Retransmission timer with exponential backoff.
 	*/
-	if (rtt_retransmit > MAX_RETRANSMIT)
+	if (rtt_retransmit > MAX_RETRANSMIT) 
 	{
 		rtt_retransmit = MAX_RETRANSMIT;
 	}
-	if (retransmit_at_loop <= netServer->mainLoops)
+	if (retransmit_at_loop <= netServer->mainLoops) 
 	{
 		retransmit_at_loop = netServer->mainLoops + rtt_retransmit;
 		rtt_retransmit <<= 1;
 		rtt_timeouts++;
 	}
-	else
+	else 
 	{
 		retransmit_at_loop = netServer->mainLoops + rtt_retransmit;
 	}
 
-	if (rel_off > reliable_unsent)
+	if (rel_off > reliable_unsent) 
 	{
 		reliable_unsent = rel_off;
 	}
@@ -837,29 +837,29 @@ int Connection::ReceiveReliable()
 	long		rel_loops;
 
 	if ((n = r.scanf("%c%hd%ld%ld",
-						&ch, &len, &rel, &rel_loops)) == -1)
+						&ch, &len, &rel, &rel_loops)) == -1) 
 	{
 		return -1;
 	}
-	if (n == 0)
+	if (n == 0) 
 	{
 		seterrno(0);
 		// emh(emhThis, EmError, "Incomplete reliable data packet");
 		xpprintf("Incomplete reliable data packet\n");
 		return 0;
 	}
-//	if (reliableOffset >= rel + len)
+//	if (reliableOffset >= rel + len) 
 	{
 		DR(xpprintf("Reliable my=%ld pkt=%ld len=%d loops=%ld\n",
 			reliableOffset, rel, len, rel_loops);)
 	}
-	if (len <= 0)
+	if (len <= 0) 
 	{
 		seterrno(0);
 		xpprintf("Bad reliable data length (%d)", len);
 		return -1;
 	}
-	if (r.ptr + len > r.buf + r.len)
+	if (r.ptr + len > r.buf + r.len) 
 	{
 		seterrno(0);
 		xpprintf("Not all reliable data in packet (%d,%d,%d)",
@@ -868,7 +868,7 @@ int Connection::ReceiveReliable()
 		r.Advance(r.ptr - r.buf);
 		return -1;
 	}
-	if (rel > reliableOffset)
+	if (rel > reliableOffset) 
 	{
 		/*
 		* We miss one or more packets.
@@ -877,12 +877,12 @@ int Connection::ReceiveReliable()
 		*/
 		r.ptr += len;
 		r.Advance(r.ptr - r.buf);
-		if (SendAck(rel_loops) == -1)
+		if (SendAck(rel_loops) == -1) 
 			return -1;
 		w.Flush();
 		return 1;
 	}
-	if (rel + len <= reliableOffset)
+	if (rel + len <= reliableOffset) 
 	{
 		/*
 		* Duplicate data.  Probably an ack got lost.
@@ -895,7 +895,7 @@ int Connection::ReceiveReliable()
 		w.Flush();
 		return 1;
 	}
-	if (rel < reliableOffset)
+	if (rel < reliableOffset) 
 	{
 		len -= (short)(reliableOffset - rel);
 		r.ptr += reliableOffset - rel;
@@ -904,7 +904,7 @@ int Connection::ReceiveReliable()
 	if (cr.ptr > cr.buf)
 		cr.Advance(cr.ptr - cr.buf);
 
-	if (cr.Write(r.ptr, len) != len)
+	if (cr.Write(r.ptr, len) != len) 
 	{
 		seterrno(0);
 		xpprintf("Can't copy reliable data to buffer");
@@ -912,15 +912,15 @@ int Connection::ReceiveReliable()
 		r.Advance(r.ptr - r.buf);
 		return -1;
 	}
-	DR(xpprintf("ReceiveReliable: ");
-		for (int i=0; i<cr.len; i++)
-			xpprintf("%02X ", (unsigned)(cr.buf[i]&255));
+	DR(xpprintf("ReceiveReliable: "); 
+		for (int i=0; i<cr.len; i++) 
+			xpprintf("%02X ", (unsigned)(cr.buf[i]&255)); 
 		xpprintf("\n"); )
 
 	reliableOffset += len;
 	r.ptr += len;
 	r.Advance(r.ptr - r.buf);
-	if (SendAck(rel_loops) == -1)
+	if (SendAck(rel_loops) == -1) 
 		return -1;
 	w.Flush();
 	return 1;
@@ -1058,7 +1058,7 @@ int Connection::ReceiveAck()
 		DestroyConnection("bad ack");
 		return -1;
 	}
-	else if (diff <= 0)
+	else if (diff <= 0) 
 	{
 		/* Late or duplicate ack of old data.  Discard. */
 		DR(xpprintf("duplicate\n");)
@@ -1070,7 +1070,7 @@ int Connection::ReceiveAck()
 	{
 		acks = n;
 	}
-	else
+	else 
 	{
 		acks++;
 	}
@@ -1080,7 +1080,7 @@ int Connection::ReceiveAck()
 		* All reliable data has been sent and acked.
 		*/
 		retransmit_at_loop = 0;
-		if (state == CONN_DRAIN)
+		if (state == CONN_DRAIN) 
 		{
 			SetState(drainState, drainState);
 		}
@@ -1090,7 +1090,7 @@ int Connection::ReceiveAck()
 		|| (cw.buf[0] != PKT_REPLY
 		&& cw.buf[0] != PKT_PLAY
 		&& cw.buf[0] != PKT_SUCCESS
-		&& cw.buf[0] != PKT_FAILURE)))
+		&& cw.buf[0] != PKT_FAILURE))) 
 	{
 		SetState(drainState, drainState);
 	}
@@ -1122,7 +1122,7 @@ int Connection::ReceiveUndefined()
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-//static
+//static 
 void Connection::HandleInput(int fd, void *arg)
 {
 	Connection*	conn = (Connection*)arg;
@@ -1148,7 +1148,7 @@ void Connection::HandleInput()
 		HandleListening();
 		return;
 	}
-	else
+	else 
 	{
 		if (state != CONN_FREE)
 			DestroyConnection("not input");
@@ -1176,7 +1176,7 @@ void Connection::HandleInput()
 		//ConnectionPlayer* connp = (ConnectionPlayer*)conn;
 
 		result = (this->*(receive_tbl[type]))();
-		if (result == -1)
+		if (result == -1) 
 		{
 		   /*
 			* Unrecoverable error.
@@ -1195,8 +1195,8 @@ void Connection::HandleInput()
 		}
 		if (state == CONN_PLAYING || state == CONN_CTL)
 		{
-			/*D(Trace("reset %s type=%d start=%d delay=%d\n",
-				nick ? nick : "nonick",
+			/*D(Trace("reset %s type=%d start=%d delay=%d\n", 
+				nick ? nick : "nonick", 
 				type,
 				mainLoops, mainLoops - start);)*/
 			start = netServer->mainLoops;
@@ -1211,13 +1211,13 @@ void Connection::HandleInput()
 		// ConnectionPlayer* connp = (ConnectionPlayer*)conn;
 		if (reliableReceive[type] == 0)
 		{
-			xpprintf("%s%s@%s Unknown reliable packet type %d\n",
+			xpprintf("%s%s@%s Unknown reliable packet type %d\n", 
 				showtime(), (PCSTR)real, (PCSTR)dpy, cr.ptr[0]);
 			cr.Clear();
 			break;
 		}
 		result = (this->*(reliableReceive[type]))();
-		if (result == -1)
+		if (result == -1) 
 		{
 		   /*
 			* Unrecoverable error.

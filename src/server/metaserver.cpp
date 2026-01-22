@@ -2,7 +2,7 @@
  *
  * XPilot, a multiplayer gravity war game.  Copyright (C) 1991-2001 by
  *
- *      Bjï¿½rn Stabell        <bjoern@xpilot.org>
+ *      Bjørn Stabell        <bjoern@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
  *      Dick Balaska         <dick@xpilot.org>
@@ -239,7 +239,7 @@ void MetaUpdate(World* w, bool change)
 	currentTime = time(NULL);
 	if (!change) {
 		if (currentTime - lastMetaSendTime < GIVE_META_SERVER_A_HINT) {
-			if (w->numQueuedPlayers == queue_length
+			if (w->numQueuedPlayers == queue_length 
 			 ||	currentTime - lastMetaSendTime < 5) {
 				return;
 			}
@@ -270,7 +270,7 @@ void MetaUpdate(World* w, bool change)
 	if (BIT(w->rules->mode, TEAM_PLAY)) {
 		j = 0;
 		for (i = 0; i < MAX_TEAMS; i++) {
-			if (i == w->options.robotTeam->GetInt()
+			if (i == w->options.robotTeam->GetInt() 
 			 && w->options.reserveRobotTeam->GetBool()) {
 				continue;
 			}

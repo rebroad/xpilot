@@ -1,4 +1,4 @@
-# $Id: Makefile.in,v 1.11 2004/05/28 17:35:54 dick Exp $
+# $Id: Makefile.in,v 1.12 2007/02/17 19:47:47 dick Exp $
 # @configure_input@
 #
 # Makefile.in for xpilot5's library xp-flwidgets
@@ -26,6 +26,9 @@
 # Please report all bugs and problems to "xpilot5@buckosoft.com".
 #
 # $Log: Makefile.in,v $
+# Revision 1.12  2007/02/17 19:47:47  dick
+# Add flUtil
+#
 # Revision 1.11  2004/05/28 17:35:54  dick
 # Add ShipDocument.FL.cpp and NameAndShipButton.cpp
 #
@@ -67,7 +70,7 @@
 
 LIBNAME = xp-flwidgets.a
 
-SUBDIRS = kbconfig
+SUBDIRS = audio kbconfig
 
 CPPFILES = \
 	Fl_PrefsColorKey.cpp Fl_ServerList.cpp Fl_Status.cpp \
@@ -75,7 +78,8 @@ CPPFILES = \
 	NameAndShipButton.cpp \
 	ServerPrefsWindow.cpp \
 	ShipDocument.FL.cpp ShipListBox.cpp ShipListViewWindow.cpp \
-    XPCheckButton.cpp XPPreset_Group.cpp XPChoice.cpp
+    XPCheckButton.cpp XPPreset_Group.cpp XPChoice.cpp \
+	flUtil.cpp
 
 CLEAN =
 
@@ -129,5 +133,5 @@ include .depend
 install:
 
 #
-# End of "$Id: Makefile.in,v 1.11 2004/05/28 17:35:54 dick Exp $".
+# End of "$Id: Makefile.in,v 1.12 2007/02/17 19:47:47 dick Exp $".
 #

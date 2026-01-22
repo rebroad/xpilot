@@ -1,4 +1,4 @@
-/* $Id: Obj.h,v 1.14 2004/04/27 01:17:22 dick Exp $
+/* $Id: Obj.h,v 1.15 2007/02/17 06:10:47 dick Exp $
  *
  * XPwhere - Where in the world can i find people playing XPilot.
  *      Copyright (C) 2001 by
@@ -8,7 +8,7 @@
  *      Jarrod Miller        <jarrod@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
- *      Bjï¿½rn Stabell        <bjoern@xpilot.org>
+ *      Bjørn Stabell        <bjoern@xpilot.org>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -29,6 +29,9 @@
  */
 /*
  * $Log: Obj.h,v $
+ * Revision 1.15  2007/02/17 06:10:47  dick
+ * Add GetAt(index) which is the same as operator[].
+ *
  * Revision 1.14  2004/04/27 01:17:22  dick
  * Some Rect manipulation functions
  *
@@ -81,9 +84,9 @@
 *  obj.h - The root of all evil.  Base objects								*
 *																			*
 *  Part of the BuckoSoft Root Project										*
-*  Copyrightï¿½ 1998-1999 - BuckoSoft, Inc.									*
+*  Copyright© 1998-1999 - BuckoSoft, Inc.									*
 *																			*
-*  $Id: Obj.h,v 1.14 2004/04/27 01:17:22 dick Exp $							*
+*  $Id: Obj.h,v 1.15 2007/02/17 06:10:47 dick Exp $							*
 \***************************************************************************/
 
 #ifndef	_OBJ_H_
@@ -128,7 +131,7 @@ class Obj {
 	// Templates would probably clean that up --- if they worked on all platforms
 	Obj*	GetNext() const { return(next); }
 
-	// An object can have a general callback.
+	// An object can have a general callback.  
 	// objlist can pump all callbacks in his list.
 
 	ObjFunc	func;
@@ -159,6 +162,9 @@ class ObjList : public Obj {
 	virtual		~ObjList();
 	Obj*		GetHead() const { return(head); };
 	Obj*		GetTail() const { return(tail); };
+	Obj*		GetAt(int n);					// get the nth object
+	Obj*		operator[](int n);				// get the nth object
+
 	void		Add(Obj* o);
 	void		InsertBefore(Obj* place, Obj* _new);
 	void		Add(PCSTR name, int value);
@@ -171,9 +177,8 @@ class ObjList : public Obj {
 	int			GetCount();
 	int			Index(const Obj* who) const;	// how far down the list is this guy
 	bool		IsEmpty();
-	Obj*		Find(PCSTR s) const;
+	Obj*		Find(PCSTR name) const;
 	ObjSortable* FindSortable(PCSTR s) const;
-	Obj*		operator[](int n);				// get the nth object
 	void		SortObjInto(ObjList& into, int priSort = 0, int secSort = 0);
 	void		SortSortableInto(ObjList& into, int priSort = 0, int secSort = 0);
 	void		Sort(int priSort = 0, int secSort = 0);
@@ -218,7 +223,7 @@ class Range : public Obj {
 class Rect {
   public:
 	Rect()	{ top = 0; left = 0; bottom = 0; right = 0; }
-	Rect(int x0, int y0, int x1, int y1)
+	Rect(int x0, int y0, int x1, int y1) 
 		{ top = y0; left = x0; bottom = y1; right = x1; }
 	void	Set(int x0, int y0, int x1, int y1);
 	void	SetNull();

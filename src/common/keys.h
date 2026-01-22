@@ -1,4 +1,4 @@
-/* $Id: keys.h,v 1.16 2004/05/23 23:52:07 dick Exp $
+/* $Id: keys.h,v 1.17 2007/01/17 08:54:29 dick Exp $
  *
  * XPilot, a multiplayer gravity war game.  Copyright (C) 1991-2001 by
  *
@@ -23,6 +23,9 @@
  */
 /*
  * $Log: keys.h,v $
+ * Revision 1.17  2007/01/17 08:54:29  dick
+ * KEY_FLIP_ROBOT_PAGE cycles through the robot's brain pages
+ *
  * Revision 1.16  2004/05/23 23:52:07  dick
  * src/common/IniClient.Defaults.cpp
  *
@@ -156,7 +159,7 @@ enum keys_t {
 	KEY_HYPERJUMP,				/* Was KEY_POINTER_CONTROL up to 3.2.5 */
 	KEY_DETONATE_MINES,
 	KEY_DEFLECTOR,				/* since 3.8.0 */
-	KEY_UNUSED_65,
+	KEY_FLIP_ROBOT_PAGE,		/* since 5.0.1 */
 	KEY_UNUSED_66,
 	KEY_UNUSED_67,
 	KEY_UNUSED_68,

@@ -1,4 +1,4 @@
-/* $Id: client.h,v 1.17 2006/09/24 05:00:17 dick Exp $
+/* $Id: client.h,v 1.21 2007/02/17 20:15:33 dick Exp $
  *
  * client - map stuff, radar stuff, network stuff, misc stuff, globals.
  *
@@ -6,7 +6,7 @@
  *
  * XPilot, a multiplayer gravity war game.  Copyright (C) 1991-2001 by
  *
- *      Bjï¿½rn Stabell        <bjoern@xpilot.org>
+ *      Bjørn Stabell        <bjoern@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
  *      Dick Balaska         <dick@xpilot.org>
@@ -27,6 +27,21 @@
  */
 /*
  * $Log: client.h,v $
+ * Revision 1.21  2007/02/17 20:15:33  dick
+ * Eliminate warnings by changing selection_t.state to an int from a bool
+ *
+ * Revision 1.20  2007/01/18 21:09:55  dick
+ * Add an ErrHandler to the client.
+ *
+ * Revision 1.19  2007/01/17 21:35:15  dick
+ * Encapsulate all of the RobotWatch features into a RobotWatchMan object.
+ *
+ * Revision 1.18  2007/01/17 08:59:49  dick
+ * RobotWatch is a list of Strings sent from the client when a player is paused
+ * and watching a robot.  This list contains diagnostic information about
+ * what the heck the robot thinks it's doing.
+ * It's kinda like the Terminator view where he's looking at a 6502 dump.
+ *
  * Revision 1.17  2006/09/24 05:00:17  dick
  * scoresChanged is an int
  *
@@ -69,7 +84,7 @@
 #define PACKET_DROP		1
 #define PACKET_DRAW		2
 
-#define MAX_SCORE_OBJECTS	10
+#define MAX_SCORE_OBJECTS			10
 
 
 #define FIND_NAME_WIDTH(other)						\
@@ -80,34 +95,6 @@
     }
 
 class Other;
-#if 0
-typedef struct {
-    char		name[MAX_CHARS];
-    char		real[MAX_CHARS];
-    char		host[MAX_CHARS];
-    short		id;
-    short		warId;
-    short		team;
-    short		life;
-	short		kills;
-	short		deaths;
-	DFLOAT		kdratio;	// kills/deaths
-    DFLOAT		ratio;
-    DFLOAT		score;
-	DFLOAT		rate;
-	int			rank;
-	char		ipVer[MAX_CHARS];
-    short		check;
-    short		round;
-    short		timing;
-    long		timing_loops;
-    short		mychar;
-	short		alliance;
-    short		name_width;	/* In pixels */
-    short		name_len;	/* In bytes */
-    shipobj*	ship;
-} other_t;
-#endif
 
 typedef struct {
     int		pos;		/* Block index */
@@ -150,7 +137,6 @@ typedef struct {
 	char	hud_msg[MAX_CHARS+10];
 } score_object_t;
 
-
 /*
  * is a selection pending (in progress), done, drawn emphasized?
  */
@@ -165,14 +151,14 @@ typedef struct {
 typedef struct {
     /* a selection in the talk window */
     struct {
-        bool    state;	/* current state of the selection */
+        int    state;	/* current state of the selection */
         int     x1;	/* string indices */
         int     x2;
         bool    incl_nl;/* include a `\n'? */
     } talk ;
     /* a selection in the draw window */
     struct {
-        bool    state;
+        int    state;
         int     x1;	/* string indices (for TalkMsg[].txt) */
         int     x2;	/* they are modified when the emphasized area */
         int     y1;	/* is scrolled down by new messages coming in */
@@ -281,7 +267,7 @@ ShipObj*	Ship_by_id(int id);
 int Handle_leave(int id);
 int Handle_player(int id, int team, int mychar, char *player_name,
 		  char *real_name, char *host_name, char *shape);
-int Handle_score(int id, DFLOAT score, int life, int mychar, int alliance,
+int Handle_score(int id, DFLOAT score, int life, int mychar, int alliance, 
 				 short kills, short deaths);
 int HandleScoreTablePages(uint pages);
 int	HandleScoreTableIPVer(int id, PCSTR s);
@@ -325,6 +311,13 @@ void MarkMotdForRedraw(Window w);
 int Key_init(void);
 int Key_update(void);
 int Check_client_fps(void);
+
+class RobotWatchMan;
+extern	RobotWatchMan	robotWatchMan;		// Watch robot's brain activities
+
+extern	void			ErrHandler(void* myThis, ErrMsgType emt, PCSTR ctl, ...);
+extern	ErrMsgHandler	emh;			/* Error message output handler */
+extern	void*			emhThis;		/* The "this" of the outputter.  Usually a window, maybe stdout */
 
 #endif
 

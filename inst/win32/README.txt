@@ -1,6 +1,6 @@
 This is the README for XPilot.exe and XPilotServer.exe  4.5.4b++-NT.
 
-Copyright ï¿½ 1991-2002 by Bjï¿½rn Stabell, Ken Ronny Schouten, Bert Gijsbers & Dick Balaska.
+Copyright © 1991-2002 by Bjørn Stabell, Ken Ronny Schouten, Bert Gijsbers & Dick Balaska.
 
 Following are notes for building the
 Windows version of XPilot.  See INSTALL in the XPilot root
@@ -16,11 +16,11 @@ which loads the two makefiles:
      src/client/NT/xpilot.dsp     - The client
      src/server/NT/xpilots.dsp   - The server
 
-The development executables run from the xpilot root directory, so as to gain
+The development executables run from the xpilot root directory, so as to gain 
 access to the lib subdirectory.
 
-XPilot.ini is distributed in the src/client/NT directory.  You should copy
-this file to the xpilot root directory (or a default one without comments
+XPilot.ini is distributed in the src/client/NT directory.  You should copy 
+this file to the xpilot root directory (or a default one without comments 
 will be created)
 
 These days, only VC++ 6.0 is officially supported.  Although there is nothing to

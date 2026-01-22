@@ -43,7 +43,7 @@ RSC=rc.exe
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_MBCS" /Yu"stdafx.h" /FD /c
-# ADD CPP /nologo /MT /W3 /GX /O2 /I "..\common" /I "..\serverlib" /I "..\common\expat\lib" /I "..\common\web" /D "NDEBUG" /D "WIN32" /D "_WINDOWS" /D "_MBCS" /D "_XPILOTSCORESERVER_" /Yu"StdAfx.h" /FD /c
+# ADD CPP /nologo /MT /W3 /GX /O2 /I "..\common" /I "..\serverlib" /I "..\common\expat\lib" /I "..\common\web" /D "NDEBUG" /D "WIN32" /D "_WINDOWS" /D "_MBCS" /D "_XPILOTSCORESERVER_" /D "MYSQLFLAG" /Yu"StdAfx.h" /FD /c
 # ADD BASE MTL /nologo /D "NDEBUG" /mktyplib203 /win32
 # ADD MTL /nologo /D "NDEBUG" /mktyplib203 /win32
 # ADD BASE RSC /l 0x409 /d "NDEBUG"
@@ -53,7 +53,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:windows /machine:I386
-# ADD LINK32 wsock32.lib kernel32.lib user32.lib gdi32.lib advapi32.lib shell32.lib /nologo /subsystem:windows /machine:I386
+# ADD LINK32 libmysql.lib wsock32.lib kernel32.lib user32.lib gdi32.lib advapi32.lib shell32.lib /nologo /subsystem:windows /machine:I386 /libpath:"C:\Program Files\MySQL\MySQL Server 5.0\lib\opt\\"
 # SUBTRACT LINK32 /nodefaultlib
 
 !ELSEIF  "$(CFG)" == "XPScoreServer - Win32 Debug"
@@ -70,7 +70,7 @@ LINK32=link.exe
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_MBCS" /Yu"stdafx.h" /FD /GZ /c
-# ADD CPP /nologo /MTd /W3 /Gm /GX /ZI /Od /I "..\common" /I "..\serverlib" /I "..\common\expat\lib" /I "..\common\web" /D "_DEBUG" /D "WIN32" /D "_WINDOWS" /D "_MBCS" /D "_XPILOTSCORESERVER_" /D "_SOCKWINDOWS" /FR /Yu"StdAfx.h" /FD /GZ /c
+# ADD CPP /nologo /MTd /W3 /Gm /GX /ZI /Od /I "..\common" /I "..\serverlib" /I "..\common\expat\lib" /I "..\common\web" /D "_DEBUG" /D "_SOCKWINDOWS" /D "WIN32" /D "_WINDOWS" /D "_MBCS" /D "_XPILOTSCORESERVER_" /D "MYSQLFLAG" /FR /Yu"StdAfx.h" /FD /GZ /c
 # ADD BASE MTL /nologo /D "_DEBUG" /mktyplib203 /win32
 # ADD MTL /nologo /D "_DEBUG" /mktyplib203 /win32
 # ADD BASE RSC /l 0x409 /d "_DEBUG"
@@ -80,7 +80,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:windows /debug /machine:I386 /pdbtype:sept
-# ADD LINK32 wsock32.lib kernel32.lib user32.lib gdi32.lib advapi32.lib shell32.lib /nologo /subsystem:windows /debug /machine:I386 /pdbtype:sept
+# ADD LINK32 libmysql.lib wsock32.lib kernel32.lib user32.lib gdi32.lib advapi32.lib shell32.lib /nologo /subsystem:windows /debug /machine:I386 /pdbtype:sept /libpath:"C:\Program Files\MySQL\MySQL Server 5.0\lib\debug"
 # SUBTRACT LINK32 /incremental:no /nodefaultlib
 
 !ENDIF
@@ -95,6 +95,26 @@ LINK32=link.exe
 # Begin Group "engines"
 
 # PROP Default_Filter ""
+# Begin Group "sql"
+
+# PROP Default_Filter ".cpp,.h"
+# Begin Source File
+
+SOURCE=.\engines\sql\ScoreEngineSoloSQL.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\engines\sql\ScoreEngineSoloSQL.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\engines\sql\ScoreEngineSoloSQLCfg.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\engines\sql\ScoreEngineSoloSQLCfg.h
+# End Source File
+# End Group
 # Begin Source File
 
 SOURCE=.\engines\.cvsignore
@@ -372,6 +392,14 @@ SOURCE=..\common\web\Network.cpp
 SOURCE=..\common\web\Network.h
 # End Source File
 # End Group
+# Begin Group "NT"
+
+# PROP Default_Filter ""
+# Begin Source File
+
+SOURCE=..\common\NT\winNet.h
+# End Source File
+# End Group
 # Begin Source File
 
 SOURCE=..\common\.cvsignore
@@ -446,6 +474,10 @@ SOURCE=..\common\cstring.h
 # End Source File
 # Begin Source File
 
+SOURCE=..\common\draw.h
+# End Source File
+# Begin Source File
+
 SOURCE=..\common\error.cpp
 # End Source File
 # Begin Source File
@@ -463,6 +495,10 @@ SOURCE=..\common\FirewallPortList.h
 # Begin Source File
 
 SOURCE=..\common\Makefile.in
+# End Source File
+# Begin Source File
+
+SOURCE=..\common\map.h
 # End Source File
 # Begin Source File
 
@@ -499,6 +535,10 @@ SOURCE=..\common\portability.h
 # Begin Source File
 
 SOURCE=..\common\randommt.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=..\common\randommt.h
 # End Source File
 # Begin Source File
 

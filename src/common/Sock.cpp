@@ -2,7 +2,7 @@
  *
  * XPilot, a multiplayer gravity war game.  Copyright (C) 1991-2001 by
  *
- *      Bjï¿½rn Stabell        <bjoern@xpilot.org>
+ *      Bjørn Stabell        <bjoern@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
  *      Dick Balaska         <dick@xpilot.org>
@@ -223,8 +223,8 @@ Sock::Sock()
 #if defined(_WINDOWS) && !defined(_CYGWIN)
 void Sock::SetWindowMsg(HWND hw, UINT m)
 {
-	hWnd = hw;
-	wMsg = m;
+	hWnd = hw; 
+	wMsg = m; 
 }
 #endif
 
@@ -279,7 +279,7 @@ PCSTR	sockCallType[] = {
 String Sock::GetErrorString()
 {
 	String s;
-	s.printf("Socket error %d (%s) on %s",
+	s.printf("Socket error %d (%s) on %s", 
 			sockError.error, GetSockErrText(sockError.error),
 			sockCallType[sockError.call < SOCK_CALL_MAX ? sockError.call : SOCK_CALL_MAX]);
 	return(s);
@@ -305,7 +305,7 @@ bool Sock::IsValidSock()
 ///////////////////////////////////////////////////////////////////////////////
 int Sock::AllocHostname()
 {
-	if (!hostname)
+	if (!hostname) 
 		{
 				hostname = (char *) malloc(SOCK_HOSTNAME_LENGTH);
 				if (!hostname)
@@ -571,12 +571,12 @@ int Sock::OpenUdp(PCSTR dotaddr, int port)
 {
 	struct sockaddr_in	addr;
 
-	if (Init())
+	if (Init()) 
 	{
 		return SOCK_IS_ERROR;
 	}
 
-	if ((fd = socket(AF_INET, SOCK_DGRAM, 0)) < 0)
+	if ((fd = socket(AF_INET, SOCK_DGRAM, 0)) < 0) 
 	{
 		return SetError(xperrno, SOCK_CALL_SOCKET, __LINE__);
 	}
@@ -610,7 +610,7 @@ int Sock::Connect(const char *host, int port)
 	if ((dest.sin_addr.s_addr & 0xFFFFFFFF) == 0xFFFFFFFF)
 	{
 		IFNWINDOWS( errno = 0; )
-		if ((hp = sock_get_host_by_name(host)) == NULL)
+		if ((hp = sock_get_host_by_name(host)) == NULL) 
 		{
 			SetError(xperrno, SOCK_CALL_GETHOSTBYNAME, __LINE__);
 			return SOCK_IS_ERROR;
@@ -818,12 +818,12 @@ void SockGetLocalHostname(String& hostname, int search_domain_for_xpilot)
 	 * Let's hope it works :)
 	 */
 	if (strchr(he->h_name, '.') == NULL
-		&& he->h_addrtype == AF_INET)
+		&& he->h_addrtype == AF_INET) 
 	{
 		struct in_addr in;
 		memcpy((void *)&in, he->h_addr_list[0], sizeof(in));
 		if ((he = sock_get_host_by_addr((char *)&in, sizeof(in), AF_INET)) != NULL
-			&& strchr(he->h_name, '.') != NULL)
+			&& strchr(he->h_name, '.') != NULL) 
 		{
 			strlcpy(name, he->h_name, 256);
 		}
@@ -833,11 +833,11 @@ void SockGetLocalHostname(String& hostname, int search_domain_for_xpilot)
 			if (fp) {
 				char*	s;
 				char	buf[256];
-				while (fgets(buf, sizeof buf, fp))
+				while (fgets(buf, sizeof buf, fp)) 
 				{
 					if ((s = strtok(buf, " \t\r\n")) != NULL
 						&& !strcmp(s, "domain")
-						&& (s = strtok(NULL, " \t\r\n")) != NULL)
+						&& (s = strtok(NULL, " \t\r\n")) != NULL) 
 					{
 						strcat(name, ".");
 						strcat(name, s);
@@ -879,7 +879,7 @@ void SockGetLocalHostname(String& hostname, int search_domain_for_xpilot)
 			 * FQDN we guessed above.  It is hard to know our IP to know
 			 * that an A record points to us.
 			 */
-			if ((xpilot_he = sock_get_host_by_name(xpilot_hostname)) != NULL
+			if ((xpilot_he = sock_get_host_by_name(xpilot_hostname)) != NULL 
 				&& !strcmp(name, xpilot_he->h_name))
 				break;
 			xpilot_he = NULL;
@@ -1039,22 +1039,22 @@ static struct hostent *sock_get_host_by_name(const char *name)
 	return hp;
 
 #else
-
+	
 	/*
 	 * If you aren't connected to the net, then gethostbyname()
 	 * can take many minutes to time out.  WSACancelBlockingCall()
 	 * doesn't affect it.
 	 */
-
+	
 	static char 	chp[MAXGETHOSTSTRUCT+1];
 	struct hostent* hp = (struct hostent*)&chp;
 	HANDLE h;
 	MSG msg;
 	int i;
-
-	h = WSAAsyncGetHostByName(notifyWnd, WM_GETHOSTNAME, name,
+	
+	h = WSAAsyncGetHostByName(notifyWnd, WM_GETHOSTNAME, name, 
 		chp, MAXGETHOSTSTRUCT);
-
+	
 	for(i = 0; i < SOCK_GETHOST_TIMEOUT; i++) {
 		if (PeekMessage(&msg, NULL, WM_GETHOSTNAME, WM_GETHOSTNAME, PM_REMOVE)) {
 			return (WSAGETASYNCERROR(msg.lParam)) ? NULL : hp;

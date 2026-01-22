@@ -1,8 +1,8 @@
-/* $Id: World.netserver.cpp,v 1.59 2004/05/30 16:18:41 dick Exp $
+/* $Id: World.netserver.cpp,v 1.60 2007/01/10 18:14:47 dick Exp $
  *
  * XPilot, a multiplayer gravity war game.  Copyright (C) 1991-2001 by
  *
- *      Bjï¿½rn Stabell        <bjoern@xpilot.org>
+ *      Bjørn Stabell        <bjoern@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
  *      Dick Balaska         <dick@xpilot.org>
@@ -23,6 +23,10 @@
  */
 /*
  *  $Log: World.netserver.cpp,v $
+ *  Revision 1.60  2007/01/10 18:14:47  dick
+ *  All robot actions are now handled through RobotMan.
+ *  There is one RobotMan per World.
+ *
  *  Revision 1.59  2004/05/30 16:18:41  dick
  *  Don't xp_strdup to the new connection because that just leaks
  *
@@ -358,7 +362,7 @@
 #include "score.h"
 #include "Cannon.h"
 #include "metaserver.h"
-#include "Robot.h"
+#include "RobotMan.h"
 
 char netserver_version[] = VERSION;
 
@@ -720,7 +724,7 @@ int World::SetupConnectionControl(PCSTR real, PCSTR nick, PCSTR dpy,
 		connp = (ConnectionControl*)netServer->conn[i];
 		if (!connp)	//  || connp->state == CONN_FREE) 	// DIK: checking _FREE is wrong, since we will leak this conn with the new below
 		{
-			if (free_conn_index == netServer->maxConnections)
+			if (free_conn_index == netServer->maxConnections) 
 			{
 				free_conn_index = i;
 			}
@@ -852,8 +856,8 @@ int World::HandleLogin(int ind, char *errmsg, int errsize)
 		if (connp->team == TEAM_NOT_SET) {
 			connp->team = PickTeam(PickForHuman);
 			if (connp->team == TEAM_NOT_SET ||
-						(connp->team == options.robotTeam->GetInt()
-						  && options.reserveRobotTeam->GetBool()))
+						(connp->team == options.robotTeam->GetInt() 
+						  && options.reserveRobotTeam->GetBool())) 
 			{
 				seterrno(0);
 				strlcpy(errmsg, "Can't pick team", errsize);
@@ -936,13 +940,13 @@ int World::HandleLogin(int ind, char *errmsg, int errsize)
 	/*
 	 * And tell him about all the others.
 	 */
-	for (i = 0; i < numPlayers - 1; i++)
+	for (i = 0; i < numPlayers - 1; i++) 
 	{
 		pl->conn->SendPlayer(players[i]);
 		pl->conn->SendScore(players[i]);
 		if (options.scoreTableRank->GetBool())
 			pl->conn->SendScoreTableRank(players[i]);
-		if (!IS_TANK_IND(this, i))
+		if (!IS_TANK_IND(this, i)) 
 			pl->conn->SendBase(players[i]->id, players[i]->home_base);
 	}
 	/*
@@ -957,9 +961,9 @@ int World::HandleLogin(int ind, char *errmsg, int errsize)
 	/*
 	 * And tell all the others about him.
 	 */
-	for (i = 0; i < numPlayers - 1; i++)
+	for (i = 0; i < numPlayers - 1; i++) 
 	{
-		if (players[i]->conn)
+		if (players[i]->conn) 
 		{
 			players[i]->conn->SendPlayer(pl);
 			players[i]->conn->SendScore(pl);
@@ -970,12 +974,12 @@ int World::HandleLogin(int ind, char *errmsg, int errsize)
 		 * And tell him about the relationships others have with each other.
 		 */
 		else if (IS_ROBOT_IND(this, i)) {
-			if ((war_on_id = Robot_war_on_player(this, i)) != NO_ID)
+			if ((war_on_id = robotMan->WarOnPlayer(i)) != NO_ID)
 				pl->conn->SendWar(players[i]->id, war_on_id);
 		}
 	}
 	// Tell him of any lurkers
-	for (i = 0; i < numPlayers - 1; i++)
+	for (i = 0; i < numPlayers - 1; i++) 
 	{
 		if (players[i]->myEyes != NO_ID)
 			pl->conn->SendEyes(players[i]->id, players[i]->myEyes);
@@ -988,11 +992,11 @@ int World::HandleLogin(int ind, char *errmsg, int errsize)
 			(PCSTR)options.mapName->GetString(), (PCSTR)options.mapAuthor->GetString());
 	} else if (BIT(rules->mode, TEAM_PLAY)) {
 		sprintf(msg, "%s (%s, team %d) has entered \"%s\", made by %s.",
-			pl->name, pl->realname, pl->team,
+			pl->name, pl->realname, pl->team, 
 			(PCSTR)options.mapName->GetString(), (PCSTR)options.mapAuthor->GetString());
 	} else {
 		sprintf(msg, "%s (%s) has entered \"%s\", made by %s.",
-			pl->name, pl->realname,
+			pl->name, pl->realname, 
 			(PCSTR)options.mapName->GetString(), (PCSTR)options.mapAuthor->GetString());
 	}
 	BroadcastPlayMessage(msg);
@@ -1084,7 +1088,7 @@ int World::HandleLogin(int ind, char *errmsg, int errsize)
 	/* if the next round is delayed, delay it again */
 	if (roundDelay > 0 || numPlayers == 1) {
 		roundDelay = options.roundDelay->GetInt() * GetFPS();
-		if (options.maxRoundTime->GetInt() > 0
+		if (options.maxRoundTime->GetInt() > 0 
 			&& options.roundDelay->GetInt() == 0) {
 			roundTime = options.maxRoundTime->GetInt() * GetFPS();
 		} else {
@@ -1143,7 +1147,7 @@ int World::GetMotd(char *buf, int offset, int maxlen, int *size_ptr)
 
 		motd_loops = netServer->mainLoops;
 
-		if ((fd = open(options.motdFileName->GetString(), O_RDONLY)) == -1)
+		if ((fd = open(options.motdFileName->GetString(), O_RDONLY)) == -1) 
 		{
 			if ((fd = open(Conf_servermotdfile(), O_RDONLY)) == -1)
 			{
@@ -1151,7 +1155,7 @@ int World::GetMotd(char *buf, int offset, int maxlen, int *size_ptr)
 				return -1;
 			}
 		}
-		if (fstat(fd, &st) == -1 || st.st_size == 0)
+		if (fstat(fd, &st) == -1 || st.st_size == 0) 
 		{
 			motd_size = 0;
 			close(fd);
@@ -1213,7 +1217,7 @@ void World::BroadcastPlayMessage(PCSTR message)
 	PCSTR		msg;
 	char		tmp[MSG_LEN];
 
-	if ((i = strlen(message)) >= MSG_LEN)
+	if ((i = strlen(message)) >= MSG_LEN) 
 	{
 #ifndef SILENT
 		seterrno(0);
@@ -1221,11 +1225,11 @@ void World::BroadcastPlayMessage(PCSTR message)
 #endif
 		strlcpy(tmp, message, MSG_LEN);
 		msg = tmp;
-	} else
+	} else 
 	{
 		msg = message;
 	}
-	for (i = 0; i < numPlayers; i++)
+	for (i = 0; i < numPlayers; i++) 
 	{
 		pl = players[i];
 		if (pl->conn)

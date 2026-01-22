@@ -2,7 +2,7 @@
  *
  * XPilot, a multiplayer gravity war game.  Copyright (C) 1991-2001 by
  *
- *      Bjï¿½rn Stabell        <bjoern@xpilot.org>
+ *      Bjørn Stabell        <bjoern@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
  *      Dick Balaska         <dick@xpilot.org>
@@ -174,7 +174,7 @@ void Paint_item_symbol(u_byte type, Drawable d, GC mygc, int x, int y, int color
     XChangeGC(iniClient.dpy, mygc, GCFillStyle, &gcv);
 #endif
     } else {
-	  PaintBitmap(d, BM_ALL_ITEMS, x, y, ITEM_SIZE, ITEM_SIZE, type);
+	  PaintBitmap(d, BM_ALL_ITEMS, x, y, ITEM_SIZE, ITEM_SIZE, type); 	
     }
 }
 
@@ -205,8 +205,8 @@ void Paint_item(u_byte type, Drawable d, GC mygc, int x, int y)
 		y + SIZE - 1,
 		str, 1);
 #endif
-    Paint_item_symbol(type, d, mygc,
-		x - ITEM_SIZE/2,
+    Paint_item_symbol(type, d, mygc, 
+		x - ITEM_SIZE/2, 
 		y - SIZE + 2, ITEM_PLAYFIELD);
 }
 
@@ -222,7 +222,7 @@ static void Paint_items(void)
 	    x = itemtype_ptr[i].x;
 	    y = itemtype_ptr[i].y;
 	    if (wrap(&x, &y)) {
-		Paint_item((u_byte)itemtype_ptr[i].type, p_draw, gc,
+		Paint_item((u_byte)itemtype_ptr[i].type, p_draw, gc, 
 			    WINSCALE(X(x)), WINSCALE(Y(y)));
 		Erase_rectangle(WINSCALE(X(x)) - ITEM_TRIANGLE_SIZE,
 				WINSCALE(Y(y)) - ITEM_TRIANGLE_SIZE,
@@ -286,7 +286,7 @@ static void Paint_mines(void)
 	for (i = 0; i < num_mine; i++) {
 	    x = mine_ptr[i].x;
 	    y = mine_ptr[i].y;
-
+	    
 	    if (wrap(&x, &y)) {
 
 		/*
@@ -372,7 +372,7 @@ static void Paint_wreckages(void)
 
 		Gui_paint_wreck(x, y, deadly, wtype, rot, size);
 	    }
-
+	
 	}
 	RELEASE(wreckage_ptr, num_wreckage, max_wreckage);
     }
@@ -400,7 +400,7 @@ static void Paint_asteroids(void)
 	RELEASE(asteroid_ptr, num_asteroids, max_asteroids);
     }
 }
-
+		    
 
 static void Paint_wormholes(void)
 {
@@ -546,7 +546,7 @@ void Paint_shots(void)
 
 static void Paint_paused(void)
 {
-    int i, x, y;
+    int i, x, y;    
 
     if (num_paused > 0) {
 
@@ -605,7 +605,7 @@ static void Paint_all_ships(void)
 		  eyesId = ship_ptr[i].id;
 	    }
 
-	    Gui_paint_ship(x, y,
+	    Gui_paint_ship(x, y, 
 			   ship_ptr[i].dir, ship_ptr[i].id,
 			   ship_ptr[i].cloak, ship_ptr[i].phased,
 			   ship_ptr[i].shield,
@@ -701,11 +701,11 @@ void Paint_ships(void)
     Paint_ecm();
     Paint_all_ships();
     Paint_all_connectors();
-
+    
     Gui_paint_ships_end();
-
+ 
 }
-
+ 
 
 int Init_wreckage(void)
 {
@@ -713,7 +713,7 @@ int Init_wreckage(void)
     size_t	point_size;
     size_t	total_size;
     char	*dynmem;
-
+ 
     /*
      * Allocate memory for all the wreckage points.
      */

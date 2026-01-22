@@ -1,4 +1,4 @@
-/* $Id: cstring.cpp,v 1.32 2005/03/17 22:12:13 kps Exp $
+/* $Id: cstring.cpp,v 1.33 2007/01/29 00:05:06 dick Exp $
  *
  * cstring - A String class
  *           (silly M$ uses the filename string.* for their class CString)
@@ -11,7 +11,7 @@
  *      Jarrod Miller        <jarrod@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
- *      Bjï¿½rn Stabell        <bjoern@xpilot.org>
+ *      Bjørn Stabell        <bjoern@xpilot.org>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -32,6 +32,9 @@
  */
 /*
  * $Log: cstring.cpp,v $
+ * Revision 1.33  2007/01/29 00:05:06  dick
+ * Give printf a 4K buffer
+ *
  * Revision 1.32  2005/03/17 22:12:13  kps
  * Get rid of warnings from makedepend about "non-portable whitespace".
  *
@@ -373,10 +376,10 @@ int String::RFind(const char c) const
 String& String::printf(const char* lpszFormat, ...)
 {
     va_list	 ap;			/* Argument pointer */
-	char	u[512];
+	char	u[4096];
 	int		i;
 	va_start(ap, lpszFormat);
-	vsnprintf(u, 511, lpszFormat, ap);
+	vsnprintf(u, 4095, lpszFormat, ap);
 	va_end(ap);
 	free(s);
 	i = strlen(u);
@@ -453,7 +456,7 @@ void String::Entox()
 
 	while (*ns)
 	{
-		if (!((*ns >= '0' && *ns <= '9')
+		if (!((*ns >= '0' && *ns <= '9') 
 		   || (*ns >= 'A' && *ns <= 'Z')
 		   || (*ns >= 'a' && *ns <= 'z')))
 			l+=2;
@@ -464,7 +467,7 @@ void String::Entox()
 	char  b[4];
 	while (*os)
 	{
-		if ((*os >= '0' && *os <= '9')
+		if ((*os >= '0' && *os <= '9') 
 		 || (*os >= 'A' && *os <= 'Z')
 		 || (*os >= 'a' && *os <= 'z'))
 		{
@@ -511,7 +514,7 @@ void String::Enbracket()
 			*ns++ = ';';
 			os++;
 		}
-		else
+		else 
 		if (*os == '>')
 		{
 			*ns++ = '&';

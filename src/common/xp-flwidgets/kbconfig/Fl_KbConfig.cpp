@@ -1,4 +1,4 @@
-/* $Id: Fl_KbConfig.cpp,v 1.8 2004/05/23 23:52:07 dick Exp $
+/* $Id: Fl_KbConfig.cpp,v 1.9 2007/01/17 08:54:29 dick Exp $
  *
  * Fl_KbConfig - Display a picture of a keyboard with all of the keys defined
  *
@@ -9,7 +9,7 @@
  *      Jarrod Miller        <jarrod@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
- *      Bjï¿½rn Stabell        <bjoern@xpilot.org>
+ *      Bjørn Stabell        <bjoern@xpilot.org>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -30,6 +30,9 @@
  */
 /*
  * $Log: Fl_KbConfig.cpp,v $
+ * Revision 1.9  2007/01/17 08:54:29  dick
+ * KEY_FLIP_ROBOT_PAGE cycles through the robot's brain pages
+ *
  * Revision 1.8  2004/05/23 23:52:07  dick
  * src/common/IniClient.Defaults.cpp
  *
@@ -146,8 +149,8 @@ PCSTR sepa = " \r\n\t\0";
 ///////////////////////////////////////////////////////////////////////////////
 KeyCommand keyCommands[] = {
 /* 0*/	"Dummy", 0, false,
-		"Lock\nNext", 0, true,
-		"Lock\nPrev", 0, true,
+		"Lock\nNext", 0, true, 
+		"Lock\nPrev", 0, true, 
 		"Lock\nClose", 0, true,
 		"Change\nHome", 0, true,
 /* 5*/	"Shield", 0, true,
@@ -158,59 +161,59 @@ KeyCommand keyCommands[] = {
 /*10*/	"Heat\nSeeker", itemRocketPack_bits, true,
 		"Place\nMine", itemMinePack_bits, true,
 		"Throw\nMine", itemMinePack_bits, true,
-		"Turn\nLeft", 0, true,
+		"Turn\nLeft", 0, true, 
 		"Turn\nRight", 0, true,
 /*15*/	"Self\nDestruct", 0, true,
 		"Drop\nItem", 0, true,
 		"Pause", 0, true,
-		"Detach\nTank", itemTank_bits, true,
+		"Detach\nTank", itemTank_bits, true, 
 		"Next\nTank", itemTank_bits, true,
 /*20*/	"Prev\nTank", itemTank_bits, true,
 		"Weapon\nModify\nVelocity", 0, true,
-		"Weapon\nModify\nCluster", 0, true,
+		"Weapon\nModify\nCluster", 0, true, 
 		"Swap\nSettings", 0, true,
 		"Refuel", 0, true,
 /*25*/	"Connect\nBall", 0, true,
-		"More\nPower", 0, true,
-		"Less\nPower",  0, true,
-		"Faster\nTurnrate", 0, true,
-		"Slower\nTurnrate", 0, true,
-/*30*/	"Thrust", 0, true,
-		"Cloak", itemCloakingDevice_bits, true,
-		"Activate\nECM", itemEcm_bits, true,
-		"Drop\nBall", 0, true,
+		"More\nPower", 0, true, 
+		"Less\nPower",  0, true, 
+		"Faster\nTurnrate", 0, true, 
+		"Slower\nTurnrate", 0, true, 
+/*30*/	"Thrust", 0, true, 
+		"Cloak", itemCloakingDevice_bits, true, 
+		"Activate\nECM", itemEcm_bits, true, 
+		"Drop\nBall", 0, true, 
 		"Transporter", itemTransporter_bits, true,
-/*35*/	"Talk\nWindow", 0, true,
-		"Fire\nLaser", itemLaser_bits, true,
-		"Lock\nNext\nClosest", 0, true,
-		"Toggle\nCompass", 0, true,
+/*35*/	"Talk\nWindow", 0, true, 
+		"Fire\nLaser", itemLaser_bits, true, 
+		"Lock\nNext\nClosest", 0, true, 
+		"Toggle\nCompass", 0, true, 
 		"Toggle\nMini", 0, true,
-/*40*/	"Weapon\nModify\nSpread", 0, true,
-		"Toggle\nPower", 0, true,
-		"Autopilot", itemAutopilot_bits, true,
-		"Weapon\nModify\nLaser", 0, true,
-		"Emerg\nThrust", itemEmergencyThrust_bits, true,
-/*45*/	"Tractor\nBeam", itemTractorBeam_bits, true,
-		"Pressor\nBeam", itemTractorBeam_bits, true,
-		"Weapon\nClear\nModifiers", 0, true,
-		"Weapon\nModifier\nBank 1", 0, true,
-		"Weapon\nModifier\nBank 2", 0, true,
-/*50*/	"Weapon\nModifier\nBank 3", 0, true,
-		"Weapon\nModifier\nBank 4", 0, true,
-		"Select\nItem", 0, true,
-		"Phasing\nDevice", itemPhasingDevice_bits, true,
-		"Repair", 0, true,
-/*55*/	"Weapon\nModify\nImplode", 0, true,
-		"Reprogram", 0, true,
-		"Player\nLock\nBank 1", 0, true,
-		"Player\nLock\nBank 2", 0, true,
-		"Player\nLock\nBank 3",  0, true,
-/*60*/	"Player\nLock\nBank 4", 0, true,
-		"Emerg\nShield", itemEmergencyShield_bits, true,
-		"Hyperjump", itemHyperJump_bits, true,
-		"Detonate\nMines", itemMinePack_bits, true,
+/*40*/	"Weapon\nModify\nSpread", 0, true, 
+		"Toggle\nPower", 0, true, 
+		"Autopilot", itemAutopilot_bits, true, 
+		"Weapon\nModify\nLaser", 0, true, 
+		"Emerg\nThrust", itemEmergencyThrust_bits, true, 
+/*45*/	"Tractor\nBeam", itemTractorBeam_bits, true, 
+		"Pressor\nBeam", itemTractorBeam_bits, true, 
+		"Weapon\nClear\nModifiers", 0, true, 
+		"Weapon\nModifier\nBank 1", 0, true, 
+		"Weapon\nModifier\nBank 2", 0, true, 
+/*50*/	"Weapon\nModifier\nBank 3", 0, true, 
+		"Weapon\nModifier\nBank 4", 0, true, 
+		"Select\nItem", 0, true, 
+		"Phasing\nDevice", itemPhasingDevice_bits, true, 
+		"Repair", 0, true, 
+/*55*/	"Weapon\nModify\nImplode", 0, true, 
+		"Reprogram", 0, true, 
+		"Player\nLock\nBank 1", 0, true, 
+		"Player\nLock\nBank 2", 0, true, 
+		"Player\nLock\nBank 3",  0, true, 
+/*60*/	"Player\nLock\nBank 4", 0, true, 
+		"Emerg\nShield", itemEmergencyShield_bits, true, 
+		"Hyperjump", itemHyperJump_bits, true, 
+		"Detonate\nMines", itemMinePack_bits, true, 
 		"Activate\nDeflector", itemDeflector_bits, true,
-/*65*/	"Unused 65", 0, false,
+/*65*/	"Flip\nRobot\nPage", 0, false,
 		"Unused 66", 0, false,
 		"Unused 67", 0, false,
 		"Unused 68", 0, false,
@@ -254,7 +257,7 @@ KeyCommand keyCommands[] = {
 };
 
 const int	numKeyCommands = NELEM(keyCommands);
-int	neverUsed[] = { KEY_DUMMY, KEY_UNUSED_65, KEY_UNUSED_66, KEY_UNUSED_67,
+int	neverUsed[] = { KEY_DUMMY, KEY_UNUSED_66, KEY_UNUSED_67,
 					KEY_UNUSED_68, KEY_UNUSED_69, KEY_UNUSED_70, KEY_UNUSED_71,
 					NUM_KEYS, NUM_CLIENT_KEYS};
 const int	numNeverUsed = NELEM(neverUsed);
@@ -306,14 +309,14 @@ Fl_KbConfig::Fl_KbConfig(int W, int H, const char* label)
 
 #define	BL	10		// BOTTOM LEFT MARGIN
 #define	BS	5		// BOTTOM SPACE
-	unusedCommandsButton = new Fl_KbCButton(BL, kb->h(),
+	unusedCommandsButton = new Fl_KbCButton(BL, kb->h(), 
 											BUTTON_WIDTH, BUTTON_HEIGHT);
 	unusedCommandsButton->keyDef = XStringToXPKeyDef(s_unused);
 	unusedCommandsButton->kname = unusedCommandsButton->keyDef->c;
 	unusedCommandsButton->SetConfig(kb);
 	kb->SetUnusedButton(unusedCommandsButton);
 
-	copyCommandsButton = new Fl_KbCButton(BL+BUTTON_WIDTH+BS, kb->h(),
+	copyCommandsButton = new Fl_KbCButton(BL+BUTTON_WIDTH+BS, kb->h(), 
 											BUTTON_WIDTH, BUTTON_HEIGHT);
 	copyCommandsButton->keyDef = XStringToXPKeyDef("_Copy");
 	copyCommandsButton->kname = copyCommandsButton->keyDef->c;
@@ -354,8 +357,8 @@ Fl_KbConfig::Fl_KbConfig(int W, int H, const char* label)
 									   "Save");
 	saveButton->myKbConfig = this;
 
-	undoMan.RegisterButtons(UndoButtonEnabler,
-							RedoButtonEnabler,
+	undoMan.RegisterButtons(UndoButtonEnabler, 
+							RedoButtonEnabler, 
 							SaveButtonEnabler, this);
 
 	kb->UpdateUnusedCommands();
@@ -446,7 +449,7 @@ int	Fl_KbConfig::handle(int event)
 	{
 		if (drag)
 		{
-			drag->position(Fl::event_x() - drag->mouseX,
+			drag->position(Fl::event_x() - drag->mouseX, 
 						   Fl::event_y() - drag->mouseY);
 			kb->SelectKeyUnderMouse();
 

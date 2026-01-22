@@ -1,4 +1,4 @@
-/* $Id: xpilot.cpp,v 1.24 2005/01/17 04:50:16 dick Exp $
+/* $Id: xpilot.cpp,v 1.26 2007/02/17 06:18:15 dick Exp $
  *
  * XPilot, a multiplayer gravity war game.  Copyright (C) 1991-2001 by
  *
@@ -23,6 +23,12 @@
  */
 /*
  * $Log: xpilot.cpp,v $
+ * Revision 1.26  2007/02/17 06:18:15  dick
+ * client/Audio becomes common/AudioMan.
+ *
+ * Revision 1.25  2007/01/18 21:09:55  dick
+ * Add an ErrHandler to the client.
+ *
  * Revision 1.24  2005/01/17 04:50:16  dick
  * Set the volume after reading the ini settings
  *
@@ -119,6 +125,8 @@
 
 #include "version.h"
 #include "config.h"
+#include "xpprintf.h"
+#include "client.h"
 #include "ClientWorld.h"
 #include "const.h"
 #include "types.h"
@@ -134,7 +142,7 @@
 #include "commonproto.h"
 #include "IniClient.h"
 #include "draw.h"
-#include "Audio.h"
+#include "AudioMan.h"
 #include "randommt.h"
 
 char xpilot_version[] = VERSION;
@@ -155,6 +163,10 @@ static void Check_client_versions(void);
 
 ClientWorld	theWorld;
 
+ErrMsgHandler	emh;			/* Error message output handler */
+void*			emhThis;		/* The "this" of the outputter.  Usually a window, maybe stdout */
+
+///////////////////////////////////////////////////////////////////////////////
 static void printfile(const char *filename)
 {
 	FILE				*fp;
@@ -171,7 +183,25 @@ static void printfile(const char *filename)
 	fclose(fp);
 }
 
+///////////////////////////////////////////////////////////////////////////////
+void ErrHandler(void* myThis, ErrMsgType emt, PCSTR ctl, ...)
+{
+//	ScoreServer* ss = (ScoreServer*)myThis;
+    char u[1001];
+	va_list marker;
 
+    // Figure through the extra arguments.
+	strcpy(u, showtime());
+	va_start(marker, ctl);
+	vsnprintf(&u[strlen(u)], 1000, ctl, marker);
+    va_end(marker);
+	strcat(u, "\n");
+
+	xpprintf(ErrMsgTypeToLogLevel(emt), u);
+}
+
+
+///////////////////////////////////////////////////////////////////////////////
 /*
  * Oh glorious main(), without thee we cannot exist.
  */
@@ -206,6 +236,8 @@ int main(int argc, char *argv[])
 	/*
 	 * --- Miscellaneous initialization ---
 	 */
+	emh = &ErrHandler;
+	emhThis = NULL;
 	init_error(argv[0]);
 
 	seedMT( (unsigned)time((time_t *)0) ^ GetProcessId());
@@ -274,8 +306,8 @@ int main(int argc, char *argv[])
 	}
 
 #ifdef SOUND
-	audio.Init(iniClient.sounds);
-	audio.SetGain((double)(iniClient.maxVolume)/100.0);
+	audioMan.Init(iniClient.sounds);
+	audioMan.SetGain((double)(iniClient.maxVolume)/100.0);
 #endif /* SOUND */
 	/*
 	 * --- Message of the Day ---
@@ -308,7 +340,6 @@ int main(int argc, char *argv[])
 	delete conpar;
 	return result;
 }
-
 
 /*
  * Verify that all source files making up this program have been

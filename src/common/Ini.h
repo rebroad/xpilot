@@ -5,7 +5,7 @@
  *
  * XPilot, a multiplayer gravity war game.  Copyright (C) 1991-2001 by
  *
- *      Bjï¿½rn Stabell        <bjoern@xpilot.org>
+ *      Bjørn Stabell        <bjoern@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
  *      Dick Balaska         <dick@xpilot.org>
@@ -30,7 +30,7 @@
  * No need to duplicate a list of 30ish identical attributes.
  * (Specifically, the inet ServerListCfg and the private ServerListCfg).
  * So, given an attribute of "ColumnMap" and a prefix of "inet",
- * the option is mapped to ColumnMap, but in the file it is stored
+ * the option is mapped to ColumnMap, but in the file it is stored 
  * as "inetColumnMap".
  *
  * Later, i wanted a slightly different attribute.  The PrivateServerList

@@ -1,8 +1,8 @@
-/* $Id: Object.h,v 1.15 2004/05/07 04:27:41 dick Exp $
+/* $Id: Object.h,v 1.18 2007/01/20 19:27:27 dick Exp $
  *
  * XPilot, a multiplayer gravity war game.  Copyright (C) 1991-2002 by
  *
- *      Bjï¿½rn Stabell        <bjoern@xpilot.org>
+ *      Bjørn Stabell        <bjoern@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
  *      Dick Balaska         <dick@xpilot.org>
@@ -22,6 +22,15 @@
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
  *  $Log: Object.h,v $
+ *  Revision 1.18  2007/01/20 19:27:27  dick
+ *  Deadwood delete
+ *
+ *  Revision 1.17  2007/01/19 07:14:49  dick
+ *  Whitespace
+ *
+ *  Revision 1.16  2007/01/17 09:03:58  dick
+ *  Whitespace
+ *
  *  Revision 1.15  2004/05/07 04:27:41  dick
  *  _visibility becomes Visibility.  global updateScores becomes a member of World.
  *  Handle rank/rate data from the scoreserver and send it to the client.
@@ -107,20 +116,20 @@
  * Smart missile, heatseeker and torpedoe can be merged into missile.
  * ECM doesn't really need an object type.
  */
-#define OBJ_PLAYER		(1U<<0)		// 0001
-#define OBJ_DEBRIS		(1U<<1)		// 0002
-#define OBJ_SPARK		(1U<<2)		// 0004
-#define OBJ_BALL		(1U<<3)		// 0008
-#define OBJ_SHOT		(1U<<4)		// 0010
-#define OBJ_SMART_SHOT	(1U<<5)		// 0020
-#define OBJ_MINE		(1U<<6)		// 0040
-#define OBJ_TORPEDO		(1U<<7)		// 0080
-#define OBJ_HEAT_SHOT	(1U<<8)		// 0100
-#define OBJ_PULSE		(1U<<9)		// 0200
-#define OBJ_ITEM		(1U<<10)	// 0400
-#define OBJ_WRECKAGE	(1U<<11)	// 0800
-#define OBJ_ASTEROID	(1U<<12)	// 1000
-#define	OBJ_CANNON_SHOT	(1U<<13)	// 2000
+#define OBJ_PLAYER		(1U<<0)		// 0001	     1
+#define OBJ_DEBRIS		(1U<<1)		// 0002	     2
+#define OBJ_SPARK		(1U<<2)		// 0004	     4
+#define OBJ_BALL		(1U<<3)		// 0008	     8
+#define OBJ_SHOT		(1U<<4)		// 0010	    16
+#define OBJ_SMART_SHOT	(1U<<5)		// 0020	    32
+#define OBJ_MINE		(1U<<6)		// 0040	    64
+#define OBJ_TORPEDO		(1U<<7)		// 0080	   128
+#define OBJ_HEAT_SHOT	(1U<<8)		// 0100	   256
+#define OBJ_PULSE		(1U<<9)		// 0200	   512
+#define OBJ_ITEM		(1U<<10)	// 0400	  1024
+#define OBJ_WRECKAGE	(1U<<11)	// 0800	  2048
+#define OBJ_ASTEROID	(1U<<12)	// 1000	  4096
+#define	OBJ_CANNON_SHOT	(1U<<13)	// 2000	  8192
 
 
 /*
@@ -145,23 +154,24 @@
  * These are the bits of the player->have and player->used fields.
  */
 #define HAS_EMERGENCY_THRUST	(1U<<30)
-#define HAS_AUTOPILOT		(1U<<29)
-#define HAS_TRACTOR_BEAM	(1U<<28)
-#define HAS_LASER		(1U<<27)
-#define HAS_CLOAKING_DEVICE	(1U<<26)
-#define HAS_SHIELD		(1U<<25)
-#define HAS_REFUEL		(1U<<24)
-#define HAS_REPAIR		(1U<<23)
-#define HAS_COMPASS		(1U<<22)
-#define HAS_AFTERBURNER		(1U<<21)
-#define HAS_CONNECTOR		(1U<<20)
+#define HAS_AUTOPILOT			(1U<<29)
+#define HAS_TRACTOR_BEAM		(1U<<28)
+#define HAS_LASER				(1U<<27)
+#define HAS_CLOAKING_DEVICE		(1U<<26)
+#define HAS_SHIELD				(1U<<25)
+#define HAS_REFUEL				(1U<<24)
+#define HAS_REPAIR				(1U<<23)
+#define HAS_COMPASS				(1U<<22)
+#define HAS_AFTERBURNER			(1U<<21)
+#define HAS_CONNECTOR			(1U<<20)
 #define HAS_EMERGENCY_SHIELD	(1U<<19)
-#define HAS_DEFLECTOR		(1U<<18)
-#define HAS_PHASING_DEVICE	(1U<<17)
-#define HAS_MIRROR		(1U<<16)
-#define HAS_ARMOR		(1U<<15)
-#define HAS_SHOT		(1U<<4)
-#define HAS_BALL		(1U<<3)
+#define HAS_DEFLECTOR			(1U<<18)
+#define HAS_PHASING_DEVICE		(1U<<17)
+#define HAS_MIRROR				(1U<<16)
+#define HAS_ARMOR				(1U<<15)
+
+#define HAS_SHOT				(1U<<4)
+#define HAS_BALL				(1U<<3)
 
 
 /*
@@ -357,7 +367,7 @@ class BallObject : public Object
 public:
 	BallObject() {}
     int 		owner;		/* Who's object is this ? */
-    int			treasure;	/* treasure for ball */
+    int			treasure;	/* treasure for ball */	
     DFLOAT		length;		/* distance ball to player */
 };
 
@@ -382,22 +392,6 @@ public:
 
 
 /*
- * Any object type should be part of this union.
- */
-/*
-union anyobject
-{
-    object		obj;
-    ballobject		ball;
-    mineobject		mine;
-    missileobject	missile;
-    smartobject		smart;
-    torpobject		torp;
-    wireobject		wireobj;
-};
-*/
-
-/*
  * Fuel structure, used by player
  */
 class PlayerFuel
@@ -408,9 +402,9 @@ public:
     int		current;		/* Number of currently used tank */
     int		num_tanks;		/* Number of tanks */
     long	tank[1 + MAX_TANKS];	/* main fixed tank + extra tanks. */
-    long	l1;			/* Fuel critical level */
-    long	l2;			/* Fuel warning level */
-    long	l3;			/* Fuel notify level */
+    long	l1;				/* Fuel critical level */
+    long	l2;				/* Fuel warning level */
+    long	l3;				/* Fuel notify level */
 };
 
 class Visibility {

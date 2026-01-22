@@ -2,7 +2,7 @@
  *
  * XPilot, a multiplayer gravity war game.  Copyright (C) 1991-2001 by
  *
- *      Bjï¿½rn Stabell        <bjoern@xpilot.org>
+ *      Bjørn Stabell        <bjoern@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
  *      Dick Balaska         <dick@xpilot.org>
@@ -22,7 +22,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
-
+ 
 #ifndef CANNON_H
 #define CANNON_H
 
@@ -77,7 +77,7 @@ extern long CANNON_USE_ITEM;
 /* sector in which cannonfire is possible */
 #define CANNON_SPREAD		(RES / 3)
 
-class Cannon
+class Cannon 
 {
 public:
 	void	Init();

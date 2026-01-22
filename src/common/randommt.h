@@ -49,9 +49,12 @@
 **	Indentation.
 **	No typedefs in external interface.
 **
-** $Id: randommt.h,v 1.1 2004/05/05 01:13:40 dick Exp $
+** $Id: randommt.h,v 1.2 2007/01/19 20:33:24 dick Exp $
 **
 ** $Log: randommt.h,v $
+** Revision 1.2  2007/01/19 20:33:24  dick
+** randomMT(limit) returns a number from 0 to limit
+**
 ** Revision 1.1  2004/05/05 01:13:40  dick
 ** Move randommt decls to their own file
 **
@@ -63,5 +66,6 @@
 extern void seedMT(unsigned int seed);
 extern unsigned int reloadMT(void);
 extern unsigned int randomMT(void);
+extern			int randomMT(int limit);
 
 #endif		// _RANDOMMT_H_

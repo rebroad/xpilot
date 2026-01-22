@@ -1,26 +1,35 @@
-# $Id: xpilot.version,v 1.23 2007/01/07 02:45:40 dick Exp $
+# $Id: xpilot.version,v 1.26 2007/02/19 06:20:00 dick Exp $
 #
 # xpilot.version - Primary version definitions.
 #
 # XPilot is copyright by the authors; see provided
 # LICENSE file for details.
-#
+# 
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation; either version 2 of the License, or
 # at your option any later version.
-#
+# 
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
-#
+# 
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 #
 # $Log: xpilot.version,v $
+# Revision 1.26  2007/02/19 06:20:00  dick
+# Version 5.0.1a3
+#
+# Revision 1.25  2007/02/12 08:18:48  dick
+# Bump to version 5.0.1a2
+#
+# Revision 1.24  2007/01/10 09:35:04  dick
+# Bump to version 5.0.0a1
+#
 # Revision 1.23  2007/01/07 02:45:40  dick
 # Tag as version 5.0.0
 #
@@ -78,8 +87,8 @@
 
 # Version strings:
 # IMPORTANT!   If you're working on an unofficial version, please
-# change the VERSION_STATUS field to avoid confusion.
-# The official version will have a VERSION_STATUS of blank,
+# change the VERSION_STATUS field to avoid confusion.  
+# The official version will have a VERSION_STATUS of blank, 
 # or a0, a1, a2, etc. for ALPHA releases
 # or b0, b1, b2, etc for BETA releases.
 # or alpha or beta for xpilot 4.x releases
@@ -90,25 +99,25 @@
 #
       VERSION_MAJOR = 5
       VERSION_MINOR = 0
- VERSION_PATCHLEVEL = 0
-     VERSION_STATUS =
-        RELEASEDATE = January 6, 2007
+ VERSION_PATCHLEVEL = 1
+     VERSION_STATUS = a3
+        RELEASEDATE = February 19, 2007
 
 
 #
 # Address to send bug reports etc.  (Must not be quoted)
 #
 #ifndef ContactAddress
-#define ContactAddress	xpilot@xpilot.org
+#define ContactAddress	xpilot@buckosoft.com
 #endif /* ContactAddress */
 
 
 #
 # Copyright etc.
 #
-      AUTHORS = Dick Balaska, Jarrod Miller, Bert Gijsbers, Bjï¿½rn Stabell & Ken Ronny Schouten
+      AUTHORS = Dick Balaska, Jarrod Miller, Bert Gijsbers, Bjørn Stabell & Ken Ronny Schouten
 COPYRIGHTDATE = 1991-2005
-    COPYRIGHT = Copyright ï¿½ $(COPYRIGHTDATE) by $(AUTHORS)
+    COPYRIGHT = Copyright © $(COPYRIGHTDATE) by $(AUTHORS)
         TITLE = XPilot $(VERSION)
       VERSION = $(VERSION_MAJOR).$(VERSION_MINOR).$(VERSION_PATCHLEVEL)$(VERSION_STATUS)
    WINVERSION = $(VERSION)-NT

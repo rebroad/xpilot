@@ -9,7 +9,7 @@
  *      Jarrod Miller        <jarrod@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
- *      Bjï¿½rn Stabell        <bjoern@xpilot.org>
+ *      Bjørn Stabell        <bjoern@xpilot.org>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -87,7 +87,7 @@ public:
 	bool	SendWebInfo(PCSTR webHost, int webPort, PCSTR webMsg);
 	bool	SendScore(PCSTR nick, PlayerType pt, uint cookie,
 					  DFLOAT score, int kills, int deaths);
-	bool	SendRank(PCSTR nick, PlayerType pt,
+	bool	SendRank(PCSTR nick, PlayerType pt, 
 					 int rank, DFLOAT rate);
 	bool	RequestServerInfo();
 

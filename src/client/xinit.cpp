@@ -1,8 +1,8 @@
-/* $Id: xinit.cpp,v 1.13 2004/05/20 22:23:42 dick Exp $
+/* $Id: xinit.cpp,v 1.16 2007/02/17 06:18:15 dick Exp $
  *
  * XPilot, a multiplayer gravity war game.  Copyright (C) 1991-2001 by
  *
- *      Bjï¿½rn Stabell        <bjoern@xpilot.org>
+ *      Bjørn Stabell        <bjoern@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
  *      Dick Balaska         <dick@xpilot.org>
@@ -23,6 +23,15 @@
  */
 /*
  * $Log: xinit.cpp,v $
+ * Revision 1.16  2007/02/17 06:18:15  dick
+ * client/Audio becomes common/AudioMan.
+ *
+ * Revision 1.15  2007/01/20 19:26:17  dick
+ * Use uppercase on Menu strings
+ *
+ * Revision 1.14  2007/01/09 21:35:19  dick
+ * Add support for a 'Mute' button on the menu.
+ *
  * Revision 1.13  2004/05/20 22:23:42  dick
  * Add AddMessage(PCSTR, ...).  Wrap some debug with a D().
  *
@@ -97,6 +106,13 @@
 #include "portability.h"
 #include "Ini.h"
 #include "ScoreTable.h"
+
+#ifdef	SOUND
+#include "AudioMan.h"
+
+static PCSTR s_Mute   = "MUTE";
+static PCSTR s_Unmute = "UNMUTE";
+#endif
 
 /*
  * Item structures.
@@ -290,6 +306,7 @@ Pixmap	itemBitmaps[NUM_ITEMS]; 		/* Bitmaps for the items */
 char dashes[NUM_DASHES];
 char cdashes[NUM_CDASHES];
 
+static int Mute_callback(int, void *, const char **);
 static int Quit_callback(int, void *, const char **);
 static int Config_callback(int, void *, const char **);
 static int Score_callback(int, void *, const char **);
@@ -347,7 +364,7 @@ static void Init_spark_colors(void)
 	 * any possible separator.	Only look at numbers.
 	 */
 
-	 /* hack but protocol will allow max 9 (MM) */
+	 /* hack but protocol will allow max 9 (MM) */ 
 	for (src = iniClient.sparkColors; *src && (num_spark_colors < 9); src++) {
 		if (isascii(*src) && isdigit(*src)) {
 			dst = &buf[0];
@@ -973,6 +990,10 @@ void CreateXPilotMenu()
 								 2 + 2*BUTTON_WIDTH, 0,
 								 BUTTON_WIDTH, ButtonHeight,
 								 1, "MENU");
+#ifdef	SOUND
+	Widget_add_pulldown_entry(menu_button,
+							  s_Mute, Mute_callback, NULL);
+#endif
 	Widget_add_pulldown_entry(menu_button,
 							  "MOTD", Motd_callback, NULL);
 	Widget_add_pulldown_entry(menu_button,
@@ -989,8 +1010,8 @@ void CreateXPilotMenu()
 	{
 		if (scoreTablePages & 1<<scoreMenus[st].type)
 			Widget_add_pulldown_entry(menu_button,
-									  scoreMenus[st].title,
-									  Score_callback,
+									  scoreMenus[st].title, 
+									  Score_callback, 
 									  (void*)scoreMenus[st].type);
 	}
 	Widget_map_sub(button_form);
@@ -1012,7 +1033,7 @@ void WinXCreateItemBitmaps()
 									   ITEM_SIZE, ITEM_SIZE, colors[RED].pixel);
 	}
 	Colors_init_block_bitmaps();
-
+	
 }
 #endif
 
@@ -1118,6 +1139,17 @@ static int Quit_callback(int widget_desc, void *data, const char **str)
 	return 0;
 }
 
+#ifdef	SOUND
+static int Mute_callback(int widget_desc, void *data, const char **str)
+{
+	audioMan.SetMute(!audioMan.GetMute());
+	if (audioMan.GetMute())
+		*str = s_Unmute;
+	else
+		*str = s_Mute;
+	return 0;
+}
+#endif
 
 void Resize(Window w, int width, int height)
 {

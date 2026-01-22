@@ -4,10 +4,10 @@
 // Desc: for creating the xpilot5 main panel buttons
 // Date: 20040224
 // Auth: Dick Balaska
-//  ï¿½  : 2004 BuckoSoft, Inc.  All rights reserved.
+//  ©  : 2004 BuckoSoft, Inc.  All rights reserved.
 //
 // $Id: mainpanel.pov,v 1.3 2004/05/10 12:42:22 dick Exp $
-//
+// 
 // $Log: mainpanel.pov,v $
 // Revision 1.3  2004/05/10 12:42:22  dick
 // Add a 5th button (private server), so the others get shuffled a bit.
@@ -78,7 +78,7 @@ global_settings {
 
 #if (0)
 	#include "skies.inc"
-	sky_sphere {
+	sky_sphere { 
 		S_Cloud5
 		rotate y * 45
 		//rotate y*(clock*360)	// rotate once every 30 seconds
@@ -111,9 +111,9 @@ texture {
 #declare buttV4=<0,0.0,0>;
 
 #declare Round=0.5;
-#declare Rounded_Box =
-superellipsoid {
-	<Round, Round>
+#declare Rounded_Box = 
+superellipsoid { 
+	<Round, Round> 
 	scale <2.0,0.7,0.5>
 };
 
@@ -200,7 +200,7 @@ union {
 	translate <_v.x,_v.y*1.6,_v.z> + <-0.3,-2.7,0+bsD*0.4>
 }
 #end
-
+		
 Button(buttV0, "xpilots", "Local", "Server")
 Button(buttV1, "xpwhere", "Internet", "Server")
 Button(buttV2, "nethood", "Lan", "Server")
@@ -233,8 +233,8 @@ difference {
 		translate <0,1,0.01>
 	}
 */
-			texture {
-				Apocalypse
+			texture { 
+				Apocalypse 
 				finish { ambient 1 }
 				scale 2
 				translate <-1.5,2,0>

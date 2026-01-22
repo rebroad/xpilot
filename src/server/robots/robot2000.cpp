@@ -1,4 +1,4 @@
-/* $Id: robot2000.cpp,v 1.3 2002/09/01 00:13:46 dick Exp $
+/* $Id: robot2000.cpp,v 1.1 2007/01/11 04:18:57 dick Exp $
  *
  * XPilot, a multiplayer gravity war game.  Copyright (C) 1991-2001 by
  *
@@ -23,6 +23,7 @@
  */
 /* Robot code originally submitted by Maurice Abraham. */
 
+#include "StdAfx.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -35,25 +36,22 @@
 # include <unistd.h>
 #endif
 
-#ifdef _WINDOWS
-# include "NT/winServer.h"
-#endif
-
 #include "version.h"
 #include "config.h"
-#include "const.h"
+#include "serverconst.h"
 #include "global.h"
 #include "proto.h"
-#include "map.h"
+#include "showtime.h"
 #include "score.h"
 #include "bit.h"
 #include "saudio.h"
-#include "netserver.h"
+#include "NetServer.h"
 #include "pack.h"
-#include "robot.h"
+#include "Robot.h"
 #include "error.h"
-#include "portability.h"
+#include "server.h"
 #include "commonproto.h"
+#include "ConnectionPlayer.h"
 
 
 char robot2000_version[] = VERSION;

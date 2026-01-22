@@ -9,7 +9,7 @@
  *      Jarrod Miller        <jarrod@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
- *      Bjï¿½rn Stabell        <bjoern@xpilot.org>
+ *      Bjørn Stabell        <bjoern@xpilot.org>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -127,7 +127,7 @@ class Http : public Network {
 
 //	bsuser*	u;						// The user on this http
   private:
-	bool		modify;				// are we modifiying a config?
+	bool		modify;				// are we modifiying a config? 
     char		showtimebuf[80];
 	bool		headersOuted;		// Did we output the headers after a GET?
 
@@ -140,7 +140,7 @@ class HttpListen : public Network
 	~HttpListen();
 	SOCKET	listensock;
 	SOCKET	connectsock[SOMAXCONN];
-	SOCKADDR_IN s_in;
+	SOCKADDR_IN s_in;         
 	time_t	retryAt;				// retry delay
 	Http*	myhttps[SOMAXCONN];
 	enum nstate {

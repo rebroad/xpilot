@@ -1,4 +1,4 @@
-/* $Id: FirewallPortList.cpp,v 1.5 2004/02/03 03:39:52 dick Exp $
+/* $Id: FirewallPortList.cpp,v 1.6 2007/01/21 07:37:10 dick Exp $
  *
  * FirewallPortList - Manage a list of ports that we can penetrate
  *                    a firewall with.
@@ -31,6 +31,9 @@
  */
 /*
  * $Log: FirewallPortList.cpp,v $
+ * Revision 1.6  2007/01/21 07:37:10  dick
+ * Commentality
+ *
  * Revision 1.5  2004/02/03 03:39:52  dick
  * Add Windows precompiled header support.
  *
@@ -56,7 +59,8 @@
 #include "FirewallPortList.h"
 
 // XPilot default game ports use this range.
-// There's no reason for it (although it should be between 49152-65535
+// It should be between 49152-65535
+// These ports are selected for firewall routing.
 // see http://www.iana.org/assignments/port-numbers )
 FirewallPortList normalFirewall(50000,50100);
 

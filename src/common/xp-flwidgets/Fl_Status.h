@@ -1,4 +1,4 @@
-/* $Id: Fl_Status.h,v 1.1 2001/08/26 09:32:54 dick Exp $
+/* $Id: Fl_Status.h,v 1.2 2007/02/17 20:27:42 dick Exp $
  *
  * Fl_Status - a one line status bar with a backscroll buffer
  *
@@ -9,7 +9,7 @@
  *      Jarrod Miller        <jarrod@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
- *      Bjørn Stabell        <bjoern@xpilot.org>
+ *      Bjï¿½rn Stabell        <bjoern@xpilot.org>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -30,6 +30,9 @@
  */
 /*
  * $Log: Fl_Status.h,v $
+ * Revision 1.2  2007/02/17 20:27:42  dick
+ * Hack that darn index macro bug
+ *
  * Revision 1.1  2001/08/26 09:32:54  dick
  * The status line becomes his own widget which has a backscroll buffer.
  *
@@ -39,7 +42,13 @@
 #define	_FL_STATUS_H_
 
 #include "FL/Fl_Group.H"
+
+// On Linux, gcc 2.95.3 (glibc 2.2.3), somewhere, string.h defines index as a macro:
+// #define index(s,c) (strchr((s),(c)))
+// why this confuses Fl_Input from only this module i don't know
+#undef	index
 #include "FL/Fl_Output.H"
+
 //#include "FL/Fl_Scrollbar.h"
 #include "FL/Fl_Repeat_Button.H"
 

@@ -2,7 +2,7 @@
  *
  * XPilot, a multiplayer gravity war game.  Copyright (C) 1991-2001 by
  *
- *      Bjï¿½rn Stabell        <bjoern@xpilot.org>
+ *      Bjørn Stabell        <bjoern@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
  *      Dick Balaska         <dick@xpilot.org>
@@ -113,7 +113,7 @@
 
 /* Windows doesn't play with stdin/out well at all...
  * So for the client i route the "debug" printfs to the debug stream
- * The server gets 'real' messages routed to the messages window
+ * The server gets 'real' messages routed to the messages window 
  */
 extern void ErrorHandler(const char *, ...);
 

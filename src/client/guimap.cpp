@@ -6,7 +6,7 @@
  *
  * XPilot, a multiplayer gravity war game.  Copyright (C) 1991-2001 by
  *
- *      Bjï¿½rn Stabell        <bjoern@xpilot.org>
+ *      Bjørn Stabell        <bjoern@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
  *      Dick Balaska         <dick@xpilot.org>
@@ -139,7 +139,7 @@ void Gui_paint_walls(int x, int y, int type, int xi, int yi)
 	}
 
 	if ((type & BLUE_FUEL) == BLUE_FUEL) {
-	}
+	} 
 	else if (type & BLUE_OPEN) {
 	    Segment_add(iniClient.wallColor,
 			X(x),
@@ -155,7 +155,7 @@ void Gui_paint_walls(int x, int y, int type, int xi, int yi)
 			Y(y));
 	}
     }
-    else {
+    else { 
 
 	if (type & BLUE_LEFT) {
 	    PaintBitmap(p_draw, BM_WALL_LEFT, WINSCALE(X(x - 1)),
@@ -333,13 +333,13 @@ void Gui_paint_fuel(int x, int y, int fuel)
 #define BITMAP_FUEL_BORDER 3
 
 	int size;
-	/* x + x * y will give a pseudo random number,
+	/* x + x * y will give a pseudo random number, 
 	so different fuelcells will not be displayed with the same image-frame.*/
-	int image = ( (loops + x + x * y) % (fuel_images * 2) );
+	int image = ( (loops + x + x * y) % (fuel_images * 2) ); 
 
 	/* the animation is played from image 0-15 then back again from image 15-0 */
 
-	if (image >= fuel_images)
+	if (image >= fuel_images) 
 	    image = (2 * fuel_images - 1) - image;
 
 
@@ -349,10 +349,10 @@ void Gui_paint_fuel(int x, int y, int fuel)
 		    WINSCALE(BLOCK_SZ), WINSCALE(BLOCK_SZ), 0);
 
 	PaintFuelSlice(p_draw, BM_FUEL,
-		      WINSCALE(X(x + BITMAP_FUEL_BORDER)),
-		       WINSCALE(Y(y + size + BITMAP_FUEL_BORDER)),
-		       WINSCALE(BLOCK_SZ - 2 * BITMAP_FUEL_BORDER),
-		       WINSCALE(BLOCK_SZ - 2 * BITMAP_FUEL_BORDER),
+		      WINSCALE(X(x + BITMAP_FUEL_BORDER)), 
+		       WINSCALE(Y(y + size + BITMAP_FUEL_BORDER)), 
+		       WINSCALE(BLOCK_SZ - 2 * BITMAP_FUEL_BORDER), 
+		       WINSCALE(BLOCK_SZ - 2 * BITMAP_FUEL_BORDER), 
 		       image, WINSCALE(size));
 
 	Erase_rectangle(WINSCALE(X(x)) - 1,
@@ -409,9 +409,9 @@ void Gui_paint_base(int x, int y, int xi, int yi, int type)
 	y = WINSCALE(Y(y));
 
 	if ((other = Other_by_id(id)) != NULL) {
-	    if (other->name_width == 0) {
+	    if (other->name_width == 0) {					
 		other->name_len = strlen(other->name);
-		other->name_width = 2 + XTextWidth(gameFont, other->name,
+		other->name_width = 2 + XTextWidth(gameFont, other->name,	
 						   other->name_len);
 	    }
 	}
@@ -574,7 +574,7 @@ void Gui_paint_decor(int x, int y, int xi, int yi, int type, bool last, bool mor
     static int		    decorTileReady = 0;
     static Pixmap	    decorTile = None;
     int			    decorTileDoit = false;
-    static unsigned char    decor[256];
+    static unsigned char    decor[256];    
     static int		    decorReady = 0;
 
     SET_FG(colors[iniClient.decorColor].pixel);
@@ -602,7 +602,7 @@ void Gui_paint_decor(int x, int y, int xi, int yi, int type, bool last, bool mor
     }
 
     mask = decor[type];
-
+    
     if (!BIT(iniClient.instruments, SHOW_FILLED_DECOR|SHOW_TEXTURED_DECOR)) {
 	if (mask & DECOR_LEFT) {
 	    if ((xi == 0)
@@ -774,7 +774,7 @@ void Gui_paint_setup_check(int x, int y, int xi, int yi)
 	if (Check_index_by_pos(xi, yi) == nextCheckPoint) {
 	    PaintBitmap(p_draw, BM_CHECKPOINT, WINSCALE(X(x)), WINSCALE(Y(y + BLOCK_SZ)),
 		WINSCALE(BLOCK_SZ), WINSCALE(BLOCK_SZ), 1);
-
+	
 	} else {
 	    PaintBitmap(p_draw, BM_CHECKPOINT, WINSCALE(X(x)), WINSCALE(Y(y + BLOCK_SZ)),
 		WINSCALE(BLOCK_SZ), WINSCALE(BLOCK_SZ), 0);
@@ -1000,16 +1000,16 @@ void Gui_paint_setup_worm(int x, int y, int wormDrawCount)
 #define _O	wormOffset[wormDrawCount]
 
 	SET_FG(colors[RED].pixel);
-	Arc_add(RED,
-		X(x) + 0, Y(y + BLOCK_SZ) + 0,
+	Arc_add(RED, 
+		X(x) + 0, Y(y + BLOCK_SZ) + 0, 
 		INSIDE_BL - 0, INSIDE_BL - 0, 0, 64 * 360);
 
-	Arc_add(RED,
-		X(x) + _O[0], Y(y + BLOCK_SZ) + _O[1],
+	Arc_add(RED, 
+		X(x) + _O[0], Y(y + BLOCK_SZ) + _O[1], 
 		INSIDE_BL - _O[2], INSIDE_BL - _O[2], 0, 64 * 360);
 
-	Arc_add(RED,
-		X(x) + _O[0] * 2, Y(y + BLOCK_SZ) + _O[1] * 2,
+	Arc_add(RED, 
+		X(x) + _O[0] * 2, Y(y + BLOCK_SZ) + _O[1] * 2, 
 		INSIDE_BL - _O[2] * 2, INSIDE_BL - _O[2] * 2, 0, 64 * 360);
     }
     else {
@@ -1054,7 +1054,7 @@ void Gui_paint_setup_item_concentrator(int x, int y)
 	}
 	for (i = 0; i < NELEM(tris); i++) {
 	    /* I'll bet you didn't know that floating point math
-	       is faster than integer math on a pentium
+	       is faster than integer math on a pentium 
 	       (and for some reason the UNIX way rounds off too much) */
 	    rdir = MOD2(rot_dir + tris[i].dir_off, RES);
 	    cx = (int)(X(x + BLOCK_SZ / 2)
@@ -1072,8 +1072,8 @@ void Gui_paint_setup_item_concentrator(int x, int y)
 			  * tcos(MOD2(tdir + 2*RES/3, RES))));
 	    pts[2].y = WINSCALE(cy + (int)(tris[i].radius
 			  * tsin(MOD2(tdir + 2*RES/3, RES))));
-	    /* Trace("DC: %d cx=%d/%d %d/%d %d/%d %d/%d %d/%d\n",
-		    i, cx, cy, pts[0].x, pts[0].y,
+	    /* Trace("DC: %d cx=%d/%d %d/%d %d/%d %d/%d %d/%d\n", 
+		    i, cx, cy, pts[0].x, pts[0].y, 
 		    pts[1].x, pts[1].y, pts[2].x, pts[2].y, pts[3].x, pts[3].y); */
 
 	    pts[3] = pts[0];
@@ -1089,7 +1089,7 @@ void Gui_paint_setup_item_concentrator(int x, int y)
 }
 
 
-void Gui_paint_setup_asteroid_concentrator(int x, int y)
+void Gui_paint_setup_asteroid_concentrator(int x, int y) 
 {
     static struct concentrator_square {
 	int		size;
@@ -1124,7 +1124,7 @@ void Gui_paint_setup_asteroid_concentrator(int x, int y)
 	}
 	for (i = 0; i < NELEM(sqrs); i++) {
 	    /* I'll bet you didn't know that floating point math
-	       is faster than integer math on a pentium
+	       is faster than integer math on a pentium 
 	       (and for some reason the UNIX way rounds off too much) */
 	    rdir = MOD2(rot_dir + sqrs[i].dir_off, RES);
 	    cx = (int)(X(x + BLOCK_SZ / 2)
@@ -1140,8 +1140,8 @@ void Gui_paint_setup_asteroid_concentrator(int x, int y)
 	    pts[2].y = WINSCALE(cy + (int)(sqrs[i].size * tsin(MOD2(tdir + 2*RES/4, RES))));
 		pts[3].x = WINSCALE(cx + (int)(sqrs[i].size * tcos(MOD2(tdir + 3*RES/4, RES))));
 	    pts[3].y = WINSCALE(cy + (int)(sqrs[i].size * tsin(MOD2(tdir + 3*RES/4, RES))));
-	    /* Trace("DC: %d cx=%d/%d %d/%d %d/%d %d/%d %d/%d\n",
-		    i, cx, cy, pts[0].x, pts[0].y,
+	    /* Trace("DC: %d cx=%d/%d %d/%d %d/%d %d/%d %d/%d\n", 
+		    i, cx, cy, pts[0].x, pts[0].y, 
 		    pts[1].x, pts[1].y, pts[2].x, pts[2].y, pts[3].x, pts[3].y); */
 
 	    pts[4] = pts[0];
@@ -1171,7 +1171,7 @@ void Gui_paint_setup_target(int x, int y, int target, int damage, bool own)
     char    s[2];
 
     color = own ? BLUE : RED;
-
+	
     SET_FG(colors[color].pixel);
 
     a1 = X(x);
@@ -1264,8 +1264,8 @@ void Gui_paint_setup_treasure(int x, int y, int treasure, bool own)
     }
     else {
 	char    s[2];
-	int	    size;
-
+	int	    size;    
+	
 	int type;
 	int	    color;
 

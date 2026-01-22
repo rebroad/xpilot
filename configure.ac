@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.42 2006/09/24 04:17:55 dick Exp $
+# $Id: configure.ac,v 1.45 2007/02/17 19:45:19 dick Exp $
 # @configure_input@
 #
 # configure.ac for xpilot5
@@ -27,6 +27,15 @@
 #
 ########################################################################################
 # $Log: configure.ac,v $
+# Revision 1.45  2007/02/17 19:45:19  dick
+# Add the SoundEditor to linux
+#
+# Revision 1.44  2007/02/03 08:05:24  dick
+# Build mysql support
+#
+# Revision 1.43  2007/01/11 05:08:13  dick
+# Robots in subdirectories builds on Linux
+#
 # Revision 1.42  2006/09/24 04:17:55  dick
 # Always define IMAGELIBS to be something
 #
@@ -562,8 +571,38 @@ AC_SUBST(CLIENTSOUNDLIB)
 AC_SUBST(CLIENTSOUNDCONF)
 AC_SUBST(CLIENTSOUNDDIR)
 
+##########################################################################################
+#
+# MySQL support
+#
+
+MYSQLINC=""
+MYSQLLIB=""
+MYSQLBUILD=""
+MYSQLFLAG=""
+
+AC_ARG_WITH(mysql, [  --with-mysql[=DIR]        enable the mysql database [default=no]],
+	[if eval "test x$withval != xno"; then
+		MYSQLLIB=libmysqlclient.a
+		if test "$withval" != "yes" ; then
+			MYSQLINC=-I$withval/include
+			MYSQLLIB=$withval/lib/libmysqlclient.a
+		fi
+		MYSQLBUILD=sql
+		MYSQLFLAG="-D_MYSQLFLAG"
+		echo "Enabling MySQL ScoreServer databases"
+	fi])
+
+AC_SUBST(MYSQLINC)
+AC_SUBST(MYSQLLIB)
+AC_SUBST(MYSQLBUILD)
+AC_SUBST(MYSQLFLAG)
+
+##########################################################################################
+
 CXXFLAGS=$SAVE_CXXFLAGS
 LDFLAGS=$SAVE_LDFLAGS
+
 ##########################################################################################
 #
 # Server password
@@ -845,11 +884,14 @@ AC_CONFIG_FILES([makeinclude
                  src/common/web/Makefile
                  src/common/xp-flwidgets/Makefile
                  src/common/xp-flwidgets/kbconfig/Makefile
+                 src/common/xp-flwidgets/audio/Makefile
                  src/client/Makefile
                  src/serverlib/Makefile
                  src/server/Makefile
+				 src/server/robots/Makefile
                  src/scoreserver/Makefile
                  src/scoreserver/engines/Makefile
+                 src/scoreserver/engines/sql/Makefile
                  src/replay/Makefile
                  src/control/Makefile
                  src/control/buttons/Makefile
@@ -865,11 +907,14 @@ echo $ECHO_N >>src/common/fltk-widgets/src/.depend
 echo $ECHO_N >>src/common/web/.depend
 echo $ECHO_N >>src/common/xp-flwidgets/.depend
 echo $ECHO_N >>src/common/xp-flwidgets/kbconfig/.depend
+echo $ECHO_N >>src/common/xp-flwidgets/audio/.depend
 echo $ECHO_N >>src/client/.depend
 echo $ECHO_N >>src/scoreserver/.depend
 echo $ECHO_N >>src/scoreserver/engines/.depend
+echo $ECHO_N >>src/scoreserver/engines/sql/.depend
 echo $ECHO_N >>src/serverlib/.depend
 echo $ECHO_N >>src/server/.depend
+echo $ECHO_N >>src/server/robots/.depend
 echo $ECHO_N >>src/replay/.depend
 echo $ECHO_N >>src/control/.depend
 echo $ECHO_N >>src/control/buttons/.depend

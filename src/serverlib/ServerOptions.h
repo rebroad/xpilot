@@ -1,4 +1,4 @@
-/* $Id: ServerOptions.h,v 1.31 2004/05/24 07:41:12 dick Exp $
+/* $Id: ServerOptions.h,v 1.32 2007/01/16 04:31:35 dick Exp $
 * Xpilotedit, the cross platform map editor for Xpilot.  Copyright (C) 2001 by
 *
 *      The XPilot Authors           <xpilot@xpilot.org>
@@ -22,6 +22,9 @@
 */
 /*
  $Log: ServerOptions.h,v $
+ Revision 1.32  2007/01/16 04:31:35  dick
+ Programmable frame reduction for paused players.
+
  Revision 1.31  2004/05/24 07:41:12  dick
  Add support for 2 serverMessage, which can displayed on a client when he starts up.
 
@@ -159,7 +162,7 @@
 #include "ServerOption.h"
 
 /*The total number of map options supported...must be updated to add new prefs*/
-#define NUMPREFS 306
+#define NUMPREFS 311
 
 enum PrefTab {
 	TabSys,
@@ -463,7 +466,13 @@ public:
         ServerOption*	maxEmergencyShields;
         ServerOption*	gameDuration;
         ServerOption*	allowViewing;
+		ServerOption*	allowFullViewing;
+		ServerOption*	viewingReduceDelay;
+		ServerOption*	viewingReduceRate;
+		ServerOption*	viewingKeepaliveDelay;
+		ServerOption*	viewingKeepaliveRate;
 		ServerOption*	anonymousViewing;
+
         ServerOption*	friction;
         ServerOption*	blockFriction;
         ServerOption*	blockFrictionVisible;

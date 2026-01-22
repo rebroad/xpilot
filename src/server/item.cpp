@@ -1,8 +1,8 @@
-/* $Id: item.cpp,v 1.26 2006/09/21 04:55:49 dick Exp $
+/* $Id: item.cpp,v 1.29 2007/01/19 07:14:49 dick Exp $
  *
  * XPilot, a multiplayer gravity war game.  Copyright (C) 1991-2001 by
  *
- *      Bjï¿½rn Stabell        <bjoern@xpilot.org>
+ *      Bjørn Stabell        <bjoern@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
  *      Dick Balaska         <dick@xpilot.org>
@@ -22,6 +22,16 @@
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
  *  $Log: item.cpp,v $
+ *  Revision 1.29  2007/01/19 07:14:49  dick
+ *  Whitespace
+ *
+ *  Revision 1.28  2007/01/17 23:18:36  dick
+ *  Fix bug with cannon's firing ECMs in non-team games
+ *
+ *  Revision 1.27  2007/01/10 18:14:47  dick
+ *  All robot actions are now handled through RobotMan.
+ *  There is one RobotMan per World.
+ *
  *  Revision 1.26  2006/09/21 04:55:49  dick
  *  TeamImmune takes an id, not an Ind() in DoTransporter
  *
@@ -133,7 +143,7 @@
 #include "objpos.h"
 #include "ConnectionPlayer.h"
 #include "Cannon.h"
-#include "Robot.h"
+#include "RobotMan.h"
 
 char item_version[] = VERSION;
 
@@ -639,7 +649,7 @@ void World::GeneralTractorBeam(Player* pl, DFLOAT x, DFLOAT y,
 	percent = TRACTOR_PERCENT(dist, maxdist);
 	cost = (long)TRACTOR_COST(percent);
 	force = TRACTOR_FORCE(pressor, percent, maxforce);
-
+	
 	SoundPlaySensors(this, x, y,
 					   (pressor ? PRESSOR_BEAM_SOUND : TRACTOR_BEAM_SOUND));
 
@@ -679,7 +689,7 @@ void World::DoDeflector(Player* pl)
 	CellGetObjects(OBJ_X_IN_BLOCKS(pl), OBJ_Y_IN_BLOCKS(pl),
 					 (int)(range / BLOCK_SZ + 1), 200,
 					 &obj_list, &obj_count);
-
+	
 	for (i = 0; i < obj_count; i++) {
 		obj = obj_list[i];
 
@@ -705,7 +715,7 @@ void World::DoDeflector(Player* pl)
 		dy = (obj->pos.y - pl->pos.y);
 		dx = WRAP_DX(this, dx);
 		dy = WRAP_DY(this, dy);
-
+		
 		dist = (long)(LENGTH(dx, dy) - SHIP_SZ);
 		if (dist < range
 			&& dist > 0) {
@@ -773,12 +783,12 @@ void World::DoTransporter(Player* pl)
 void World::DoGeneralTransporter(Player* pl, DFLOAT x, DFLOAT y, int target,
 							int *itemp, long *amountp)
 {
-		Player* 		victim = players[target];
-	char				msg[MSG_LEN];
-	const char			*what = NULL;
-	int 				i;
-	int 				item = ITEM_FUEL;
-	long				amount;
+	Player* 	victim = players[target];
+	char		msg[MSG_LEN];
+	PCSTR		what = NULL;
+	int 		i;
+	int 		item = ITEM_FUEL;
+	long		amount;
 
 	/* choose item type to steal */
 	for (i = 0; i < 50; i++) {
@@ -1090,10 +1100,9 @@ void World::FireGeneralEcm(Player* pl, unsigned short team, DFLOAT x, DFLOAT y)
 		shot = objs[i];
 
 		if (! BIT(shot->type, OBJ_SMART_SHOT|OBJ_MINE))
-		continue;
-		if ((range = WrapLength(x - shot->pos.x,
-		y - shot->pos.y)) > ECM_DISTANCE)
-		continue;
+			continue;
+		if ((range = WrapLength(x - shot->pos.x, y - shot->pos.y)) > ECM_DISTANCE)
+			continue;
 
 		/*
 		 * Ignore mines owned by yourself which you are immune to,
@@ -1104,7 +1113,7 @@ void World::FireGeneralEcm(Player* pl, unsigned short team, DFLOAT x, DFLOAT y)
 		 */
 		if (shot->id != NO_ID) {
 			owner = getInd[shot->id];
-			if (pl->Ind() == owner) {
+			if (pl && pl->Ind() == owner) {
 				if (shot->type == OBJ_MINE) {
 					if (BIT(shot->status, OWNERIMMUNE)) {
 						continue;
@@ -1223,7 +1232,7 @@ void World::FireGeneralEcm(Player* pl, unsigned short team, DFLOAT x, DFLOAT y)
 		}
 	}
 
-	for (i = 0; i < numPlayers; i++)
+	for (i = 0; i < numPlayers; i++) 
 	{
 		p = players[i];
 		if (p == pl)
@@ -1241,7 +1250,7 @@ void World::FireGeneralEcm(Player* pl, unsigned short team, DFLOAT x, DFLOAT y)
 		if (BIT(p->used, HAS_PHASING_DEVICE))
 			continue;
 
-		if (BIT(p->status, PLAYING|GAME_OVER|PAUSE) == PLAYING)
+		if (BIT(p->status, PLAYING|GAME_OVER|PAUSE) == PLAYING) 
 		{
 			range = WrapLength(x - p->pos.x,
 			y - p->pos.y);
@@ -1312,7 +1321,7 @@ void World::FireGeneralEcm(Player* pl, unsigned short team, DFLOAT x, DFLOAT y)
 					* Player programs robot to seek target.
 					*/
 					CHECK_OBJS();
-					Robot_program(this, i, pl->lock.pl_id);
+					this->robotMan->Program(i, pl->lock.pl_id);
 					CHECK_OBJS();
 					for (j = 0; j < numPlayers; j++) {
 						if (players[j]->conn) {

@@ -1,8 +1,8 @@
-/* $Id: event.cpp,v 1.29 2004/05/22 15:11:18 dick Exp $
+/* $Id: event.cpp,v 1.31 2007/01/19 07:14:49 dick Exp $
  *
  * XPilot, a multiplayer gravity war game.  Copyright (C) 1991-2001 by
  *
- *      Bjï¿½rn Stabell        <bjoern@xpilot.org>
+ *      Bjørn Stabell        <bjoern@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
  *      Dick Balaska         <dick@xpilot.org>
@@ -23,6 +23,12 @@
  */
 /*
  *  $Log: event.cpp,v $
+ *  Revision 1.31  2007/01/19 07:14:49  dick
+ *  Whitespace
+ *
+ *  Revision 1.30  2007/01/17 09:07:02  dick
+ *  Handle the user flipping RobotWatch pages
+ *
  *  Revision 1.29  2004/05/22 15:11:18  dick
  *  Fix the SetEyes/SetLock when unpausing
  *
@@ -136,6 +142,7 @@
 #include "saudio.h"
 #include "bit.h"
 #include "ConnectionPlayer.h"
+#include "RobotMan.h"
 
 char event_version[] = VERSION;
 
@@ -363,8 +370,8 @@ void World::PausePlayer(Player* pl, int onoff)
 					if (i == pl->Ind()) {
 						continue;
 					}
-					if (players[i]->life < rules->lives
-						&& !TEAM(this, pl->Ind(), i))
+					if (players[i]->life < rules->lives 
+						&& !TEAM(this, pl->Ind(), i)) 
 					{
 						toolate = true;
 						break;
@@ -503,6 +510,7 @@ int World::HandleKeyboard(Player* pl)
 			case KEY_TANK_PREV:
 			case KEY_TURN_LEFT: 		/* Needed so that we don't get */
 			case KEY_TURN_RIGHT:		/* out-of-sync with the turnacc */
+			case KEY_FLIP_ROBOT_PAGE:
 						break;
 			default:
 						continue;
@@ -563,7 +571,8 @@ int World::HandleKeyboard(Player* pl)
 			}
 		}
 
-		if (pressed) { /* --- KEYPRESS --- */
+		if (pressed) {
+			/* --- KEYPRESS --- */
 			switch (key) {
 
 			case KEY_TANK_NEXT:
@@ -648,52 +657,46 @@ int World::HandleKeyboard(Player* pl)
 				break;
 
 			case KEY_CHANGE_HOME:
-			xi = OBJ_X_IN_BLOCKS(pl);
-			yi = OBJ_Y_IN_BLOCKS(pl);
-			if (block[xi][yi] == BASE)		// are we on a base?
-			{
-				msg[0] = '\0';
-				for (i=0; i<numBases; i++)
-				{
-					if (bases[i].pos.x == xi &&
-						bases[i].pos.y == yi)
-					{
+				xi = OBJ_X_IN_BLOCKS(pl);
+				yi = OBJ_Y_IN_BLOCKS(pl);
+				if (block[xi][yi] == BASE) {		// are we on a base?
+					msg[0] = '\0';
+					for (i=0; i<numBases; i++) {
+						if (bases[i].pos.x == xi &&
+							bases[i].pos.y == yi)
+						{
 
-						if (i == pl->home_base)
-							break;					// no sense changing to your own base
-						if (bases[i].team != TEAM_NOT_SET &&
-							bases[i].team != pl->team)
+							if (i == pl->home_base)
+								break;					// no sense changing to your own base
+							if (bases[i].team != TEAM_NOT_SET
+							 &&	bases[i].team != pl->team)
+								break;
+							pl->home_base = i;			// this is his new home
+							sprintf(msg, "%s has changed home base.", pl->name);
 							break;
-						pl->home_base = i;			// this is his new home
-						sprintf(msg, "%s has changed home base.", pl->name);
-						break;
+						}
+					}
+					for (i=0; i<numPlayers; i++) {
+						if (i != ind
+							&& !IS_TANK_IND(this, i)
+							&& pl->home_base == players[i]->home_base)
+						{
+							players[i]->PickStartpos();
+							sprintf(msg, "%s has taken over %s's home base.",
+								pl->name, players[i]->name);
+						}
+					}
+					if (msg[0]) {
+						SoundPlayAll(this, CHANGE_HOME_SOUND);
+						BroadcastPlayMessage(msg);
+					}
+					for (i = 0; i < numPlayers; i++){
+						if (players[i]->conn) {
+							players[i]->conn->SendBase(pl->id, pl->home_base);
+						}
 					}
 				}
-				for (i=0; i<numPlayers; i++)
-				{
-					if (i != ind
-						&& !IS_TANK_IND(this, i)
-						&& pl->home_base == players[i]->home_base)
-					{
-						players[i]->PickStartpos();
-						sprintf(msg, "%s has taken over %s's home base.",
-							pl->name, players[i]->name);
-					}
-				}
-				if (msg[0])
-				{
-					SoundPlayAll(this, CHANGE_HOME_SOUND);
-					BroadcastPlayMessage(msg);
-				}
-				for (i = 0; i < numPlayers; i++)
-				{
-					if (players[i]->conn)
-					{
-						players[i]->conn->SendBase(pl->id, pl->home_base);
-					}
-				}
-			}
-		break;
+				break;
 
 			case KEY_SHIELD:
 				if (BIT(pl->have, HAS_SHIELD)) {
@@ -1125,6 +1128,8 @@ int World::HandleKeyboard(Player* pl)
 			case KEY_LOSE_ITEM:
 				DoLoseItem(pl);
 				break;
+			case KEY_FLIP_ROBOT_PAGE:
+				robotMan->FlipRobotPage(pl);
 
 			default:
 				break;

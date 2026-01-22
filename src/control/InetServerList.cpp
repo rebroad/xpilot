@@ -8,7 +8,7 @@
  *      Jarrod Miller        <jarrod@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
- *      Bjï¿½rn Stabell        <bjoern@xpilot.org>
+ *      Bjørn Stabell        <bjoern@xpilot.org>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -403,7 +403,7 @@ bool InetServerList::ResolveHost()
 	he = gethostbyname(metaHosts[currentMeta].name);
 	if (!he)
 	{
-		emh(emhThis, EmError, "Failed to resolve meta host \"%s\"",
+		emh(emhThis, EmError, "Failed to resolve meta host \"%s\"", 
 			(PCSTR)metaHosts[currentMeta].name);
 		return(false);
 	}
@@ -455,7 +455,7 @@ bool InetServerList::InitializeSock()
 		{
 			networkStatus = h_errno;
 			emh(emhThis, EmError, "Failed to connect to %s:%d socket error=%d <%s>",
-				(PCSTR)metaHosts[currentMeta].name, metaHosts[currentMeta].port,
+				(PCSTR)metaHosts[currentMeta].name, metaHosts[currentMeta].port, 
 				h_errno, GetSockErrText(h_errno));
 		}
 		Fl::remove_fd(sock);
@@ -490,7 +490,7 @@ void InetServerList::ProcessNewServers()
 		bool	ins_flag = false;
 		robj = (ObjSortable*)rlist->RemoveHead();
 		rsi = (ServerSite*)robj->o;
-//		TRACE("SortList: doing <%s> pcount=%d\n",
+//		TRACE("SortList: doing <%s> pcount=%d\n", 
 //			(const char*)csi->servername, csi->playercount);
 
 // See if we can find it already in the list
@@ -502,7 +502,7 @@ void InetServerList::ProcessNewServers()
 				 sobj = (ObjSortable*)sobj->GetNext())
 			{
 				ssi = (ServerSite*)sobj->o;
-				if (rsi->serverName == ssi->serverName
+				if (rsi->serverName == ssi->serverName 
 				 && rsi->serverPort == ssi->serverPort)
 				{
 					// we have a match
@@ -529,7 +529,7 @@ void InetServerList::ProcessNewServers()
 
 			// check the map attributes for change
 			ssi->mapChanged = false;
-			if (ssi->version		!= rsi->version		 ||
+			if (ssi->version		!= rsi->version		 || 
 				ssi->mapName		!= rsi->mapName		 ||
 				ssi->mapSize		!= rsi->mapSize		 ||
 				ssi->author			!= rsi->author		 ||
@@ -737,7 +737,7 @@ void InetServerList::PostMortem()
 	CObList*		slist= &pDoc->serverlist;	// shortcut from the doc
 	ServerSite*	csi;
 	bool			changed = false;
-	// delete anybody who wants to get deleted
+	// delete anybody who wants to get deleted	
 	for (pos=slist->GetHeadPosition(); pos != NULL;)
 	{
 		csi = (ServerSite*)slist->GetNext(pos);
@@ -795,7 +795,7 @@ int InetServerList::SetBlockingMode()
 	u_long	argp = 0;
 #if defined(_WINDOWS) && !defined(_CYGWIN)
 //	if (GetCfg()->cWnd && GetCfg()->cWnd->m_hWnd)
-//		ret = WSAAsyncSelect(sock, GetCfg()->cWnd->m_hWnd,
+//		ret = WSAAsyncSelect(sock, GetCfg()->cWnd->m_hWnd, 
 //							 wMsg, NULL);
 	ret = ioctlsocket(sock, FIONBIO, &argp);			// set blocking mode
 #else
@@ -815,7 +815,7 @@ int InetServerList::SetNonBlockingMode()
 	u_long	argp = 1;
 #if defined(_WINDOWS) && !defined(_CYGWIN)
 //	SOTRACE("SetNonBlockingMode: socket %d\n", sock);
-//	ret = WSAAsyncSelect(sock, GetCfg()->cWnd->m_hWnd,
+//	ret = WSAAsyncSelect(sock, GetCfg()->cWnd->m_hWnd, 
 //						 wMsg, FD_ACCEPT|FD_READ|FD_CLOSE);
 	ret = ioctlsocket(sock, FIONBIO, &argp);			// set blocking mode
 	if (ret)

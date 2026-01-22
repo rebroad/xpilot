@@ -1,4 +1,4 @@
-/* $Id: ScoreServer.cpp,v 1.28 2005/03/17 22:12:14 kps Exp $
+/* $Id: ScoreServer.cpp,v 1.30 2007/02/03 05:37:39 dick Exp $
  *
  * XPScoreServer - Who's on first?
  *
@@ -11,7 +11,7 @@
  *      Jarrod Miller        <jarrod@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
- *      Bjï¿½rn Stabell        <bjoern@xpilot.org>
+ *      Bjørn Stabell        <bjoern@xpilot.org>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -32,6 +32,12 @@
  */
 /*
  * $Log: ScoreServer.cpp,v $
+ * Revision 1.30  2007/02/03 05:37:39  dick
+ * Note what we are parsing
+ *
+ * Revision 1.29  2007/01/29 04:51:19  dick
+ * Set the engine to NULL after deleting it
+ *
  * Revision 1.28  2005/03/17 22:12:14  kps
  * Get rid of warnings from makedepend about "non-portable whitespace".
  *
@@ -204,7 +210,7 @@ void ScoreServer::Startup()
 	selector.Init();
 	LoadCfg();
 	logLevel = cfg.logLevel;
-
+	
 
 #if defined(_WINDOWS) && !defined(_CYGWIN)
 	if (cfg.window.right > cfg.window.left && cfg.window.bottom > cfg.window.top)
@@ -285,6 +291,7 @@ void ScoreServer::Shutdown()
 	{
 		scoreEngine->Shutdown();
 		delete scoreEngine;
+		scoreEngine = NULL;
 	}
 }
 
@@ -323,8 +330,11 @@ void ScoreServer::LoadCfg()
 	cs += scoreServerCfgFileName;
 	ar.SetFileName(cs);
 	fsize = ar.SeekToEnd();
-	if (!fsize)
+	if (!fsize) {
+		xpprintf("%sCan't open config file \"%s\"\n", showtime(), (PCSTR)cs);
 		return;
+	}
+	xpprintf("%sParsing config file \"%s\"\n", showtime(), (PCSTR)cs);
 	ar.SeekToBegin();
 	read = ar.Read(cs, fsize);
 
@@ -411,8 +421,8 @@ void ScoreServer::ErrHandler(void* myThis, ErrMsgType emt, PCSTR ctl, ...)
 
 ///////////////////////////////////////////////////////////////////////////////
 void ScoreServer::TimerTick()
-{
-	netList.TimerTick();
+{ 
+	netList.TimerTick(); 
 	netClient->TimerTick();
 	scoreEngine->TimerTick();
 #ifdef	_WINDOWS
@@ -462,7 +472,7 @@ void ScoreServer::ReceiveGetScore(PCSTR nick, PlayerType pt, uint cookie)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void ScoreServer::ReceiveSetScore(PCSTR nick, PlayerType pt, DFLOAT score,
+void ScoreServer::ReceiveSetScore(PCSTR nick, PlayerType pt, DFLOAT score, 
 								  int kills, int deaths, uint cookie)
 {
 	scoreEngine->SetPlayerValues(nick, pt, cookie, score, kills, deaths);
@@ -477,7 +487,7 @@ void ScoreServer::ReceivePlayerEvent(PCSTR name, PlayerType pt, ScorePlayerEvent
 
 ///////////////////////////////////////////////////////////////////////////////
 void ScoreServer::ReceiveScoreEvent(PCSTR killer, PlayerType ptr, DFLOAT wscore,
-									PCSTR killee, PlayerType pte, DFLOAT lscore,
+									PCSTR killee, PlayerType pte, DFLOAT lscore, 
 									ScoreType st)
 {
 	scoreEngine->ReceiveScoreEvent(killer, ptr, wscore, killee, pte, lscore, st);

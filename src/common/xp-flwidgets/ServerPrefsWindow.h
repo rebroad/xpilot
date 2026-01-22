@@ -1,4 +1,4 @@
-/* $Id: ServerPrefsWindow.h,v 1.16 2004/05/22 15:17:22 dick Exp $
+/* $Id: ServerPrefsWindow.h,v 1.17 2007/02/03 09:22:31 dick Exp $
  *
  * Xpilotedit, the cross platform map editor for Xpilot.
  *      Copyright (C) 2001 by
@@ -8,7 +8,7 @@
  *      Dick Balaska         <dick@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
- *      Bjï¿½rn Stabell        <bjoern@xpilot.org>
+ *      Bjørn Stabell        <bjoern@xpilot.org>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -29,6 +29,9 @@
  */
 /*
  * $Log: ServerPrefsWindow.h,v $
+ * Revision 1.17  2007/02/03 09:22:31  dick
+ * Remove the listeners before deleting the netclient
+ *
  * Revision 1.16  2004/05/22 15:17:22  dick
  * Better 'disabled' color by changing the widget color on Activate()
  *
@@ -113,7 +116,7 @@ class ServerPrefsWindow;
 class PrefsColor {
 public:
 };
-
+	
 ///////////////////////////////////////////////////////////////////////////////
 class PrefsInput : public Fl_Input, public PrefsColor {
 public:
@@ -195,6 +198,8 @@ private:
 	Fl_Widget*			tabs[MaxTab];
 	Fl_Status*			status;
 	Fl_PrefsColorKey*	colorKey;
+
+	bool				sosOwned;		// Does the Server Panel own the ServerOptions?
 };
 
 extern	ServerPrefsWindow*	CreateServerPrefsWindow(ServerOptions* lpServerOptions, PrefTab whichTab=TabMapInfo);

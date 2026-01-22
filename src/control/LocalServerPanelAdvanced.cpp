@@ -8,7 +8,7 @@
  *      Jarrod Miller        <jarrod@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
- *      Bjï¿½rn Stabell        <bjoern@xpilot.org>
+ *      Bjørn Stabell        <bjoern@xpilot.org>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -106,25 +106,25 @@
 const int	buttonTop = 50;
 static xpe_stbbutton localServerPanelAdvancedButtonsDefs[numLocalServerPanelAdvancedButtons] =
 {
-	{0, ROW(0), "&Play Game", "Connect a client to your local server",
+	{0, ROW(0), "&Play Game", "Connect a client to your local server", 
 		"xpilot",
 		&LocalServerPanelAdvanced::PlayGameCallback},
-	{0, ROW(1), "Change &Map", "Load a different world into your server",
+	{0, ROW(1), "Change &Map", "Load a different world into your server", 
 		"map",
 		&LocalServerPanelAdvanced::ChangeMapCallback},
-	{0, ROW(2), "A&dmin Server", "Change settings of your server",
+	{0, ROW(2), "A&dmin Server", "Change settings of your server", 
 		"serveroptions",
 		&LocalServerPanelAdvanced::AdminServerCallback},
 	{0, ROW(3), "Start S&coreServer", "Start or Stop the ScoreServer",
 		"scoreserver",
 		&LocalServerPanelAdvanced::StartScoreServerCallback},
-	{0, ROW(4), "&Browse ScoreServer", "Launch your browser to configure the ScoreServer\nand check out the scores",
+	{0, ROW(4), "&Browse ScoreServer", "Launch your browser to configure the ScoreServer\nand check out the scores", 
 		"scoreadmin",
 		&LocalServerPanelAdvanced::BrowseScoreServerCallback},
-	{0, ROW(6), "Edit Server De&faults", "Edit the defaults file",
-		"serveroptions",
+	{0, ROW(6), "Edit Server De&faults", "Edit the defaults file", 
+		"serveroptions", 
 		&LocalServerPanelAdvanced::EditDefaultsCallback},
-	{0, ROW(7), "Edit &Robots", "Edit the robots file",
+	{0, ROW(7), "Edit &Robots", "Edit the robots file", 
 		"shipeditor",
 		&LocalServerPanelAdvanced::EditRobotsCallback},
 };

@@ -11,7 +11,7 @@
  *      Jarrod Miller        <jarrod@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
- *      Bjï¿½rn Stabell        <bjoern@xpilot.org>
+ *      Bjørn Stabell        <bjoern@xpilot.org>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -95,7 +95,7 @@
 
 PCSTR ScoreEngineBasic::name = "Basic";
 PCSTR ScoreEngineBasic::title  = "Basic";
-PCSTR ScoreEngineBasic::description =
+PCSTR ScoreEngineBasic::description = 
 "This is a basic score server that keeps individual player statistics only "
 "as long as it it running.  There is no persistence (no database, no file save)";
 
@@ -265,7 +265,7 @@ bool ScoreEngineBasic::GetInitialScore(PCSTR nick, PlayerType pt, uint& cookie,
 		ObjSortable*	obj = rankList.FindSortable(nick, pt);
 		int rank = rankList.Index(obj) + 1;
 
-		s.printf("Player %s rank %d (kills %d, deaths %d has entered %s",
+		s.printf("Player %s rank %d (kills %d, deaths %d has entered %s", 
 			nick, rank, kills, deaths, s_messagetag);
 		theApp.SendPlayerMessage(s);
 	}
@@ -316,7 +316,7 @@ void ScoreEngineBasic::SendChangedRankMessage(PCSTR nick, PlayerType pt)
 	if (rankold != ranknew)
 	{
 		String	s;
-		s.printf("%s moves %s to rank %d %s", nick,
+		s.printf("%s moves %s to rank %d %s", nick, 
 			ranknew < rankold ? "up" : "down",
 			ranknew, s_messagetag);
 		theApp.SendPlayerMessage(s);
@@ -370,7 +370,7 @@ void ScoreEngineBasic::ReceivePlayerEvent(PCSTR name, PlayerType pt, ScorePlayer
 		else
 			pl->cookie = cookie;
 		playerList.Add(pl);
-		xpprintf(LOGMIN, "%sEngine: PlayerEvent Join: Creating new player '%s'\n",
+		xpprintf(LOGMIN, "%sEngine: PlayerEvent Join: Creating new player '%s'\n", 
 			showtime(), name);
 		ObjSortable* os = new ObjSortable;
 		os->o = pl;
@@ -379,12 +379,12 @@ void ScoreEngineBasic::ReceivePlayerEvent(PCSTR name, PlayerType pt, ScorePlayer
 	}
 	if (!pl)
 	{
-		xpprintf(LOGERR, "%sEngine: PlayerEvent %s Can't find player.%s type %s\n",
-			showtime(),
+		xpprintf(LOGERR, "%sEngine: PlayerEvent %s Can't find player.%s type %s\n", 
+			showtime(), 
 			spe < ScorePlayerEventMAX ? ScorePlayerEventText[spe]
 									  : ScorePlayerEventText[ScorePlayerEventMAX],
 			name,
-			pt < PlayerTypeMAX ? PlayerTypeText[pt]
+			pt < PlayerTypeMAX ? PlayerTypeText[pt] 
 							   : PlayerTypeText[PlayerTypeMAX]);
 		return;
 	}
@@ -396,7 +396,7 @@ void ScoreEngineBasic::ReceivePlayerEvent(PCSTR name, PlayerType pt, ScorePlayer
 		pl->sessions++;
 		pl->startTime = now;
 		pl->isPlaying = true;
-		xpprintf(LOGMED, "%sEngine: Player %s is joining for the %d time\n",
+		xpprintf(LOGMED, "%sEngine: Player %s is joining for the %d time\n", 
 			showtime(), (PCSTR)pl->GetName(), pl->sessions);
 		SendRank(pl);
 		break;
@@ -410,7 +410,7 @@ void ScoreEngineBasic::ReceivePlayerEvent(PCSTR name, PlayerType pt, ScorePlayer
 		{
 			pl->playTime += (now - pl->startTime);
 			pl->isPlaying = false;
-			xpprintf(LOGMED, "%sEngine: Player %s left after playing for %d seconds\n",
+			xpprintf(LOGMED, "%sEngine: Player %s left after playing for %d seconds\n", 
 				showtime(), (PCSTR)pl->GetName(), (now - pl->startTime));
 		}
 		break;

@@ -1,8 +1,8 @@
-/* $Id: configure.cpp,v 1.17 2004/05/05 18:00:32 dick Exp $
+/* $Id: configure.cpp,v 1.18 2007/02/17 06:18:15 dick Exp $
  *
  * XPilot, a multiplayer gravity war game.	Copyright (C) 1991-2001 by
  *
- *		Bjï¿½rn Stabell		 <bjoern@xpilot.org>
+ *		Bjørn Stabell		 <bjoern@xpilot.org>
  *		Ken Ronny Schouten	 <ken@xpilot.org>
  *		Bert Gijsbers		 <bert@xpilot.org>
  *		Dick Balaska		 <dick@xpilot.org>
@@ -23,6 +23,9 @@
  */
 /*
  * $Log: configure.cpp,v $
+ * Revision 1.18  2007/02/17 06:18:15  dick
+ * client/Audio becomes common/AudioMan.
+ *
  * Revision 1.17  2004/05/05 18:00:32  dick
  * Move maxVolume to the top of the list of options
  *
@@ -144,7 +147,7 @@
 #include "commonproto.h"
 #include "cstring.h"
 #include "IniClient.h"
-#include "Audio.h"
+#include "AudioMan.h"
 
 char configure_version[] = VERSION;
 
@@ -435,7 +438,7 @@ static void Create_config(void)
 				Widget_create_activate(config_widget_desc[num],
 									   offset, height,
 									   width, config_button_height,
-									   0, "PREV", Config_prev,
+									   0, "PREV", Config_prev, 
 										   (void *)(long)num);
 			if (widget_desc == 0) {
 				break;
@@ -1271,7 +1274,7 @@ static int Config_update_instruments(int widget_desc, void *data, bool *val)
 		Map_dots();
 		Paint_world_radar();
 	}
-
+	
 	if (BIT(bit, outline_mask)) {
 		/* only do the map recalculations if really needed. */
 		if (!BIT(old_instruments, outline_mask)
@@ -1375,7 +1378,7 @@ static int Config_update_maxFPS(int widget_desc, void *data, int *val)
 #ifdef	SOUND
 static int Config_update_volume(int widget_desc, void *data, int *val)
 {
-	audio.SetGain((double)(iniClient.maxVolume)/100.0);
+	audioMan.SetGain((double)(iniClient.maxVolume)/100.0);
 	return(0);
 }
 #endif

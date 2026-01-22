@@ -2,7 +2,7 @@
  *
  * XPilot, a multiplayer gravity war game.  Copyright (C) 1991-2001 by
  *
- *      Bjï¿½rn Stabell        <bjoern@xpilot.org>
+ *      Bjørn Stabell        <bjoern@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
  *      Dick Balaska         <dick@xpilot.org>
@@ -403,7 +403,7 @@ void World::ComputeGameStatus()
 			 * Ok, update positions. Everyone who finished the race in the last
 			 * frame gets the current position.
 			 */
-
+			
 			/* Only play the sound for the first person to cross the finish */
 			if (position == 1)
 			{

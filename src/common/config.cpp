@@ -1,8 +1,8 @@
-/* $Id: config.cpp,v 1.20 2005/03/17 22:12:13 kps Exp $
+/* $Id: config.cpp,v 1.21 2007/02/17 06:11:32 dick Exp $
  *
  * XPilot, a multiplayer gravity war game.  Copyright (C) 1991-2001 by
  *
- *      Bjï¿½rn Stabell        <bjoern@xpilot.org>
+ *      Bjørn Stabell        <bjoern@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
  *      Dick Balaska         <dick@xpilot.org>
@@ -23,6 +23,9 @@
  */
 /*
  * $Log: config.cpp,v $
+ * Revision 1.21  2007/02/17 06:11:32  dick
+ * Whitespace
+ *
  * Revision 1.20  2005/03/17 22:12:13  kps
  * Get rid of warnings from makedepend about "non-portable whitespace".
  *
@@ -244,7 +247,7 @@
 
 ////////////////////////////////////////////////////////////////////////////////
 #ifndef	SOUNDDIR
-#	define SOUNDDIR	LIBDIR "sound/"
+#	define SOUNDDIR		LIBDIR "sounds/"
 #endif
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -283,7 +286,7 @@ static String	bootDirectory;
 void ConfigStartup()
 {
 #ifdef	_WINDOWS
-	String	s(128);
+	String	s(128);	
 	if (!getcwd(s.s, 128))
 		xpprintf("*Failed to get rootDirectory, errno=%d\n", errno);
 	else

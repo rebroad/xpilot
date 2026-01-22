@@ -2,7 +2,7 @@
  *
  * XPilot, a multiplayer gravity war game.  Copyright (C) 1991-2002 by
  *
- *      Bjï¿½rn Stabell        <bjoern@xpilot.org>
+ *      Bjørn Stabell        <bjoern@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
  *      Dick Balaska         <dick@xpilot.org>
@@ -226,7 +226,7 @@ void World::PlaceGeneralMine(int ind, unsigned short team, long status,
 	} else if (BIT(status, FROMCANNON)) {
 		life = CANNON_SHOT_LIFE;
 	} else {
-		life = (options.mineLife->GetInt()
+		life = (options.mineLife->GetInt() 
 				  ? options.mineLife->GetInt() : MINE_LIFETIME);
 	}
 
@@ -611,7 +611,7 @@ void Player::FireRightRShot(int type, int dir, int gun)
 ///////////////////////////////////////////////////////////////////////////////
 void World::FireGeneralShot(int ind, unsigned short team, bool cannon,
 							DFLOAT x, DFLOAT y,
-							int type, int dir,
+							int type, int dir, 
 							modifiers mods, int target)
 {
 	char		msg[MSG_LEN];
@@ -681,8 +681,8 @@ void World::FireGeneralShot(int ind, unsigned short team, bool cannon,
 
 	case OBJ_SMART_SHOT:
 	case OBJ_HEAT_SHOT:
-		if ((type == OBJ_HEAT_SHOT)
-						? !options.allowHeatSeekers->GetBool()
+		if ((type == OBJ_HEAT_SHOT) 
+						? !options.allowHeatSeekers->GetBool() 
 						: !options.allowSmartMissiles->GetBool()) {
 			if (options.allowTorpedoes->GetBool()) {
 				type = OBJ_TORPEDO;
@@ -1500,7 +1500,7 @@ void World::DeleteShot(int ind)
 void Player::FireLaser()
 {
 	DFLOAT		x, y;
-
+	
 	if (item[ITEM_LASER] > num_pulses
 		&& velocity < PULSE_SPEED - PULSE_SAMPLE_DISTANCE) {
 		if (fuel.sum <= -ED_LASER) {
@@ -1676,7 +1676,7 @@ void World::MoveBall(int ind)
 		D.x = D.y = 0.0;
 
 	/* compute the ratio for the spring action */
-	ratio = (options.ballConnectorLength->GetDouble() - length)
+	ratio = (options.ballConnectorLength->GetDouble() - length) 
 						/ options.ballConnectorLength->GetDouble();
 
 	/* compute force by spring for this length */

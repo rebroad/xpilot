@@ -1,4 +1,4 @@
-/* $Id: EditorsPanel.cpp,v 1.10 2004/06/01 23:13:00 dick Exp $
+/* $Id: EditorsPanel.cpp,v 1.11 2007/02/17 06:16:45 dick Exp $
  *
  * EditorsPanel - The panel on the right that contains the different editor buttons
  *
@@ -27,6 +27,9 @@
  */
 /*
  * $Log: EditorsPanel.cpp,v $
+ * Revision 1.11  2007/02/17 06:16:45  dick
+ * Add the Sound Editor.
+ *
  * Revision 1.10  2004/06/01 23:13:00  dick
  * You can't really make a new button from an object and stick it in a static.
  * (Who owns it if you open 2 MapEditors?)  So now each window keeps track of
@@ -83,6 +86,7 @@
 #include "XPClientConfig.h"
 #include "ShipWindow.h"
 #include "MapWindow.h"
+#include "audio/SoundWindow.h"
 
 
 const int	buttonTop = 50;
@@ -93,6 +97,7 @@ const int	buttonTop = 50;
 static void MapEditorCallback(Fl_Widget* w, void* v);
 static void ShipEditorCallback(Fl_Widget* w, void* v);
 static void ClientConfigureCallback(Fl_Widget* w, void* v);
+static void SoundConfigureCallback(Fl_Widget* w, void* v);
 
 xpe_stbbutton editorsActionButtonsDefs[numEditorsActionButtons] =
 {
@@ -104,6 +109,8 @@ xpe_stbbutton editorsActionButtonsDefs[numEditorsActionButtons] =
 		"filenew", MapEditorCallback},
 	{2, ROW(3), "&Client Settings", "Configure Client Settings",
 		"clientoptions", ClientConfigureCallback},
+	{2, ROW(4), "S&ound Settings", "Setup what sounds are played",
+		"filenew", SoundConfigureCallback},
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -165,4 +172,12 @@ static void ClientConfigureCallback(Fl_Widget* w, void* v)
 	EditorsPanel* ep = (EditorsPanel*)v;
 	XPClientConfig* xcc = XPClientConfig::Factory();
 	xcc->user_data(ep->nameAndShipButton);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+static void SoundConfigureCallback(Fl_Widget* w, void* v)
+{
+	//EditorsPanel* ep = (EditorsPanel*)v;
+	SoundWindow::Factory();
+	//xcc->user_data(ep->nameAndShipButton);
 }

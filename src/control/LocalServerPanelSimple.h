@@ -11,7 +11,7 @@
  *      Jarrod Miller        <jarrod@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
- *      Bjï¿½rn Stabell        <bjoern@xpilot.org>
+ *      Bjørn Stabell        <bjoern@xpilot.org>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -93,7 +93,7 @@ private:
 	LocalServerPanel*		lsp;
 };
 
-inline void LocalServerPanelSimple::SetLocalServerPanel(LocalServerPanel* _lsp)
+inline void LocalServerPanelSimple::SetLocalServerPanel(LocalServerPanel* _lsp) 
 	{ lsp = _lsp; };
 
 #endif	// _LOCALSERVERPANELSIMPLE_H_

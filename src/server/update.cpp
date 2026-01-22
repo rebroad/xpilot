@@ -1,8 +1,8 @@
-/* $Id: update.cpp,v 1.36 2005/03/17 22:12:14 kps Exp $
+/* $Id: update.cpp,v 1.40 2007/01/19 07:14:49 dick Exp $
  *
  * XPilot, a multiplayer gravity war game.  Copyright (C) 1991-2001 by
  *
- *      Bjï¿½rn Stabell        <bjoern@xpilot.org>
+ *      Bjørn Stabell        <bjoern@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
  *      Dick Balaska         <dick@xpilot.org>
@@ -22,6 +22,20 @@
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
  *  $Log: update.cpp,v $
+ *  Revision 1.40  2007/01/19 07:14:49  dick
+ *  Whitespace
+ *
+ *  Revision 1.39  2007/01/19 04:51:56  dick
+ *  In a shieldless game with initial EmergencyShields > 0
+ *  turn on the EmergencyShield when the initial GoHome shield times out.
+ *
+ *  Revision 1.38  2007/01/16 04:31:05  dick
+ *  Whitespace
+ *
+ *  Revision 1.37  2007/01/10 18:14:47  dick
+ *  All robot actions are now handled through RobotMan.
+ *  There is one RobotMan per World.
+ *
  *  Revision 1.36  2005/03/17 22:12:14  kps
  *  Get rid of warnings from makedepend about "non-portable whitespace".
  *
@@ -161,7 +175,7 @@
 #include "commonproto.h"
 #include "randommt.h"
 #include "ConnectionPlayer.h"
-#include "Robot.h"
+#include "RobotMan.h"
 
 #define TURN_FUEL(acc)          (0.005*FUEL_SCALE_FACT*ABS(acc))
 #define TURN_SPARKS(tf)         (5+((tf)>>((FUEL_SCALE_BITS)-6)))
@@ -275,7 +289,7 @@ void Player::Deflector(bool on)
 		if (!BIT(used, HAS_DEFLECTOR) && item[ITEM_DEFLECTOR] > 0) {
 			/* only allow deflector when cloaked shielding or not cloaked */
 			if (!world->options.cloakedShield->GetBool()
-				|| !BIT(used, HAS_CLOAKING_DEVICE))
+				|| !BIT(used, HAS_CLOAKING_DEVICE)) 
 			{
 				SET_BIT(used, HAS_DEFLECTOR);
 				SoundPlayPlayer(this, DEFLECTOR_SOUND);
@@ -336,7 +350,7 @@ void Player::EmergencyShield (bool on)
 				item[ITEM_EMERGENCY_SHIELD]--;
 			}
 			if (world->options.cloakedShield->GetBool()
-				|| !BIT(used, HAS_CLOAKING_DEVICE))
+				|| !BIT(used, HAS_CLOAKING_DEVICE)) 
 			{
 				SET_BIT(have, HAS_SHIELD);
 				if (!BIT(used, HAS_EMERGENCY_SHIELD)) {
@@ -403,7 +417,7 @@ void World::UpdateObjects()
 	/*
 	* Update robots.
 	*/
-	Robot_update(this);
+	robotMan->Update();
 
 	/*
 	* Autorepeat fire, must unfortunately be done here, not in
@@ -425,7 +439,7 @@ void World::UpdateObjects()
 	for (i=0; i<NUM_ITEMS; i++)
 		if (items[i].num < items[i].max &&
 			items[i].chance > 0 &&
-			items[i].chance * rfrac() < 1.0f)
+			items[i].chance * rfrac() < 1.0f) 
 		{
 		PlaceItem(i, -1);
 		}
@@ -490,14 +504,14 @@ void World::UpdateObjects()
 		}
 
 		//	update_object_speed(obj);
-		if (BIT((obj)->status, GRAVITY)) {
-			(obj)->vel.x += (obj)->acc.x
-			+ gravity[(obj)->pos.bx][(obj)->pos.by].x;
-			(obj)->vel.y += (obj)->acc.y
-			+ gravity[(obj)->pos.bx][(obj)->pos.by].y;
-		} else {
-			(obj)->vel.x += (obj)->acc.x;
-			(obj)->vel.y += (obj)->acc.y;
+		if (BIT((obj)->status, GRAVITY)) {					
+			(obj)->vel.x += (obj)->acc.x					
+			+ gravity[(obj)->pos.bx][(obj)->pos.by].x;	
+			(obj)->vel.y += (obj)->acc.y					
+			+ gravity[(obj)->pos.bx][(obj)->pos.by].y;	
+		} else {								
+			(obj)->vel.x += (obj)->acc.x;					
+			(obj)->vel.y += (obj)->acc.y;					
 		}
 
 		if (!BIT(obj->type, OBJ_ASTEROID)) {
@@ -564,21 +578,21 @@ void World::UpdateObjects()
 				&& !BIT(cannon->used, HAS_PHASING_DEVICE)
 				&& !cannon->damaged
 				&& !cannon->tractor_count
-				&& rfrac() * 16 < 1)
+				&& rfrac() * 16 < 1) 
 			{
 				cannon->CheckFire();
 			}
 			else if (options.cannonsUseItems->GetBool()
 					&& options.itemProbMult->GetDouble() > 0
-					&& options.cannonItemProbMult->GetDouble() > 0)
+					&& options.cannonItemProbMult->GetDouble() > 0) 
 			{
 				int item = (int)(rfrac() * NUM_ITEMS);
 				/* this gives the cannon an item about once every minute */
 				if (items[item].cannonprob > 0
 					&& options.cannonItemProbMult->GetDouble() > 0
 					&& (int)(rfrac() * (60 * GetFPS()))
-					< (options.cannonItemProbMult->GetDouble() *
-					items[item].cannonprob))
+					< (options.cannonItemProbMult->GetDouble() * 
+					items[item].cannonprob)) 
 				{
 					cannon->AddItem(item, (item == ITEM_FUEL ?
 									ENERGY_PACK_FUEL >> FUEL_SCALE_BITS
@@ -595,7 +609,7 @@ void World::UpdateObjects()
 				players[ind]->pos.y - cannon->pix_pos.y)
 					< TRACTOR_MAX_RANGE(cannon->items[ITEM_TRACTOR_BEAM])
 				&& BIT(players[ind]->status, PLAYING|GAME_OVER|KILLED|PAUSE)
-					== PLAYING)
+					== PLAYING) 
 			{
 				GeneralTractorBeam(NULL, cannon->pix_pos.x, cannon->pix_pos.y,
 				cannon->items[ITEM_TRACTOR_BEAM], ind,
@@ -615,7 +629,7 @@ void World::UpdateObjects()
 		if (cannon->phasing_left > 0) {
 			if (--cannon->phasing_left <= 0) {
 				CLR_BIT(cannon->used, HAS_PHASING_DEVICE);
-				SoundPlaySensors(this, cannon->pix_pos.x, cannon->pix_pos.y,
+				SoundPlaySensors(this, cannon->pix_pos.x, cannon->pix_pos.y, 
 					PHASING_OFF_SOUND);
 			}
 		}
@@ -713,7 +727,7 @@ void World::UpdateObjects()
 						OBJ_X_IN_BLOCKS(pl),
 						OBJ_Y_IN_BLOCKS(pl),
 						"Self-Destruct");
-					ScoreServerScoreEvent(s_brSelfDestruct, PlayerNone, 0,
+					ScoreServerScoreEvent(s_brSelfDestruct, PlayerNone, 0, 
 										  pl, -sc, ScoreSelfDestruct);
 				}
 				SET_BIT(pl->status, KILLED);
@@ -752,6 +766,10 @@ void World::UpdateObjects()
 				if (!BIT(pl->used, HAS_EMERGENCY_SHIELD)) {
 					CLR_BIT(pl->used, HAS_SHIELD);
 				}
+				// If we are in a shieldless game, and the player has en eshield
+				// then turn it on
+				if (BIT(pl->have, HAS_EMERGENCY_SHIELD))
+					pl->EmergencyShield(true);
 			}
 			if (BIT(pl->used, HAS_SHIELD) == 0) {
 				/* BG 95/06/03: change test on "have" to "used". */
@@ -775,7 +793,7 @@ void World::UpdateObjects()
 		if (BIT(pl->used, HAS_EMERGENCY_THRUST)) {
 			if (pl->fuel.sum > 0
 				&& BIT(pl->status, THRUSTING)
-				&& --pl->emergency_thrust_left <= 0)
+				&& --pl->emergency_thrust_left <= 0) 
 			{
 				if (pl->item[ITEM_EMERGENCY_THRUST]) {
 					pl->EmergencyThrust(true);
@@ -788,7 +806,7 @@ void World::UpdateObjects()
 		if (BIT(pl->used, HAS_EMERGENCY_SHIELD)) {
 			if (pl->fuel.sum > 0
 				&& BIT(pl->used, HAS_SHIELD)
-				&& --pl->emergency_shield_left <= 0)
+				&& --pl->emergency_shield_left <= 0) 
 			{
 				if (pl->item[ITEM_EMERGENCY_SHIELD]) {
 					pl->EmergencyShield(true);
@@ -800,7 +818,7 @@ void World::UpdateObjects()
 
 		if (BIT(pl->used, HAS_LASER)) {
 			if (pl->item[ITEM_LASER] <= 0
-				|| BIT(pl->used, HAS_PHASING_DEVICE))
+				|| BIT(pl->used, HAS_PHASING_DEVICE)) 
 			{
 				CLR_BIT(pl->used, HAS_LASER);
 			} else {
@@ -817,7 +835,7 @@ void World::UpdateObjects()
 		 * damaged (ie. can see).
 		 */
 		if (   (BIT(pl->used, HAS_AUTOPILOT))
-			|| (BIT(pl->status, HOVERPAUSE) && !pl->damaged))
+			|| (BIT(pl->status, HOVERPAUSE) && !pl->damaged)) 
 		{
 			pl->DoAutopilot();
 		}
@@ -890,7 +908,7 @@ void World::UpdateObjects()
 			else if (pl->updateVisibility
 					|| players[j]->updateVisibility
 					|| (int)(rfrac() * UPDATE_RATE)
-						< ABS(frame_loops - pl->visibility[j].lastChange))
+						< ABS(frame_loops - pl->visibility[j].lastChange)) 
 			{
 
 				pl->visibility[j].lastChange = frame_loops;
@@ -908,7 +926,7 @@ void World::UpdateObjects()
 				|| BIT(pl->used, HAS_PHASING_DEVICE)
 				|| (BIT(rules->mode, TEAM_PLAY)
 					&& options.teamFuel->GetBool()
-					&& fuels[pl->fs].team != pl->team))
+					&& fuels[pl->fs].team != pl->team)) 
 			{
 				CLR_BIT(pl->used, HAS_REFUEL);
 			} else {
@@ -1101,7 +1119,7 @@ void World::UpdateObjects()
 						SPACE_BIT)
 					&& BIT(1U << block[(int)(w.x/BLOCK_SZ)]
 						[(int)(w.y/BLOCK_SZ)],
-						SPACE_BIT))
+						SPACE_BIT)) 
 				{
 					AddTempWormholes(OBJ_X_IN_BLOCKS(pl),
 					OBJ_Y_IN_BLOCKS(pl),
@@ -1116,7 +1134,7 @@ void World::UpdateObjects()
 			* Don't connect to balls while warping.
 			*/
 			if (BIT(pl->used, HAS_CONNECTOR))
-			pl->ball = NULL;
+				pl->ball = NULL;
 
 			if (BIT(pl->have, HAS_BALL)) {
 				/*
@@ -1156,9 +1174,9 @@ void World::UpdateObjects()
 			if ((j != pl->wormHoleHit) && (pl->wormHoleHit != -1)) {
 				wormHoles[pl->wormHoleHit].lastdest = j;
 				if (!wormHoles[j].temporary) {
-					wormHoles[pl->wormHoleHit].countdown =
-						(options.wormTime->GetInt()
-						? options.wormTime->GetInt()
+					wormHoles[pl->wormHoleHit].countdown = 
+						(options.wormTime->GetInt() 
+						? options.wormTime->GetInt() 
 						: WORMCOUNT);
 				}
 			}
@@ -1175,7 +1193,7 @@ void World::UpdateObjects()
 		}
 
 		if ((!BIT(pl->used, HAS_CLOAKING_DEVICE) || !options.cloakedExhaust->GetBool())
-			&& !BIT(pl->used, HAS_PHASING_DEVICE))
+			&& !BIT(pl->used, HAS_PHASING_DEVICE)) 
 		{
 			if (BIT(pl->status, THRUSTING))
 				pl->Thrust();
@@ -1193,7 +1211,7 @@ void World::UpdateObjects()
 			wormHoles[i].countdown--;
 		}
 		if (wormHoles[i].temporary
-			&& wormHoles[i].countdown <= 0)
+			&& wormHoles[i].countdown <= 0) 
 		{
 			RemoveTempWormhole(i);
 		}
@@ -1207,15 +1225,14 @@ void World::UpdateObjects()
 
 
 	for (i = 0; i < numPlayers; i++) {
-		Player *pl = players[i];
+		Player* pl = players[i];
 
 		pl->updateVisibility = 0;
 
 		if (pl->forceVisible) {
 			pl->forceVisible--;
-
-		if (!pl->forceVisible)
-			pl->updateVisibility = 1;
+			if (!pl->forceVisible)
+				pl->updateVisibility = 1;
 		}
 
 		if (BIT(pl->used, HAS_TRACTOR_BEAM))
@@ -1241,7 +1258,7 @@ void World::UpdateObjects()
 		Player *pl = players[i];
 
 		if (BIT(pl->status, PLAYING|PAUSE|GAME_OVER|KILLED) == PLAYING)
-		Update_tanks(&(pl->fuel));
+			Update_tanks(&(pl->fuel));
 		if (BIT(pl->status, KILLED)) {
 			ThrowItems(i);
 
@@ -1260,7 +1277,7 @@ void World::UpdateObjects()
 		if (options.maxPauseTime->GetSec() > 0
 			&& IS_HUMAN_PTR(pl)
 			&& BIT(pl->status, PAUSE)
-			&& frame_loops - pl->frame_last_busy > options.maxPauseTime->GetSec())
+			&& frame_loops - pl->frame_last_busy > options.maxPauseTime->GetSec()) 
 		{
 			sprintf(msg, "%s was auto-kicked for pausing too long [*Server notice*]",
 					pl->name);
@@ -1272,8 +1289,7 @@ void World::UpdateObjects()
 	/*
 	 * Kill shots that ought to be dead.
 	 */
-	for (i = numObjs - 1; i >= 0; i--)
-	{
+	for (i = numObjs - 1; i >= 0; i--) {
 #ifdef	_DEBUG
 		Object* o = objs[i];
 #endif
@@ -1301,7 +1317,7 @@ void World::UpdateObjects()
 	 * (not called after Game_Over() )
 	 */
 	if (options.gameDuration->GetDouble() >= 0.0
-		|| options.maxRoundTime->GetInt() > 0)
+	 || options.maxRoundTime->GetInt() > 0) 
 	{
 		ComputeGameStatus();
 	}

@@ -258,6 +258,10 @@ SOURCE=..\..\..\inst\Makefile.in
 # PROP Default_Filter ""
 # Begin Source File
 
+SOURCE=..\..\..\lib\scoreserver\html\g\styles.css
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\..\lib\scoreserver\html\g\xpback.png
 # End Source File
 # End Group
@@ -409,7 +413,15 @@ SOURCE=..\..\..\lib\Makefile.in
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\..\lib\robots
+SOURCE=..\..\..\lib\robots.txt
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\lib\robots5.txt
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\lib\robotsDik.txt
 # End Source File
 # Begin Source File
 

@@ -8,7 +8,7 @@
  *      Jarrod Miller        <jarrod@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
- *      Bjï¿½rn Stabell        <bjoern@xpilot.org>
+ *      Bjørn Stabell        <bjoern@xpilot.org>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -160,7 +160,7 @@
 #include "LocalServerPanel.h"
 #include "ServerOptionsNetClientFl.h"
 
-// On Linux, 2.95.3 (glibc 2.2.3), somewhere, string.h defines index as a macro:
+// On Linux, 2.95.3 (glibc 2.2.3), somewhere, string.h defines index as a macro: 
 // #define index(s,c) (strchr((s),(c)))
 // why this confuses Fl_Input from only this module i don't know
 #undef	index
@@ -179,19 +179,19 @@ const int	buttonTop = 50;
 #define	BUTT_STOPSERVER	0
 xpe_stbbutton localServerPanelButtonsDefs[numLocalServerPanelButtons] =
 {
-	{0, ROW(0), "&Stop Server", "Start or stop the server",
+	{0, ROW(0), "&Stop Server", "Start or stop the server", 
 		"xpilots",
 		&LocalServerPanel::StartServerCallback},
-//	{0, ROW(3), "Play Game", "Connect a client to your local server",
+//	{0, ROW(3), "Play Game", "Connect a client to your local server", 
 //		new Fl_XPM_Image(GetButtonFile("xpilot")), StartServerCallback},
-//	{0, ROW(4), "Change Map", "Load a different world into your server",
+//	{0, ROW(4), "Change Map", "Load a different world into your server", 
 //		new Fl_XPM_Image(GetButtonFile("map")), StartServerCallback},
-//	{0, ROW(5), "Admin Server", "Change settings of your server",
-//		new Fl_XPM_Image(GetButtonFile("serveroptions")),
+//	{0, ROW(5), "Admin Server", "Change settings of your server", 
+//		new Fl_XPM_Image(GetButtonFile("serveroptions")), 
 //		&LocalServerPanel::AdminServerCallback},
 //	{0, ROW(2), "Start ScoreServer", "Join Game",
 //		new Fl_XPM_Image(GetButtonFile("scoreserver")), StartScoreCallback},
-//	{0, ROW(3), "Admin ScoreServer", "Change the settings of the ScoreServer",
+//	{0, ROW(3), "Admin ScoreServer", "Change the settings of the ScoreServer", 
 //		new Fl_XPM_Image(GetButtonFile("scoreadmin")), AdminScoreCallback},
 };
 

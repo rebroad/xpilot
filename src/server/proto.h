@@ -1,4 +1,4 @@
-/* $Id: proto.h,v 1.19 2004/02/23 01:59:51 dick Exp $
+/* $Id: proto.h,v 1.20 2007/01/17 09:08:17 dick Exp $
  *
  * XPilot, a multiplayer gravity war game.  Copyright (C) 1991-2001 by
  *
@@ -22,6 +22,9 @@
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
  *  $Log: proto.h,v $
+ *  Revision 1.20  2007/01/17 09:08:17  dick
+ *  enum Items becomes ITEM
+ *
  *  Revision 1.19  2004/02/23 01:59:51  dick
  *  Move Robot's decls from here to Robot.h
  *
@@ -112,8 +115,8 @@ class World;
 /*
  * Prototypes for collision.c
  */
-int IsOffensiveItem(Items i);
-int IsDefensiveItem(Items i);
+int IsOffensiveItem(ITEM i);
+int IsDefensiveItem(ITEM i);
 int CountOffensiveItems(Player *pl);
 int CountDefensiveItems(Player *pl);
 

@@ -2,7 +2,7 @@
  *
  * XPilot, a multiplayer gravity war game.  Copyright (C) 1991-2001 by
  *
- *      Bjï¿½rn Stabell        <bjoern@xpilot.org>
+ *      Bjørn Stabell        <bjoern@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
  *      Dick Balaska         <dick@xpilot.org>
@@ -141,7 +141,7 @@ ULONG ServerThreadW32Proc(LPVOID pParam)
 	 * to deal with data coming across from a different thread.
 	 * So i clone them to be local.  Purify still complains, but at least
 	 * it doesn't kill my data.
-	 *
+	 * 
 	 */
 	char**	zargv;
 	int	zargc;
@@ -175,7 +175,7 @@ ULONG ServerThreadW32Proc(LPVOID pParam)
 
 		notifyWnd = pServerInfo->m_hwndNotifyProgress;
 		// force the system to create a message queue for this thread
-		{
+		{ 
 			MSG msg;
 			PeekMessage(&msg, NULL, WM_USER, WM_USER, PM_NOREMOVE);
 		}
@@ -291,7 +291,7 @@ void xpprintfW(const char *fmt, ...)
 		SendMessage(pServerInfo->m_hwndNotifyProgress, WM_MSGAVAILABLE, susing, (LPARAM)s);
 	else
 		printf(s);	// no Window?  try stdout (probably won't go anywhere)
-
+	
     va_end(ap);
 }
 

@@ -10,7 +10,7 @@
  *      Jarrod Miller        <jarrod@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
- *      Bjï¿½rn Stabell        <bjoern@xpilot.org>
+ *      Bjørn Stabell        <bjoern@xpilot.org>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -93,7 +93,7 @@ PCSTR	s_lineno	= "lineno";
 
 PCSTR ScoreEngine::name = "Bare";
 PCSTR ScoreEngine::title  = "Bare";
-PCSTR ScoreEngine::description =
+PCSTR ScoreEngine::description = 
 "This is the default/root score engine.  It keeps no scores and returns 0s when "
 "asked for information.  If you are using this Engine, you might as well not "
 "run the ScoreServer at all.";
@@ -157,7 +157,7 @@ bool ScoreEngine::OnAdminSubmit(HttpScore* http)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-bool ScoreEngine::GetInitialScore(PCSTR nick, PlayerType pt, uint& cookie,
+bool ScoreEngine::GetInitialScore(PCSTR nick, PlayerType pt, uint& cookie, 
 								  DFLOAT& score, int& kills, int& deaths)
 {
 	score = 0;

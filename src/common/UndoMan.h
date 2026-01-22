@@ -8,7 +8,7 @@
  *      Jarrod Miller        <jarrod@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
- *      Bjï¿½rn Stabell        <bjoern@xpilot.org>
+ *      Bjørn Stabell        <bjoern@xpilot.org>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -46,7 +46,7 @@
 
 /*
 This module handles commands.  Rather than directly act on your data,
-you create a UndoManCommand and feed it to UndoMan.
+you create a UndoManCommand and feed it to UndoMan.  
 The UndoManCommand has two parts:  a command to Do (or Redo) an action
 and an optional part to Undo an action.  If the Undo part is NULL,
 then the command is not undoable, and the undo queue is flushed.
@@ -75,7 +75,7 @@ class UndoMan
 public:
 	UndoMan();
 	~UndoMan();
-	void	RegisterButtons(UndoButtonEnabler _undoButton,
+	void	RegisterButtons(UndoButtonEnabler _undoButton, 
 							UndoButtonEnabler _redoButton,
 							UndoButtonEnabler _saveButton,
 							void* _hisThis);

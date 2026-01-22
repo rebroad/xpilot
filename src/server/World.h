@@ -1,10 +1,10 @@
-/* $Id: World.h,v 1.45 2004/05/30 16:16:27 dick Exp $
+/* $Id: World.h,v 1.46 2007/01/10 18:14:47 dick Exp $
  *
  * World - The primary class that defines the XPilot world.
  *
  * XPilot, a multiplayer gravity war game.  Copyright (C) 1991-2002 by
  *
- *      Bjï¿½rn Stabell        <bjoern@xpilot.org>
+ *      Bjørn Stabell        <bjoern@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
  *      Dick Balaska         <dick@xpilot.org>
@@ -26,6 +26,10 @@
  */
 /*
  *  $Log: World.h,v $
+ *  Revision 1.46  2007/01/10 18:14:47  dick
+ *  All robot actions are now handled through RobotMan.
+ *  There is one RobotMan per World.
+ *
  *  Revision 1.45  2004/05/30 16:16:27  dick
  *  Properly initialize Item
  *
@@ -220,6 +224,7 @@ class Cannon;
 class move_state_t;
 class CellDist;
 class CellOffset;
+class RobotMan;
 
 #define SPACE			0
 #define BASE			1
@@ -288,22 +293,26 @@ class CellOffset;
 #define DIR_DOWN		(3*RES/4)
 
 
+///////////////////////////////////////////////////////////////////////////////
 // laser.cpp
 class Vicbuf;
 class Victim;
 
+///////////////////////////////////////////////////////////////////////////////
 // World.ScoreServer
 class ConnectionControlScoreServer;
 
+///////////////////////////////////////////////////////////////////////////////
 class ServerT {
-public:
+  public:
 	String	owner;
 	String	host;
 };
 
 
+///////////////////////////////////////////////////////////////////////////////
 class QueuedPlayer {
-public:
+  public:
 	QueuedPlayer*	next;
 	char			real_name[MAX_CHARS];
 	char			nick_name[MAX_CHARS];
@@ -321,9 +330,9 @@ public:
 };
 
 
-class Fuel
-{
-public:
+///////////////////////////////////////////////////////////////////////////////
+class Fuel {
+  public:
 	ipos	blk_pos;
 	position	pix_pos;
 	long	fuel;
@@ -332,33 +341,33 @@ public:
 	int		team;
 };
 
+///////////////////////////////////////////////////////////////////////////////
 // gravity
 const int	gravRange = 10;
-class Grav
-{
-public:
+class Grav {
+  public:
     ipos	pos;
     DFLOAT	force;
 };
 
-class Base
-{
-public:
+///////////////////////////////////////////////////////////////////////////////
+class Base {
+  public:
     ipos		pos;
     int			dir;
     unsigned short	team;
 };
 
-class BaseOrder
-{
-public:
+///////////////////////////////////////////////////////////////////////////////
+class BaseOrder {
+  public:
     int		base_idx;	/* Index in World.base[] */
     DFLOAT	dist;		/* Distance to first checkpoint */
 };
 
-class Item
-{
-public:
+///////////////////////////////////////////////////////////////////////////////
+class Item {
+  public:
     DFLOAT	prob;		/* Probability [0..1] for item to appear */
     int		max;		/* Max on world at a given time */
     int		num;		/* Number active right now */
@@ -373,20 +382,21 @@ public:
 			 min_per_pack = 0; max_per_pack = 0; initial = 0; limit = 0; };
 };
 
-class Asteroids			// There is only one of these per world.
-{
-public:
+///////////////////////////////////////////////////////////////////////////////
+class Asteroids	{		// There is only one of these per world.
+  public:
 //    DFLOAT	prob;	/* Probability [0..1] for asteroid to appear (obsolete see ServerOptions) */
     int		max;		/* Max on world at a given time */
     int		num;		/* Number active right now */
     int		chance;		/* Chance [0..127] for asteroid to appear */
 };
 
+///////////////////////////////////////////////////////////////////////////////
 typedef enum { WORM_NORMAL, WORM_IN, WORM_OUT } wormType;
 
-class Wormhole
-{
-public:
+///////////////////////////////////////////////////////////////////////////////
+class Wormhole {
+  public:
     ipos	pos;
     int		lastdest;	/* last destination wormhole */
 	int		countdown;	/* if >0 warp to lastdest else random */
@@ -397,9 +407,9 @@ public:
 	ushort	lastID;
 };
 
-class Treasure
-{
-public:
+///////////////////////////////////////////////////////////////////////////////
+class Treasure {
+  public:
     ipos		pos;
     bool		have;	/* true if this treasure has ball in it */
     unsigned short	team;	/* team of this treasure */
@@ -407,9 +417,9 @@ public:
     bool		empty;	/* true if this treasure never had a ball in it */
 };
 
-class Target
-{
-public:
+///////////////////////////////////////////////////////////////////////////////
+class Target {
+  public:
     ipos		pos;
     unsigned short	team;
     int			dead_time;
@@ -419,9 +429,9 @@ public:
     long		last_change;
 };
 
-class Team
-{
-public:
+///////////////////////////////////////////////////////////////////////////////
+class Team {
+  public:
     int		numMembers;			/* Number of current members */
     int		numRobots;			/* Number of robot players */
     int		numBases;			/* Number of bases owned */
@@ -433,20 +443,21 @@ public:
 	DFLOAT	prevScore;
 };
 
-class ItemConcentrator
-{
-public:
+///////////////////////////////////////////////////////////////////////////////
+class ItemConcentrator {
+  public:
     ipos	pos;
 };
 
-class AsteroidConcentrator
-{
-public:
+///////////////////////////////////////////////////////////////////////////////
+class AsteroidConcentrator {
+  public:
     ipos	pos;
 };
 
+///////////////////////////////////////////////////////////////////////////////
 class World {
-public:
+  public:
 	World();
 	~World();
 	static void	ErrMsgHandler(void* myThis, ErrMsgType emt, PCSTR ctl, ...);
@@ -463,6 +474,8 @@ public:
 	ConnectionControlScoreServer*	scoreServer;
 	FirewallPortList				firewallPortList;
 	u_byte		**block;        /* type of item in each block */
+
+	RobotMan*	robotMan;
 
 	/* index into mapobject depending on value of corresponding block,
 	** -1 for space, walls, etc */
@@ -662,13 +675,13 @@ public:
 	void		ScoreServerRequestPlayerScore(Player* pl);
 	void		ScoreServerRequestPlayerRanks();
 	void		ScoreServerPlayerEvent(Player* pl, ScorePlayerEvent pse);
-	void		ScoreServerScoreEvent(Player* killer, DFLOAT wscore,
+	void		ScoreServerScoreEvent(Player* killer, DFLOAT wscore, 
 									  Player* killee, DFLOAT lscore,
 									  ScoreType st);
-	void		ScoreServerScoreEvent(Player* killer, DFLOAT wscore,
-									  PCSTR killee, PlayerType pt, DFLOAT lscore,
+	void		ScoreServerScoreEvent(Player* killer, DFLOAT wscore, 
+									  PCSTR killee, PlayerType pt, DFLOAT lscore, 
 									  ScoreType st);
-	void		ScoreServerScoreEvent(PCSTR killer, PlayerType pt, DFLOAT wscore,
+	void		ScoreServerScoreEvent(PCSTR killer, PlayerType pt, DFLOAT wscore, 
 									  Player* killee, DFLOAT lscore,
 									  ScoreType st);
 
@@ -831,7 +844,7 @@ public:
 					/* min,max speed    */ DFLOAT min_speed,    DFLOAT max_speed,
 					/* min,max life     */ int    min_life,     int    max_life);
 // score.cpp
-	void		SetPlayerScore(PCSTR nick, PlayerType pt,
+	void		SetPlayerScore(PCSTR nick, PlayerType pt, 
 							   DFLOAT score, int kills, int deaths, int cookie);
 	void		SetPlayerRank(PCSTR nick, PlayerType pt,
 							  int rank, DFLOAT rating);
@@ -845,7 +858,7 @@ public:
 	void		MakeTreasureBall(int treasure);
 	void		FireGeneralShot(int ind, unsigned short team, bool cannon,
 								DFLOAT x, DFLOAT y,
-								int type, int dir,
+								int type, int dir, 
 								modifiers mods, int target);
 	void		DeleteShot(int ind);
 	void		FireGeneralLaser(int ind, unsigned short team, DFLOAT x, DFLOAT y,

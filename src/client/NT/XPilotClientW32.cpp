@@ -7,7 +7,7 @@
  *      Dick Balaska         <dick@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
- *      Bjï¿½rn Stabell        <bjoern@xpilot.org>
+ *      Bjørn Stabell        <bjoern@xpilot.org>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -85,7 +85,7 @@ static	HFONT	editFont;
 int		MAINWIN_WIDTH = 960;
 int		MAINWIN_HEIGHT = 960;
 
-LRESULT CALLBACK MainWndProc(HWND hwnd,	UINT uMsg, WPARAM wParam, LPARAM lParam);
+LRESULT CALLBACK MainWndProc(HWND hwnd,	UINT uMsg, WPARAM wParam, LPARAM lParam); 
 long OnWSA_EVENT(WPARAM wParam, LPARAM lParam);
 //LONG OnWMB_HTTP(UINT wParam, LONG lParam);
 //LONG OnWMB_UDP(UINT wParam, LONG lParam);
@@ -96,37 +96,37 @@ void CallXPilotMain();
 #define	WSA_EVENT		WM_USER+300			// from WSAAsyncSelect
 
 ///////////////////////////////////////////////////////////////////////////////
-int PASCAL WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
-	LPSTR lpszCmdLine, int nCmdShow)
-{
+int PASCAL WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, 
+	LPSTR lpszCmdLine, int nCmdShow) 
+{ 
 	MSG msg;
-	BOOL bRet;
-	WNDCLASS wc;
+	BOOL bRet; 
+	WNDCLASS wc; 
 	myCommandLine = lpszCmdLine;
-
-	// Register the window class for the main window.
-
-	if (!hPrevInstance)
-	{
-		wc.style = 0;
-		wc.lpfnWndProc = (WNDPROC) MainWndProc;
-		wc.cbClsExtra = 0;
-		wc.cbWndExtra = 0;
-		wc.hInstance = hInstance;
-		wc.hIcon = LoadIcon((HINSTANCE) hInstance,
-			MAKEINTRESOURCE(100));
-		wc.hCursor = LoadCursor((HINSTANCE) NULL,
-			IDC_ARROW);
-		wc.hbrBackground = (HBRUSH)GetStockObject(BLACK_BRUSH);
-		wc.lpszMenuName =  "MainMenu";
-		wc.lpszClassName = "XPilotWndClass";
-
-		if (!RegisterClass(&wc))
-			return FALSE;
-	}
-
-	::hInstance = hInstance;	// save instance handle
-
+ 
+	// Register the window class for the main window. 
+ 
+	if (!hPrevInstance) 
+	{ 
+		wc.style = 0; 
+		wc.lpfnWndProc = (WNDPROC) MainWndProc; 
+		wc.cbClsExtra = 0; 
+		wc.cbWndExtra = 0; 
+		wc.hInstance = hInstance; 
+		wc.hIcon = LoadIcon((HINSTANCE) hInstance, 
+			MAKEINTRESOURCE(100)); 
+		wc.hCursor = LoadCursor((HINSTANCE) NULL, 
+			IDC_ARROW); 
+		wc.hbrBackground = (HBRUSH)GetStockObject(BLACK_BRUSH); 
+		wc.lpszMenuName =  "MainMenu"; 
+		wc.lpszClassName = "XPilotWndClass"; 
+ 
+		if (!RegisterClass(&wc)) 
+			return FALSE; 
+	} 
+ 
+	::hInstance = hInstance;	// save instance handle 
+ 
 	RECT	rect;
 	int		x, y, cx, cy;
 	if (!iniClient.GetWindowPositions(&rect))
@@ -143,22 +143,22 @@ int PASCAL WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
 		y = rect.top;
 		cy = rect.bottom - rect.top;
 	}
-	// Create the main window.
- 	mainWnd = CreateWindow("XPilotWndClass", "XPilotClient",
-		WS_OVERLAPPEDWINDOW, x, y,
-		cx, cy, (HWND)NULL,
-		(HMENU)NULL, hInstance, (LPVOID) NULL);
-
-	// If the main window cannot be created, terminate
-	// the application.
-
-	if (!mainWnd)
-		return FALSE;
-
+	// Create the main window. 
+ 	mainWnd = CreateWindow("XPilotWndClass", "XPilotClient", 
+		WS_OVERLAPPEDWINDOW, x, y, 
+		cx, cy, (HWND)NULL, 
+		(HMENU)NULL, hInstance, (LPVOID) NULL); 
+ 
+	// If the main window cannot be created, terminate 
+	// the application. 
+ 
+	if (!mainWnd) 
+		return FALSE; 
+ 
 	notifyWnd = mainWnd;	// where the network layer sends his messages
 
-	// Show the window and paint its contents.
-
+	// Show the window and paint its contents. 
+ 
 	int ret;
 	WSADATA	wsaData;
 	ret = WSAStartup(1, &wsaData);
@@ -168,27 +168,27 @@ int PASCAL WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
 		return(ret);
 	}
 
-	ShowWindow(mainWnd, nCmdShow);
-	UpdateWindow(mainWnd);
-
-	// Start the message loop.
+	ShowWindow(mainWnd, nCmdShow); 
+	UpdateWindow(mainWnd); 
+ 
+	// Start the message loop. 
  	while( (bRet = GetMessage( &msg, NULL, 0, 0 )) != 0)
-	{
+	{ 
 		if (bRet == -1)
 		{
 			// handle the error and possibly exit
 		}
 		else
 		{
-			TranslateMessage(&msg);
-			DispatchMessage(&msg);
+			TranslateMessage(&msg); 
+			DispatchMessage(&msg); 
 		}
-	}
+	} 
 	UnregisterClass(wc.lpszClassName, wc.hInstance);
 
-	// Return the exit code to the system.
-
-	return msg.wParam;
+	// Return the exit code to the system. 
+ 
+	return msg.wParam; 
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -197,14 +197,14 @@ LRESULT CALLBACK MainWndProc(
 	UINT uMsg,		  // message identifier
 	WPARAM wParam,	  // first message parameter
 	LPARAM lParam)	  // second message parameter
-{
-
+{ 
+ 
 //	Trace("Wnd: %x Msg: $%x\n", hwnd, uMsg);
-	switch (uMsg)
-	{
-		case WM_CREATE:
+	switch (uMsg) 
+	{ 
+		case WM_CREATE: 
 		{
-			// Initialize the window.
+			// Initialize the window. 
 			LPCREATESTRUCT	lpcs = (LPCREATESTRUCT)lParam;
 			//CREATESTRUCT	editcs = {
 			Trace("lpcs x/y = %d/%d\n", lpcs->cx, lpcs->cy);
@@ -215,7 +215,7 @@ LRESULT CALLBACK MainWndProc(
 			editWndShown = true;
 			printfWnd = editWnd;
 			editFont = CreateFont(-12, 0, 0, 0, FW_MEDIUM, FALSE, FALSE, FALSE,
-				ANSI_CHARSET, OUT_DEVICE_PRECIS, CLIP_DEFAULT_PRECIS,
+				ANSI_CHARSET, OUT_DEVICE_PRECIS, CLIP_DEFAULT_PRECIS, 
 				PROOF_QUALITY, FF_SWISS|DEFAULT_PITCH, NULL);
 			if (editFont)
 				SendMessage(editWnd, WM_SETFONT, (WPARAM)editFont, TRUE);
@@ -223,10 +223,10 @@ LRESULT CALLBACK MainWndProc(
 				xpprintf("Couldn't create edit font\n");
 //#endif
 			InitWinX(hwnd);
-			return 0;
+			return 0; 
 		}
-		case WM_PAINT:
-			// Paint the window's client area.
+		case WM_PAINT: 
+			// Paint the window's client area. 
 			if (virgin)
 			{
 				virgin = false;
@@ -234,9 +234,9 @@ LRESULT CALLBACK MainWndProc(
 //				theApp.Startup();
 //				SetTimer(mainWnd, 1, 100, ScoreServerW32TimerProc);
 			}
-			return DefWindowProc(hwnd, uMsg, wParam, lParam);
+			return DefWindowProc(hwnd, uMsg, wParam, lParam); 
 
-			return 0;
+			return 0; 
 		case WM_ERASEBKGND:
 		{
 			if (hwnd == editWnd)
@@ -247,8 +247,8 @@ LRESULT CALLBACK MainWndProc(
 				FillRect(hDC, &r, (HBRUSH)GetStockObject(BLACK_BRUSH));
 				return(1);
 			}
-			else
-				return DefWindowProc(hwnd, uMsg, wParam, lParam);
+			else 
+				return DefWindowProc(hwnd, uMsg, wParam, lParam); 
 		}
 		case WM_CTLCOLOR:
 			if (hwnd == editWnd)
@@ -257,9 +257,9 @@ LRESULT CALLBACK MainWndProc(
 
 			}
 
-		case WM_SIZE:
+		case WM_SIZE: 
 		{
-			// Set the size and position of the window.
+			// Set the size and position of the window. 
 			int w = GET_X_LPARAM(lParam);
 			int	h = GET_Y_LPARAM(lParam);
 			if (!virgin)
@@ -267,7 +267,7 @@ LRESULT CALLBACK MainWndProc(
 
 			MoveWindow(editWnd, 0, 0, w, h, TRUE);
 			Trace("Size: wnd=%x, w/h = %d/%d\n", hwnd, w, h);
-			return 0;
+			return 0; 
 		}
 		case WM_CLOSE:
 		{
@@ -286,8 +286,8 @@ LRESULT CALLBACK MainWndProc(
 			DestroyWindow(hwnd);
 			break;
 		}
-		case WM_DESTROY:
-			// Clean up window-specific data objects.
+		case WM_DESTROY: 
+			// Clean up window-specific data objects. 
 			printfWnd = NULL;
 			DeleteObject(editFont);
 			WSACleanup();
@@ -296,8 +296,8 @@ LRESULT CALLBACK MainWndProc(
 			#if defined(_XPMEM)
 				xpmemShutdown();
 			#endif
-			return 0;
-
+			return 0; 
+ 
 		case WM_KEYDOWN:
 		{
 			XKeyEvent xk;
@@ -323,22 +323,22 @@ LRESULT CALLBACK MainWndProc(
 			return(0);
 		}
 
-		//
-		// Process other messages.
-		//
+		// 
+		// Process other messages. 
+		// 
 		case WSA_EVENT:
 			return(OnWSA_EVENT(wParam, lParam));
-//		case WMB_HTTP:
+//		case WMB_HTTP: 
 //			return(OnWMB_HTTP(wParam, lParam));
 //		case WMB_UDP:
 //			return(OnWMB_UDP(wParam, lParam));
 
 
-		default:
-			return DefWindowProc(hwnd, uMsg, wParam, lParam);
-	}
-	return 0;
-}
+		default: 
+			return DefWindowProc(hwnd, uMsg, wParam, lParam); 
+	} 
+	return 0; 
+} 
 
 ///////////////////////////////////////////////////////////////////////////////
 long OnWSA_EVENT(WPARAM wParam, LPARAM lParam)

@@ -2,11 +2,11 @@
 *  ServerSite.cpp : Describe a single server                                *
 *  $Id: ServerSite.cpp,v 1.16 2004/05/30 08:15:03 dick Exp $ 				*
 *                                                                           *
-*  Copyrightï¿½ 1994-2001 by                                                  *
+*  Copyright© 1994-2001 by                                                  *
 *      Dick Balaska         <dick@xpilot.org>                               *
 *      Bert Gijsbers        <bert@xpilot.org>                               *
 *      Ken Ronny Schouten   <ken@xpilot.org>                                *
-*      Bjï¿½rn Stabell        <bjoern@xpilot.org>                             *
+*      Bjørn Stabell        <bjoern@xpilot.org>                             *
 *                                                                           *
 * This program is free software; you can redistribute it and/or modify      *
 * it under the terms of the GNU General Public License as published by      *
@@ -99,7 +99,7 @@ ServerSite::ServerSite()
 	memset(freebases, 0, MAX_TEAMS * sizeof(int));
 }
 
-///////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////	
 ServerSite::~ServerSite()
 {
 	/*
@@ -113,7 +113,7 @@ ServerSite::~ServerSite()
 	*/
 }
 
-///////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////	
 ServerSite& ServerSite::operator=(const ServerSite& _ss)
 {
 	version			= _ss.version;
@@ -164,7 +164,7 @@ ServerSite& ServerSite::operator=(const ServerSite& _ss)
 	return(*this);
 }
 
-///////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////	
 // The list is in the following format:
 // version:hostname:port number:number of users:map name:map size:map author
 // :server status:number of home bases:frames per second:players list:sound
@@ -182,7 +182,7 @@ bool	ServerSite::ParseLine(const String& line)
 	i = line.Find(':');
 	version = line.Left(i);
 	par = line.Mid(i+1);
-
+	
 	i = par.Find(':');
 	serverName = par.Left(i);
 	par = par.Mid(i+1);
@@ -254,7 +254,7 @@ bool	ServerSite::ParseLine(const String& line)
 	return(true);
 }
 
-///////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////	
 bool	ServerSite::ParseFreeBases(String line)
 {
 	int		i;
@@ -295,12 +295,12 @@ bool	ServerSite::ParseFreeBases(String line)
 			line = par;
 		}
 		freebases[freet] = freeb;
-
+		
 	}
 	return(true);
 }
 
-///////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////	
 bool	ServerSite::ParsePlayers(const String& _line)
 {
 
@@ -476,7 +476,7 @@ bool ServerSite::ParseStatus(const String& _line)
 			return(false);
 		w = line.Left(index);
 		line = line.Mid(index+1);
-
+		
 		cp = new ServerSitePlayer;
 		s = w.Mid(9,18);
 		s.TrimWhiteSpace();
@@ -492,9 +492,9 @@ bool ServerSite::ParseStatus(const String& _line)
 void	ServerSite::TRACEdump()
 {
 #if 0
-	TRACE("ServerSite:: serverName=<%s> map=<%s> version=<%s>\n",
+	TRACE("ServerSite:: serverName=<%s> map=<%s> version=<%s>\n", 
 		(const char*)serverName, (const char*)mapName, (const char*)version);
-	TRACE("ServerSite:: playerCount=%d, fps=%d serverIP=<%s>\n",
+	TRACE("ServerSite:: playerCount=%d, fps=%d serverIP=<%s>\n", 
 		playerCount, fps, (const char*)serverIP);
 #endif
 }
@@ -578,7 +578,7 @@ ServerSitePlayer& ServerSitePlayer::operator=(const ServerSitePlayer& ssp)
 	return(*this);
 }
 
-///////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////	
 ServerSitePlayer::ServerSitePlayer(const ServerSitePlayer& ssp)
 {
 	name = ssp.name;
@@ -586,16 +586,16 @@ ServerSitePlayer::ServerSitePlayer(const ServerSitePlayer& ssp)
 }
 
 
-///////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////	
+///////////////////////////////////////////////////////////////////////////////	
+///////////////////////////////////////////////////////////////////////////////	
 ServerSiteWatch::ServerSiteWatch(ServerSite* csi)
 {
 	serverName = csi->serverName;
 	serverPort = csi->serverPort;
 }
 
-///////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////	
 bool ServerSiteWatch::operator==(ServerSite& csi)
 {
 	if (serverName == csi.serverName && serverPort == csi.serverPort)

@@ -1,8 +1,8 @@
-/* $Id: World.main.cpp,v 1.16 2004/05/30 16:20:03 dick Exp $
+/* $Id: World.main.cpp,v 1.19 2007/01/21 07:27:42 dick Exp $
  *
  * XPilot, a multiplayer gravity war game.  Copyright (C) 1991-2001 by
  *
- *      Bjï¿½rn Stabell        <bjoern@xpilot.org>
+ *      Bjørn Stabell        <bjoern@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
  *      Dick Balaska         <dick@xpilot.org>
@@ -23,6 +23,16 @@
  */
 /*
  *  $Log: World.main.cpp,v $
+ *  Revision 1.19  2007/01/21 07:27:42  dick
+ *  Set/Init the firewallPortList after we've parsed all the files.
+ *
+ *  Revision 1.18  2007/01/11 04:18:57  dick
+ *  Robots move to their own subdirectory
+ *
+ *  Revision 1.17  2007/01/10 18:14:47  dick
+ *  All robot actions are now handled through RobotMan.
+ *  There is one RobotMan per World.
+ *
  *  Revision 1.16  2004/05/30 16:20:03  dick
  *  Add "TEAM BASES" to the ServerInfo (for PrivatePanel parsing).
  *  Don't srand() because we don't rand() anymore.
@@ -245,7 +255,7 @@
 #include "randommt.h"
 #include "showtime.h"
 #include "metaserver.h"
-#include "Robot.h"
+#include "RobotMan.h"
 
 char server_version[] = VERSION;
 
@@ -338,6 +348,7 @@ int World::Main(int argc, char **argv)
 	if (!GrokMap())
 		xpexit(0);
 
+	firewallPortList.Set(options.firewallPortList->GetString());
 	plock_server(options.pLockServer->GetBool()); /* Lock the server into memory */
 	Make_table();			/* Make trigonometric tables */
 	ComputeGravity();
@@ -351,7 +362,8 @@ int World::Main(int argc, char **argv)
 
 	MoveInit();
 
-	Robot_init(this);
+	robotMan = new RobotMan();
+	robotMan->Init(this);
 
 	TreasureInit();
 
@@ -394,7 +406,7 @@ int World::Main(int argc, char **argv)
 
 	/*
 	 * Log, if enabled.
-	 */
+	 */ 
 	LogGame("START");
 
 //	if (!ContactInit())
@@ -468,9 +480,9 @@ void World::MainLoop(void)
 	 * shutdown when shutdownServer (a counter) reaches 0.
 	 * If the counter is < 0 then no shutdown is in progress.
 	 */
-	if (shutdownServer >= 0)
+	if (shutdownServer >= 0) 
 	{
-		if (shutdownServer == 0)
+		if (shutdownServer == 0) 
 			EndGame();
 		else
 			shutdownServer--;
@@ -478,14 +490,14 @@ void World::MainLoop(void)
 
 	netServer->Input();
 
-	if (numPlayers > numRobots + numPseudoPlayers || options.idleRun->GetBool())
+	if (numPlayers > numRobots + numPseudoPlayers || options.idleRun->GetBool()) 
 	{
-		if (NoPlayersEnteredYet)
+		if (NoPlayersEnteredYet) 
 		{
-			if (numPlayers > numRobots + numPseudoPlayers)
+			if (numPlayers > numRobots + numPseudoPlayers) 
 			{
 				NoPlayersEnteredYet = false;
-				if (options.gameDuration->GetDouble() > 0.0)
+				if (options.gameDuration->GetDouble() > 0.0) 
 				{
 					xpprintf("%sServer will stop in %g minutes.\n", showtime(), options.gameDuration->GetDouble());
 					gameOverTime = (time_t)(options.gameDuration->GetDouble() * 60) + time((time_t *)NULL);
@@ -710,8 +722,8 @@ void World::ServerInfo(char *str, unsigned max_size)
 			(!game_lock && shutdownServer != -1) ? "shutting down" :
 			(game_lock && shutdownServer != -1) ? "locked and shutting down" : "ok",
 			GetFPS(),
-			blockWidth, blockHeight,
-				(PCSTR)options.mapName->GetString(),
+			blockWidth, blockHeight, 
+				(PCSTR)options.mapName->GetString(), 
 				(PCSTR)options.mapAuthor->GetString(),
 			numPlayers, numBases);
 
@@ -735,7 +747,7 @@ void World::ServerInfo(char *str, unsigned max_size)
 
 		j = 0;
 		for (i = 0; i < MAX_TEAMS; i++) {
-			if (i == options.robotTeam->GetInt()
+			if (i == options.robotTeam->GetInt() 
 			 && options.reserveRobotTeam->GetBool()) {
 				continue;
 			}
@@ -802,7 +814,7 @@ void World::ServerInfo(char *str, unsigned max_size)
 		pl = order[i];
 		strlcpy(name, pl->name, MAX_CHARS);
 		if (IS_ROBOT_PTR(pl)) {
-			if ((k = Robot_war_on_player(this, getInd[pl->id])) != NO_ID) {
+			if ((k = robotMan->WarOnPlayer(getInd[pl->id])) != NO_ID) {
 				sprintf(name + strlen(name), " (%s)", players[getInd[k]]->name);
 				if (strlen(name) >= 19) {
 					strcpy(&name[17], ")");
@@ -1018,7 +1030,7 @@ extern char parser_version[];
 extern char play_version[];
 extern char player_version[];
 extern char portability_version[];
-extern char robot_version[];
+extern PCSTR robotman_version;
 extern char robotdef_version[];
 extern char rules_version[];
 extern char saudio_version[];
@@ -1066,7 +1078,7 @@ static void Check_server_versions(void)
 		{ "play", play_version },
 		{ "player", player_version },
 		{ "portability", portability_version },
-		{ "robot", robot_version },
+		{ "robotman", (char*)robotman_version },
 		{ "robotdef", robotdef_version },
 		{ "rules", rules_version },
 		{ "saudio", saudio_version },

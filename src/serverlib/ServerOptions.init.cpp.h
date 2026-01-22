@@ -1,4 +1,4 @@
-/* $Id: ServerOptions.init.cpp.h,v 1.38 2005/03/17 22:12:14 kps Exp $
+/* $Id: ServerOptions.init.cpp.h,v 1.40 2007/01/21 07:25:19 dick Exp $
  *
  * XPwhere - Where in the world can i find people playing XPilot.
  *      Copyright (C) 2001 by
@@ -8,7 +8,7 @@
  *      Jarrod Miller        <jarrod@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
- *      Bjï¿½rn Stabell        <bjoern@xpilot.org>
+ *      Bjørn Stabell        <bjoern@xpilot.org>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -29,6 +29,12 @@
  */
 /*
  * $Log: ServerOptions.init.cpp.h,v $
+ * Revision 1.40  2007/01/21 07:25:19  dick
+ * built-in robot leave life is 10.  Builtin firewallPortList is 50000-50099.
+ *
+ * Revision 1.39  2007/01/16 04:31:35  dick
+ * Programmable frame reduction for paused players.
+ *
  * Revision 1.38  2005/03/17 22:12:14  kps
  * Get rid of warnings from makedepend about "non-portable whitespace".
  *
@@ -541,7 +547,7 @@ ServerOptions::ServerOptions()
 	prefsArray[i++] = robotLeaveLife = ServerOptionFactory(this,
 		"robotleavelife","",					LABEL("Robot Leave Life:"),
 		19, valInt,
-		"50",
+		"10",
 		2,0,TabRbt, OPTIONALL,
 		TUNERDEF(TunerNone),
 		HELPTEXT(	"Max life per robot (0=off).\n"
@@ -1792,6 +1798,38 @@ ServerOptions::ServerOptions()
 		)
 	);
 
+	prefsArray[i++] = scoreTableIPVer = ServerOptionFactory(this,
+		"scoreTableIP","",									LABEL("Score Table IP:"),
+		0, valBool,
+		"0.0",
+		13,0,TabRnd, OPTIONALL,
+		TUNERDEF(TunerScoreTable),
+		HELPTEXT(	"Allow the client's score table to show the IP of all players.\n"
+		)
+	);
+
+	prefsArray[i++] = scoreTableKills = ServerOptionFactory(this,
+		"scoreTableKills","",								LABEL("Score Table Kills:"),
+		0, valBool,
+		"0.0",
+		14,0,TabRnd, OPTIONALL,
+		TUNERDEF(TunerScoreTable),
+		HELPTEXT(	"Allow the client's score table to show the Kill/Death\n"
+					"ratio of all players.\n"
+		)
+	);
+
+	prefsArray[i++] = scoreTableRank = ServerOptionFactory(this,
+		"scoreTableRank","",								LABEL("Score Table Rank:"),
+		0, valBool,
+		"0.0",
+		15,0,TabRnd, OPTIONALL,
+		TUNERDEF(TunerScoreTable),
+		HELPTEXT(	"Allow the client's score table to show the Rank of all players.\n"
+					"This is only valid if the ScoreServer is connected to the server.\n"
+		)
+	);
+
 	prefsArray[i++] = timing = ServerOptionFactory(this,
 		"timing"	 ,"race",								LABEL("Race-Timing?"),
 		0, valBool,
@@ -1919,31 +1957,11 @@ ServerOptions::ServerOptions()
 		)
 	);
 
-	prefsArray[i++] = allowViewing = ServerOptionFactory(this,
-		"allowviewing","",									LABEL("Allow Viewing?"),
-		0, valBool,
-		"no",
-		4,2,TabRnd, OPTIONALL,
-		TUNERDEF(TunerAllowViewing),
-		HELPTEXT(	"Are players allowed to watch any other player while paused, waiting or dead?\n"
-		)
-	);
-
-	prefsArray[i++] = anonymousViewing = ServerOptionFactory(this,
-		"anonymousViewing","",								LABEL("Anonymous Viewing?"),
-		0, valBool,
-		"no",
-		6,2,TabRnd, OPTIONALL,
-		TUNERDEF(TunerNone),
-		HELPTEXT(	"Are other players notified when someone is viewing another player?\n"
-		)
-	);
-
 	prefsArray[i++] = maxPauseTime = ServerOptionFactory(this,
 		"maxPauseTime","",									LABEL("Maximum Pause Time"),
 		6, valSec,
 		"3600",
-		7,2,TabRnd, OPTIONALL,
+		5,2,TabRnd, OPTIONALL,
 		TUNERDEF(TunerDummy),
 		HELPTEXT(	"The maximum time a player can stay paused for, in seconds.\n"
 					"After being paused this long, the player will be kicked off.\n"
@@ -1955,41 +1973,82 @@ ServerOptions::ServerOptions()
 		"pauseScoreReduce","",								LABEL("Pause Score Reduce:"),
 		19, valReal,
 		"0.0",
-		8,2,TabRnd, OPTIONALL,
+		6,2,TabRnd, OPTIONALL,
 		TUNERDEF(TunerPauseScoreReduce),
 		HELPTEXT(	"How much to reduce a paused player's score each frame.\n"
 		)
 	);
 
-	prefsArray[i++] = scoreTableIPVer = ServerOptionFactory(this,
-		"scoreTableIP","",									LABEL("Score Table IP:"),
+	prefsArray[i++] = allowViewing = ServerOptionFactory(this,
+		"allowviewing","",									LABEL("Allow Viewing?"),
 		0, valBool,
-		"0.0",
+		"yes",
+		8,2,TabRnd, OPTIONALL,
+		TUNERDEF(TunerAllowViewing),
+		HELPTEXT(	"Are players allowed to watch any other player while paused, waiting or dead?\n"
+		)
+	);
+
+	prefsArray[i++] = anonymousViewing = ServerOptionFactory(this,
+		"anonymousViewing","",								LABEL("Anonymous Viewing?"),
+		0, valBool,
+		"no",
+		9,2,TabRnd, OPTIONALL,
+		TUNERDEF(TunerNone),
+		HELPTEXT(	"Are other players notified when someone is viewing another player?\n"
+		)
+	);
+
+	prefsArray[i++] = allowFullViewing = ServerOptionFactory(this,
+		"allowfullviewing","",								LABEL("Allow Full Viewing?"),
+		0, valBool,
+		"yes",
 		10,2,TabRnd, OPTIONALL,
-		TUNERDEF(TunerScoreTable),
-		HELPTEXT(	"Allow the client's score table to show the IP of all players.\n"
+		TUNERDEF(TunerAllowViewing),
+		HELPTEXT(	"If players are allowed to watch other players,\n"
+					"Do they get the full frame rate?\n"
 		)
 	);
 
-	prefsArray[i++] = scoreTableKills = ServerOptionFactory(this,
-		"scoreTableKills","",								LABEL("Score Table Kills:"),
-		0, valBool,
-		"0.0",
+	prefsArray[i++] = viewingReduceDelay = ServerOptionFactory(this,
+		"viewingReduceDelay","",							LABEL("Reduce Viewing Delay"),
+		0, valInt,
+		"30",
 		11,2,TabRnd, OPTIONALL,
-		TUNERDEF(TunerScoreTable),
-		HELPTEXT(	"Allow the client's score table to show the Kill/Death\n"
-					"ratio of all players.\n"
+		TUNERDEF(TunerAllowViewing),
+		HELPTEXT(	"The number of seconds to wait before activating the reduced frame rate.\n"
 		)
 	);
 
-	prefsArray[i++] = scoreTableRank = ServerOptionFactory(this,
-		"scoreTableRank","",								LABEL("Score Table Rank:"),
-		0, valBool,
-		"0.0",
+	prefsArray[i++] = viewingReduceRate = ServerOptionFactory(this,
+		"viewingReduceRate","",								LABEL("Reduce Viewing Frame Rate"),
+		0, valInt,
+		"4",
 		12,2,TabRnd, OPTIONALL,
-		TUNERDEF(TunerScoreTable),
-		HELPTEXT(	"Allow the client's score table to show the Rank of all players.\n"
-					"This is only valid if the ScoreServer is connected to the server.\n"
+		TUNERDEF(TunerAllowViewing),
+		HELPTEXT(	"The number of frames to reduce by, as a divisor.\n"
+					"The default value of 4 sends 1/4 of the frames.\n"
+					"In a 16 FPS game, this will send 4 FPS.\n"
+		)
+	);
+	prefsArray[i++] = viewingKeepaliveDelay = ServerOptionFactory(this,
+		"viewingKeepaliveDelay","",							LABEL("KeepAlive Viewing Delay"),
+		0, valInt,
+		"120",
+		13,2,TabRnd, OPTIONALL,
+		TUNERDEF(TunerAllowViewing),
+		HELPTEXT(	"The number of seconds to wait before activating the keepalive frame rate.\n"
+		)
+	);
+	prefsArray[i++] = viewingKeepaliveRate = ServerOptionFactory(this,
+		"viewingKeepaliveRate","",							LABEL("KeepAlive Frame Rate"),
+		0, valInt,
+		"20",
+		14,2,TabRnd, OPTIONALL,
+		TUNERDEF(TunerAllowViewing),
+		HELPTEXT(	"The number of frames to reduce by, as a divisor.\n"
+					"The default value of 20 sends 1/20 of the frames.\n"
+					"In a 16 FPS game, this will send a frame every 1.25 seconds.\n"
 		)
 	);
 
@@ -3264,11 +3323,11 @@ ServerOptions::ServerOptions()
 		HELPTEXT(	"Use UDP ports clientPortStart - clientPortEnd (for firewalls)\n"
 		)
 	);
-
+					  
 	prefsArray[i++] = firewallPortList = ServerOptionFactory(this,
 		"firewallPortList", "",								LABEL("firewallPortList:"),
 		255, valString,
-		"50000-50100",
+		"50000-50099",
 		6,1,TabSys, OPTIONALL,
 		TUNERDEF(TunerFirewallPortList),
 		HELPTEXT(	"Use UDP ports in this range(for firewalls)\n"

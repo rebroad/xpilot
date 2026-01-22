@@ -1,4 +1,4 @@
-/* $Id: client.cpp,v 1.27 2006/09/24 04:54:11 dick Exp $
+/* $Id: client.cpp,v 1.30 2007/01/18 21:08:21 dick Exp $
  *
  * client - map stuff, radar stuff, network stuff, misc stuff, globals.
  *
@@ -6,7 +6,7 @@
  *
  * XPilot, a multiplayer gravity war game.	Copyright (C) 1991-2001 by
  *
- *		Bjï¿½rn Stabell		 <bjoern@xpilot.org>
+ *		Bjørn Stabell		 <bjoern@xpilot.org>
  *		Ken Ronny Schouten	 <ken@xpilot.org>
  *		Bert Gijsbers		 <bert@xpilot.org>
  *		Dick Balaska		 <dick@xpilot.org>
@@ -27,6 +27,18 @@
  */
 /*
  * $Log: client.cpp,v $
+ * Revision 1.30  2007/01/18 21:08:21  dick
+ * Disable some debug
+ *
+ * Revision 1.29  2007/01/17 21:35:15  dick
+ * Encapsulate all of the RobotWatch features into a RobotWatchMan object.
+ *
+ * Revision 1.28  2007/01/17 08:59:49  dick
+ * RobotWatch is a list of Strings sent from the client when a player is paused
+ * and watching a robot.  This list contains diagnostic information about
+ * what the heck the robot thinks it's doing.
+ * It's kinda like the Terminator view where he's looking at a 6502 dump.
+ *
  * Revision 1.27  2006/09/24 04:54:11  dick
  * scoresChanged is an int
  *
@@ -155,6 +167,7 @@
 #include "Ini.h"
 #include "password.h"
 #include "ScoreTable.h"
+#include "RobotWatchMan.h"
 
 char client_version[] = VERSION;
 
@@ -266,6 +279,8 @@ static checkpoint_t 	checks[MAX_CHECKPOINT];
 
 score_object_t			score_objects[MAX_SCORE_OBJECTS];
 int 					score_object = 0;
+
+RobotWatchMan	robotWatchMan;		// Watch robot's brain activities
 
 ///////////////////////////////////////////////////////////////////////////////
 #ifndef  _WINDOWS
@@ -1099,10 +1114,8 @@ int Handle_leave(int id)
 	Other*	other;
 	char	msg[MSG_LEN];
 
-	if ((other = Other_by_id(id)) != NULL)
-	{
-		if (other == self)
-		{
+	if ((other = Other_by_id(id)) != NULL) {
+		if (other == self) {
 			seterrno(0);
 			error("Self left?!");
 			self = NULL;
@@ -1123,13 +1136,11 @@ int Handle_leave(int id)
 		scoresChanged = 1;
 	}
 	Other* o = (Other*)others.GetHead();
-	while (o)
-	{
-		if (o->warId == id)
-		{
+	while (o) {
+		if (o->warId == id)	{
 			o->warId = NO_ID;
 			scoresChanged = true;
-			D(xpprintf("Handle_leave warId = -1\n");)
+			// D(xpprintf("Handle_leave warId = -1\n");)
 		}
 		o = (Other*)o->GetNext();
 	}
@@ -1182,7 +1193,7 @@ int Handle_war(int robot_id, int killer_id)
 		 * Robot is no longer in war mode.
 		 */
 		robot->warId = NO_ID;
-		D(xpprintf("Handle_war warId = -1\n");)
+		// D(xpprintf("Handle_war warId = -1\n");)
 		return 0;
 	}
 	if ((killer = Other_by_id(killer_id)) == NULL) {
@@ -1211,7 +1222,7 @@ int Handle_eyes(int watcherId, int watchedId)
 				watcherId, watchedId);)
 		return 0;
 	}
-	if (watchedId == NO_ID)
+	if (watchedId == NO_ID) 
 	{
 		/*
 		 * "Robot is no longer in war mode."
@@ -1220,7 +1231,7 @@ int Handle_eyes(int watcherId, int watchedId)
 		scoresChanged = 1;
 		return 0;
 	}
-	if ((watched = Other_by_id(watchedId)) == NULL)
+	if ((watched = Other_by_id(watchedId)) == NULL) 
 	{
 		seterrno(0);
 		IFNWINDOWS(error("Can't update eyes against non-existing player (%d,%d)",
@@ -1244,7 +1255,7 @@ int Handle_seek(int programmer_id, int robot_id, int sought_id)
 
 	if ((programmer = Other_by_id(programmer_id)) == NULL
 		|| (robot = Other_by_id(robot_id)) == NULL
-		|| (sought = Other_by_id(sought_id)) == NULL)
+		|| (sought = Other_by_id(sought_id)) == NULL) 
 		{
 				seterrno(0);
 				error("Bad player seek (%d,%d,%d)",
@@ -1262,7 +1273,7 @@ int Handle_seek(int programmer_id, int robot_id, int sought_id)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-int Handle_score(int id, DFLOAT score, int life, int mychar, int alliance,
+int Handle_score(int id, DFLOAT score, int life, int mychar, int alliance, 
 				 short kills, short deaths)
 {
 	Other*	other;
@@ -1471,9 +1482,9 @@ void Client_score_table(void)
 				}
 			}
 		}
-		else
+		else 
 		{
-			if (scoreTableType == STKills)
+			if (scoreTableType == STKills) 
 			{
 				if (other->deaths)
 					other->ratio = (DFLOAT)other->kills / (DFLOAT)other->deaths;
@@ -1486,12 +1497,12 @@ void Client_score_table(void)
 				ratio = other->score;
 			else
 				ratio = other->score / (other->life + 1);
-			if (best == NULL || ratio > best_ratio)
+			if (best == NULL || ratio > best_ratio) 
 			{
 				best_ratio = ratio;
 				best = other;
 			}
-			for (j = 0; j < i; j++)
+			for (j = 0; j < i; j++) 
 			{
 				if (scoreTableType == STKills)
 				{
@@ -1823,7 +1834,7 @@ int Client_wrap_mode(void)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-int Check_client_fps(void)
+int Check_client_fps(void) 
 {
 	if (oldMaxFPS != iniClient.maxFPS) {
 		LIMIT(iniClient.maxFPS, FPS / 2, FPS);

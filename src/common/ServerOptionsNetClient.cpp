@@ -1,4 +1,4 @@
-/* $Id: ServerOptionsNetClient.cpp,v 1.8 2004/05/23 23:52:07 dick Exp $
+/* $Id: ServerOptionsNetClient.cpp,v 1.9 2007/02/03 09:22:31 dick Exp $
  *
  * ServerOptionsNetClient - connect a ServerOptions to a server
  *
@@ -9,7 +9,7 @@
  *      Jarrod Miller        <jarrod@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
- *      Bjï¿½rn Stabell        <bjoern@xpilot.org>
+ *      Bjørn Stabell        <bjoern@xpilot.org>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -30,6 +30,9 @@
  */
 /*
  * $Log: ServerOptionsNetClient.cpp,v $
+ * Revision 1.9  2007/02/03 09:22:31  dick
+ * Remove the listeners before deleting the netclient
+ *
  * Revision 1.8  2004/05/23 23:52:07  dick
  * src/common/IniClient.Defaults.cpp
  *
@@ -164,11 +167,25 @@ void ServerOptionsNetClient::SetServerOptions(ServerOptions* _sos)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+void ServerOptionsNetClient::RemoveServerOptions()
+{
+	RemoveListeners();
+	sos = NULL;
+}
+
+///////////////////////////////////////////////////////////////////////////////
 void ServerOptionsNetClient::InitListeners()
 {
-	for (int i=0; i<sos->numPrefs; i++)
-	{
+	for (int i=0; i<sos->numPrefs; i++)	{
 		sos->prefsArray[i]->AddListener(&ServerOptionsNetClient::HandleListener, NULL, this);
+	}
+}
+
+///////////////////////////////////////////////////////////////////////////////
+void ServerOptionsNetClient::RemoveListeners()
+{
+	for (int i=0; i<sos->numPrefs; i++)	{
+		sos->prefsArray[i]->RemoveListener(&ServerOptionsNetClient::HandleListener, this);
 	}
 }
 
@@ -195,7 +212,8 @@ void ServerOptionsNetClient::Listener(ServerOption* so)
 bool ServerOptionsNetClient::Disconnect()
 {
 	bool ret = ServerOptionsNetClientSUPERCLASS::Disconnect();
-	sos->isConnected->Set(false);
+	if (sos)
+		sos->isConnected->Set(false);
 	return(ret);
 }
 
@@ -242,7 +260,7 @@ void ServerOptionsNetClient::RequestOptions()
 	optsRequested = OPTS_PER_REQUEST;
 	if (curOptions + optsRequested > numOptions)
 		optsRequested = numOptions - curOptions;
-	cwbuf.printf("%c%c%hd%hd", PKT_CTL, DownloadOptions,
+	cwbuf.printf("%c%c%hd%hd", PKT_CTL, DownloadOptions, 
 							  curOptions, curOptions+optsRequested);
 	xpprintf(LOGLOTS, "Requesting options %d -> %d\n", curOptions, curOptions+optsRequested);
 	wbuf.Flush();
@@ -271,7 +289,7 @@ int ServerOptionsNetClient::ReceiveSetOption()
 		state = Idle;
 		emh(emhThis, EmInfo, "Options Downloaded");
 		OptionsDownloaded();
-
+		
 		return(1);
 	}
 	RequestOptions();

@@ -2,7 +2,7 @@
  *
  * XPilot, a multiplayer gravity war game.  Copyright (C) 1991-2001 by
  *
- *      Bjï¿½rn Stabell        <bjoern@xpilot.org>
+ *      Bjørn Stabell        <bjoern@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
  *      Dick Balaska         <dick@xpilot.org>
@@ -40,7 +40,7 @@
 
 const int	top = 0;
 /*****************************************************************************/
-XFillRectangle(Display* dpy, Drawable d, GC gc, int x, int y,
+XFillRectangle(Display* dpy, Drawable d, GC gc, int x, int y, 
 					   unsigned int w, unsigned int h)
 {
 	RECT	r;
@@ -57,7 +57,7 @@ XFillRectangle(Display* dpy, Drawable d, GC gc, int x, int y,
 }
 
 /*****************************************************************************/
-XDrawRectangle(Display* dpy, Drawable d, GC gc, int x, int y,
+XDrawRectangle(Display* dpy, Drawable d, GC gc, int x, int y, 
 					   unsigned int w, unsigned int h)
 {
 
@@ -74,7 +74,7 @@ XDrawRectangle(Display* dpy, Drawable d, GC gc, int x, int y,
 	return(0);
 }
 
-XFillRectangles(Display* dpy, Drawable d, GC gc,
+XFillRectangles(Display* dpy, Drawable d, GC gc, 
 				XRectangle* rects, int nrectangles)
 {
 	RECT	r;
@@ -138,7 +138,7 @@ XDrawLines(Display* dpy, Drawable d, GC gc, XPoint* points,
 }
 
 /*****************************************************************************/
-XDrawSegments(Display* dpy, Drawable d, GC gc,
+XDrawSegments(Display* dpy, Drawable d, GC gc, 
 					  XSegment* segments, int nsegments)
 {
 	int i;
@@ -166,7 +166,7 @@ XDrawPoint(Display* dpy, Drawable d, GC gc, int x, int y)
 }
 
 /*****************************************************************************/
-XDrawPoints(Display* dpy, Drawable d, GC gc,
+XDrawPoints(Display* dpy, Drawable d, GC gc, 
 					XPoint* points, int npoints, int mode)
 {
 	int		i;
@@ -258,7 +258,7 @@ XFillArc(Display* dpy, Drawable d, GC gc, int x, int y,
 }
 
 /*****************************************************************************/
-XDrawString(Display* dpy, Drawable d, GC gc, int x, int y,
+XDrawString(Display* dpy, Drawable d, GC gc, int x, int y, 
 					const char* string, int length)
 {
 	HDC		hDC = xid[d].hwnd.hBmpDC;
@@ -324,12 +324,12 @@ XChangeGC(Display* dpy, GC gc, unsigned long valuemask, XGCValues* values)
 	if (xid[gc].type == XIDTYPE_HDC)
 	{
 		int xidno = xid[gc].hgc.xidhwnd;
-
+	
 		if (valuemask & GCLineWidth)
 			xid[xidno].hwnd.line_width = values->line_width;
 		if (valuemask & GCLineStyle)
 			xid[xidno].hwnd.line_style = values->line_style;
-
+		
 		WinXSetPen(xidno);
 	}
 #endif
@@ -446,7 +446,7 @@ XSetLineAttributes(Display* dpy, GC gc, unsigned int lwidth,
 	if (xid[gc].type == XIDTYPE_HDC)
 	{
 		int xidno = xid[gc].hgc.xidhwnd;
-
+	
 		xid[xidno].hwnd.line_width = lwidth;
 		xid[xidno].hwnd.line_style = lstyle;
 
@@ -502,7 +502,7 @@ XFlush(Display* dpy)
 }
 
 /*****************************************************************************/
-XCreatePixmap(Display* dpy, Drawable d,
+XCreatePixmap(Display* dpy, Drawable d, 
 					  unsigned int width, unsigned int height, unsigned int depth)
 {
 	XID		txid;
@@ -511,7 +511,7 @@ XCreatePixmap(Display* dpy, Drawable d,
 //	HDC		hScreenDC = GetDC(xid[draw].hwnd.hWnd);
 	HDC		hScreenDC = GetDC(xid[top].hwnd.hWnd);
 	HBITMAP	hbm = CreateCompatibleBitmap(hScreenDC, width, height);
-
+	
 //	ReleaseDC(xid[draw].hwnd.hWnd, hScreenDC);
 	ReleaseDC(xid[top].hwnd.hWnd, hScreenDC);
 
@@ -574,7 +574,7 @@ XClearWindow(Display* dpy, Window w)
 }
 
 /*****************************************************************************/
-XClearArea(Display* d, Window w, int x, int y,
+XClearArea(Display* d, Window w, int x, int y, 
 		   unsigned int width, unsigned int height, Bool exposures)
 {
 	HWND	hWnd = xid[w].hwnd.hWnd;
@@ -638,7 +638,7 @@ Window XCreateSimpleWindow_(Display* dpy, Window parent, int x, int y,
 	xid[txid].hwnd.hBmp = NULL;
 	xid[txid].hwnd.hBmpDC = NULL;
 	xid[txid].hwnd.hWnd = NULL;
-	xid[txid].hwnd.event_mask = ButtonPressMask | ButtonReleaseMask
+	xid[txid].hwnd.event_mask = ButtonPressMask | ButtonReleaseMask 
 		| LeaveWindowMask | EnterWindowMask;
 	xid[txid].hwnd.event_mask = -1;		// hell, let's take em all!
 	xid[txid].hwnd.mouseover = 0;		// mouse not over this window
@@ -666,9 +666,9 @@ Window XCreateSimpleWindow_(Display* dpy, Window parent, int x, int y,
 		y += GetSystemMetrics(SM_CYCAPTION);
 		break;
 	}
-//	Trace("XCreateSimpleWindow_: %d p=%d, %d/%d %d/%d b_width=%d\n", txid, parent,
+//	Trace("XCreateSimpleWindow_: %d p=%d, %d/%d %d/%d b_width=%d\n", txid, parent, 
 //		x,y,width,height, border_width);
-	hWnd = xid[txid].hwnd.hWnd =
+	hWnd = xid[txid].hwnd.hWnd = 
 		CreateWindow("XPilotWin", "", wstyle,
 					 x, y, width, height, xid[parent].hwnd.hWnd,
 					 NULL, hInstance, (LPVOID)txid);
@@ -708,7 +708,7 @@ Window XCreateWindow_(Display* dpy, Window parent, int x, int y,
 #endif
 					 )
 {
-	Window	w = XCreateSimpleWindow_(dpy, parent, x, y, width, height,
+	Window	w = XCreateSimpleWindow_(dpy, parent, x, y, width, height, 
 		border_width, 0, 0
 #ifdef	_DEBUG
 		,file, line
@@ -803,14 +803,14 @@ XSetForeground(Display* dpy, GC gc, unsigned long foreground)
 XDestroyWindow(Display* dpy, Window w)
 {
 	WinXFree(w);
-	return(0);
+	return(0); 
 }
 
 /*****************************************************************************/
 XUnmapWindow(Display* dpy, Window w)
-{
+{	
 	ShowWindow(xid[w].hwnd.hWnd, SW_HIDE);
-	return(0);
+	return(0); 
 }
 
 /*****************************************************************************/
@@ -818,14 +818,14 @@ XMapWindow(Display* dpy, Window w)
 {
 	//ShowWindow(xid[w].hwnd.hWnd, SW_SHOW);
 	XMapRaised(dpy, w);
-	return(0);
+	return(0); 
 }
 
 /*****************************************************************************/
 XMapSubwindows(Display* dpy, Window w)
 {
 	ShowWindow(xid[w].hwnd.hWnd, SW_SHOW);
-	return(0);
+	return(0); 
 }
 
 /*****************************************************************************/
@@ -845,7 +845,7 @@ XMoveWindow(Display* dpy, Window w, int x, int y)
 	RECT	rect;
 	GetClientRect(xid[w].hwnd.hWnd, &rect);
 	MoveWindow(xid[w].hwnd.hWnd, x, y, rect.right, rect.bottom, TRUE);
-	return(0);
+	return(0); 
 }
 
 /*****************************************************************************/
@@ -853,20 +853,20 @@ XMoveResizeWindow(Display* dpy, Window w, int x, int y,
 						  unsigned int width, unsigned int height)
 {
 	HWND	hWnd = xid[w].hwnd.hWnd;
-
+	
 	SetWindowPos(hWnd, NULL, x, y, width, height, SWP_NOZORDER);
 	return(0);
 }
 
 /*****************************************************************************/
-XSetDashes(Display* dpy, GC gc, int dash_offset,
+XSetDashes(Display* dpy, GC gc, int dash_offset, 
 		   const char *dash_list, int n)
 {
 #ifdef PENS_OF_PLENTY
 	if (xid[gc].type == XIDTYPE_HDC)
 	{
 		int	xidno = xid[gc].hgc.xidhwnd;
-
+		
 		xid[xidno].hwnd.nodash = (dash_list == cdashes);
 		WinXSetPen(xidno);
 	}
@@ -908,7 +908,7 @@ int	DisplayHeight(Display* dpy, int screen_number)
 }
 
 /*****************************************************************************/
-Bool XCheckIfEvent(Display* dpy, XEvent* event_return,
+Bool XCheckIfEvent(Display* dpy, XEvent* event_return, 
 				   Bool (*predicate)(Display *d, XEvent *e, char *p), XPointer arg)
 {	return(FALSE); }
 
@@ -930,11 +930,11 @@ XGetWindowAttributes(Display* dpy, Window w, XWindowAttributes* attributes)
 {
 	RECT	rect;
 	GetClientRect(xid[w].hwnd.hWnd, &rect);
-	attributes->x =
+	attributes->x = 
 	attributes->y = 0;
 	attributes->width = rect.right;
 	attributes->height = rect.bottom;
-	return(0);
+	return(0); 
 }
 
 /*****************************************************************************/
@@ -949,14 +949,14 @@ int XGrabPointer(Display *display, Window w, Bool owner_events,
 	SetCapture(xid[w].hwnd.hWnd);
 	xid[w].hwnd.event_mask = event_mask;			/* this could be a macro, */
 //	WinXSetEventMask(w, event_mask);
-	return(0);
+	return(0); 
 }
 
 /*****************************************************************************/
 XUngrabPointer(Display* display, Time time)
 {
 	ReleaseCapture();
-	return(0);
+	return(0); 
 }
 
 /*****************************************************************************/
@@ -972,7 +972,7 @@ XWarpPointer(Display *display, Window src_w, Window dest_w,
 	GetWindowRect(xid[dest_w].hwnd.hWnd, &rect);
 	SetCursorPos(rect.left+dest_x, rect.top+dest_y);
 #endif
-	return(0);
+	return(0); 
 }
 /*****************************************************************************/
 XDefineCursor(Display* d, Window w, Cursor c)
@@ -981,7 +981,7 @@ XDefineCursor(Display* d, Window w, Cursor c)
 		ShowCursor(TRUE);
 	else
 		ShowCursor(FALSE);
-	return(0);
+	return(0); 
 }
 
 /*****************************************************************************/

@@ -5,7 +5,7 @@
  *
  * XPilot, a multiplayer gravity war game.  Copyright (C) 1991-2001 by
  *
- *      Bjï¿½rn Stabell        <bjoern@xpilot.org>
+ *      Bjørn Stabell        <bjoern@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
  *      Dick Balaska         <dick@xpilot.org>
@@ -252,9 +252,9 @@ void IniXPilot::ParseOptions(int *argcp, char **argvp)
 void IniXPilot::ParseSwitches(int *argcp, char **argvp)
 {
 	int 			i;
-	for (i = 1; i < *argcp; i++)
+	for (i = 1; i < *argcp; i++) 
 	{
-/*		if (argvp[i][0] == '-' || argvp[i][0] == '+')
+/*		if (argvp[i][0] == '-' || argvp[i][0] == '+') 
 		{
 			if (!strcmp(&argvp[i][1], "team"))
 			{

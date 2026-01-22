@@ -2,7 +2,7 @@
  *
  * XPilot, a multiplayer gravity war game.  Copyright (C) 1991-2001 by
  *
- *      Bjï¿½rn Stabell        <bjoern@xpilot.org>
+ *      Bjørn Stabell        <bjoern@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
  *      Dick Balaska         <dick@xpilot.org>
@@ -136,12 +136,12 @@ void Paint_vdecor(void)
 {
     int	i;
     bool last, more_y;
-
+    
     if (num_vdecor > 0) {
 	for (i = 0; i < num_vdecor; i++) {
 	    last = (i + 1 == num_vdecor);
 	    more_y = (vdecor_ptr[i].yi != vdecor_ptr[i + 1].yi);
-	    Gui_paint_decor(vdecor_ptr[i].x, vdecor_ptr[i].y,
+	    Gui_paint_decor(vdecor_ptr[i].x, vdecor_ptr[i].y, 
 			    vdecor_ptr[i].xi, vdecor_ptr[i].yi,
 			    vdecor_ptr[i].type, last, more_y);
 	}
@@ -164,12 +164,12 @@ void Paint_vdecor(void)
  *     How does filled mode work?
  *     It's cunning.  It scans from left to right across an area 1 block deep.
  *     Say the map is :
- *
+ *     
  *     space       wall    space  w  s w
  *             /        |        / \  | |
  *            /         |        |  \ | |     <- Scanning this line
  *           /          |        |   \| |
- *
+ *     
  *     It starts from the left and determines if it's in wall or outside wall.
  *     If it is it sets tl and bl (top left and bottom left) to the left hand
  *     side of the window.
@@ -245,9 +245,9 @@ void Paint_world(void)
     yi = mod(yb, Setup->y);
     mapbase = Setup->map_data + yi;
     if (ext_view_width > MAX_VIEW_SIZE || ext_view_height > MAX_VIEW_SIZE) {
-	Gui_paint_visible_border(world.x + ext_view_width/2 - MAX_VIEW_SIZE/2,
+	Gui_paint_visible_border(world.x + ext_view_width/2 - MAX_VIEW_SIZE/2, 
 				 world.y + ext_view_height/2 - MAX_VIEW_SIZE/2,
-				 world.x + ext_view_width/2 + MAX_VIEW_SIZE/2,
+				 world.x + ext_view_width/2 + MAX_VIEW_SIZE/2, 
 				 world.y + ext_view_height/2 + MAX_VIEW_SIZE/2);
     }
 
@@ -371,7 +371,7 @@ void Paint_world(void)
 		    if (BIT(iniClient.instruments, SHOW_DECOR))
 			Handle_vdecor(x, y, xi, yi, type);
 		    break;
-
+		    
 		case SETUP_TARGET+0:
 		case SETUP_TARGET+1:
 		case SETUP_TARGET+2:
@@ -381,14 +381,14 @@ void Paint_world(void)
 		case SETUP_TARGET+6:
 		case SETUP_TARGET+7:
 		case SETUP_TARGET+8:
-		case SETUP_TARGET+9:
+		case SETUP_TARGET+9: 
 		    {
 			int damage, target;
 			bool own;
-
+    			
 			if (Target_alive(xi, yi, &damage) != 0)
 			    break;
-
+			
 			target = type - SETUP_TARGET;
 			own = (self && (self->team == target)) != 0;
 
@@ -410,10 +410,10 @@ void Paint_world(void)
 		    {
 			int	treasure;
 			bool	own;
-
+			
 			treasure = type - SETUP_TREASURE;
 			own = (self && self->team == treasure);
-
+			
 			Gui_paint_setup_treasure(x, y, treasure, own);
 		    }
 		    break;

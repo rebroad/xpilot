@@ -1,4 +1,4 @@
-/* $Id: EditorsPanel.h,v 1.3 2004/06/01 23:13:00 dick Exp $
+/* $Id: EditorsPanel.h,v 1.4 2007/02/17 06:16:45 dick Exp $
  *
  * EditorsPanel - The panel on the right that contains the different editor buttons
  *
@@ -27,6 +27,9 @@
  */
 /*
  * $Log: EditorsPanel.h,v $
+ * Revision 1.4  2007/02/17 06:16:45  dick
+ * Add the Sound Editor.
+ *
  * Revision 1.3  2004/06/01 23:13:00  dick
  * You can't really make a new button from an object and stick it in a static.
  * (Who owns it if you open 2 MapEditors?)  So now each window keeps track of
@@ -48,7 +51,7 @@
 
 class NameAndShipButton;
 
-const int numEditorsActionButtons = 4;
+const int numEditorsActionButtons = 5;
 
 #define	EditorsPanelSUPERCLASS	Fl_Group
 class EditorsPanel : public EditorsPanelSUPERCLASS {

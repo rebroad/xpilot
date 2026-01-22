@@ -4,7 +4,7 @@
  *
  * XPilot, a multiplayer gravity war game.  Copyright (C) 1991-2003 by
  *
- *      Bjï¿½rn Stabell        <bjoern@xpilot.org>
+ *      Bjørn Stabell        <bjoern@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
  *      Dick Balaska         <dick@xpilot.org>
@@ -164,7 +164,7 @@ int NetServer::Input()
 	for (i = 0; i < maxConnections; i++)
 	{
 		connp = conn[i];
-		if (!connp || connp->state == CONN_FREE)
+		if (!connp || connp->state == CONN_FREE) 
 			continue;
 		if (connp->start + connp->timeout * GetFPS() < mainLoops)
 		{
@@ -185,7 +185,7 @@ int NetServer::Input()
 		if (connp->state != CONN_PLAYING)
 		{
 			input_reliable[num_reliable++] = i;
-			if (connp->state == CONN_SETUP)
+			if (connp->state == CONN_SETUP) 
 			{
 				connp->HandleSetup();
 				continue;

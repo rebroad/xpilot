@@ -2,7 +2,7 @@
  *
  * XPilot, a multiplayer gravity war game.  Copyright (C) 1991-2001 by
  *
- *      Bjï¿½rn Stabell        <bjoern@xpilot.org>
+ *      Bjørn Stabell        <bjoern@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
  *      Dick Balaska         <dick@xpilot.org>
@@ -238,10 +238,10 @@ static int Simulate_frames(void)
 		}
 		Handle_start(i);
 		Send_display();
-		Handle_self((int)fake_ships[0].x, (int)fake_ships[0].y, (int)fake_ships[0].vx, (int)fake_ships[0].vy,
+		Handle_self((int)fake_ships[0].x, (int)fake_ships[0].y, (int)fake_ships[0].vx, (int)fake_ships[0].vy, 
 			(int)findDir(fake_ships[0].vx, fake_ships[0].vy),
-		0.0, 0.0, 0.0, 1, 0, 0, 0, 0,
-			newitems, 0,
+		0.0, 0.0, 0.0, 1, 0, 0, 0, 0, 
+			newitems, 0, 
 		1000 << FUEL_SCALE_BITS,
 		MAX_PLAYER_FUEL,
 			1400);

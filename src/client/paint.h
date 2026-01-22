@@ -1,4 +1,4 @@
-/* $Id: paint.h,v 1.18 2004/06/03 06:04:42 dick Exp $
+/* $Id: paint.h,v 1.20 2007/01/17 21:35:15 dick Exp $
  *
  * paint - the master drawing handling.
  *
@@ -27,6 +27,15 @@
  */
 /*
  * $Log: paint.h,v $
+ * Revision 1.20  2007/01/17 21:35:15  dick
+ * Encapsulate all of the RobotWatch features into a RobotWatchMan object.
+ *
+ * Revision 1.19  2007/01/17 08:59:49  dick
+ * RobotWatch is a list of Strings sent from the client when a player is paused
+ * and watching a robot.  This list contains diagnostic information about
+ * what the heck the robot thinks it's doing.
+ * It's kinda like the Terminator view where he's looking at a 6502 dump.
+ *
  * Revision 1.18  2004/06/03 06:04:42  dick
  * struct other_t becomes class Other.
  * array Others becomes ObjList others.
@@ -216,7 +225,8 @@ int Handle_vcannon(int x, int y, int type);
 int Handle_vfuel(int x, int y, long fuel);
 int Handle_vbase(int x, int y, int xi, int yi, int type);
 int Handle_vdecor(int x, int y, int xi, int yi, int type);
-int Handle_message(char *msg);
+int Handle_message(char* msg);
+int	HandleRobotWatch(int y, char* msg);
 int Handle_eyes(int watcherId, int watchedId);
 void Paint_item_symbol(u_byte type, Drawable d, GC mygc, int x, int y, int color);
 void Paint_item(u_byte type, Drawable d, GC mygc, int x, int y);
@@ -232,8 +242,8 @@ void Paint_vbase(void);
 void Paint_vdecor(void);
 void Paint_world(void);
 void Paint_score_entry(int entry_num, Other* other, bool best);
-void Paint_score_start(void);
-void Paint_score_objects(void);
+void Paint_score_start();
+void Paint_score_objects();
 void Paint_meters(void);
 void Paint_HUD(void);
 int  Get_message(int* pos, char * message, int req_length, int key );

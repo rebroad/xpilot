@@ -10,7 +10,7 @@
  *      Jarrod Miller        <jarrod@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
- *      Bjï¿½rn Stabell        <bjoern@xpilot.org>
+ *      Bjørn Stabell        <bjoern@xpilot.org>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -48,7 +48,7 @@ class XPilotServerW32
 public:
 	XPilotServerW32();
 
-	int			WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
+	int			WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, 
 						LPSTR lpszCmdLine, int nCmdShow);
 	LRESULT		MainWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
@@ -68,7 +68,7 @@ private:
 
 private:
 
-	HINSTANCE	hinst;
+	HINSTANCE	hinst; 
 	HWND		mainWnd;
 	HWND		editWnd;
 	bool		virgin;

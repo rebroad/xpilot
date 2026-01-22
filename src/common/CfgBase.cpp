@@ -9,7 +9,7 @@
  *      Jarrod Miller        <jarrod@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
- *      Bjï¿½rn Stabell        <bjoern@xpilot.org>
+ *      Bjørn Stabell        <bjoern@xpilot.org>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -106,7 +106,7 @@ void CfgBase::SetCfg(CfgBase* cfg)
 		xpprintf("no boot directory\n");
 	}
 	if (GetCfg()->logLevel >= LOGMED)
-		xpprintf("%s%s: bootDirectory %s\n", showtime(),
+		xpprintf("%s%s: bootDirectory %s\n", showtime(), 
 			(PCSTR)cfg->appname, (PCSTR)cfg->bootDirectory);
 }
 

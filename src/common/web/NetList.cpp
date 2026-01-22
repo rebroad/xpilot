@@ -1,6 +1,6 @@
 /* $Id: NetList.cpp,v 1.2 2004/02/03 03:39:53 dick Exp $
  *
- * A List of network objects
+ * A List of network objects 
  *
  *      Copyright (C) 2002 by
  *
@@ -9,7 +9,7 @@
  *      Jarrod Miller        <jarrod@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
- *      Bjï¿½rn Stabell        <bjoern@xpilot.org>
+ *      Bjørn Stabell        <bjoern@xpilot.org>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by

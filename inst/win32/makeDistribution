@@ -1,5 +1,5 @@
 #!/bin/bash
-# $Id: makeDistribution,v 1.44 2007/01/06 18:38:11 dick Exp $
+# $Id: makeDistribution,v 1.46 2007/01/21 07:37:43 dick Exp $
 # makeDistribution - a script to move things to a directory to make the build script
 #                    and then call makensis to build a Windows binary distribution for
 #                    XPilot, a multiplayer gravity war game.
@@ -447,7 +447,8 @@ else
 
 	cd $BASE/lib
 	cp -p defaults			$XDIR/lib/defaults.txt
-	cp -p robots			$XDIR/lib/robots.txt
+	cp -p robots.txt		$XDIR/lib
+	cp -p robots5.txt		$XDIR/lib
 	cp -p sounds.conf		$XDIR/lib
 	cp -p XPilot.shp		$XDIR/lib
 

@@ -1,4 +1,4 @@
-/* $Id: ConnectionControlScoreServer.cpp,v 1.16 2004/05/31 18:17:25 dick Exp $
+/* $Id: ConnectionControlScoreServer.cpp,v 1.19 2007/02/03 09:20:55 dick Exp $
  *
  * Describe a server's connection to a control.
  *
@@ -7,7 +7,7 @@
  *      Dick Balaska         <dick@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
- *      Bjï¿½rn Stabell        <bjoern@xpilot.org>
+ *      Bjørn Stabell        <bjoern@xpilot.org>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,6 +25,16 @@
  */
 /*
  *  $Log: ConnectionControlScoreServer.cpp,v $
+ *  Revision 1.19  2007/02/03 09:20:55  dick
+ *  ScoreServer is deleted in superclass, don't double delete it
+ *
+ *  Revision 1.18  2007/02/03 05:36:33  dick
+ *  hasWebHost becomes hasWebInfo and display the message even with no host
+ *
+ *  Revision 1.17  2007/01/10 18:14:47  dick
+ *  All robot actions are now handled through RobotMan.
+ *  There is one RobotMan per World.
+ *
  *  Revision 1.16  2004/05/31 18:17:25  dick
  *  virtual destructors so subclasses don't leak.
  *
@@ -96,48 +106,41 @@
 PCSTR	s_ScoreServer = "ScoreServer";
 
 ///////////////////////////////////////////////////////////////////////////////
-ConnectionControlScoreServer::ConnectionControlScoreServer()
-{
+ConnectionControlScoreServer::ConnectionControlScoreServer() {
 	ctl = s_ScoreServer;
-	hasWebHost = false;
+	hasWebInfo = false;
 	active = false;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-ConnectionControlScoreServer::~ConnectionControlScoreServer()
-{
+ConnectionControlScoreServer::~ConnectionControlScoreServer() {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void ConnectionControlScoreServer::DestroyConnection(PCSTR reason)
-{
+void ConnectionControlScoreServer::DestroyConnection(PCSTR reason) {
 	world->scoreServer = NULL;
 	xpprintf("%sScoreServer disconnected\n", showtime());
 	ConnectionControlScoreServerSUPERCLASS::DestroyConnection(reason);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-int ConnectionControlScoreServer::ReceiveServerActivate()
-{
+int ConnectionControlScoreServer::ReceiveServerActivate() {
 	char	on;
 	int		n;
-    if ((n = cr.scanf("%c", &on)) <= 0)
-	{
+    if ((n = cr.scanf("%c", &on)) <= 0)	{
 		if (n == -1)
 			DestroyConnection("read error, Activate needs 'On'");
 		return n;
     }
 	active = on ? true : false;
-	if (active)
-	{
+	if (active)	{
 		world->ScoreServerRequestPlayerRanks();
 	}
 	return(TRUE);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-int ConnectionControlScoreServer::ReceiveGetScore()
-{
+int ConnectionControlScoreServer::ReceiveGetScore() {
 	char		name[MAX_CHARS];
 	char		ptc;
 	int			score;
@@ -154,16 +157,15 @@ int ConnectionControlScoreServer::ReceiveGetScore()
     }
 	pt = (PlayerType)ptc;
 	if (!(pt == PlayerRobot) || world->options.logRobots->GetBool())
-		xpprintf("%sPlayer %s starts with score %.2f\n",
+		xpprintf("%sPlayer %s starts with score %.2f\n", 
 				 showtime(), name, (DFLOAT)(score/100.0));
 	world->SetPlayerScore(name, pt, (DFLOAT)(score/100.0), kills, deaths, cookie);
-	//world->SetPlayerRank(name, pt,
+	//world->SetPlayerRank(name, pt, 
 	return(TRUE);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-int ConnectionControlScoreServer::ReceiveGetRanks()
-{
+int ConnectionControlScoreServer::ReceiveGetRanks() {
 	char		name[MAX_CHARS];
 	char		ptc;
 	int			rank;
@@ -182,27 +184,23 @@ int ConnectionControlScoreServer::ReceiveGetRanks()
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-int ConnectionControlScoreServer::ReceivePlayerEvent()
-{
+int ConnectionControlScoreServer::ReceivePlayerEvent() {
 	return(TRUE);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-int ConnectionControlScoreServer::ReceiveSetScoreEvent()
-{
+int ConnectionControlScoreServer::ReceiveSetScoreEvent() {
 	return(TRUE);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-int ConnectionControlScoreServer::ReceiveWebInfo()
-{
+int ConnectionControlScoreServer::ReceiveWebInfo() {
 	char	name[MAX_CHARS];
 	int		port;
 	char	msg[MAX_CHARS];
 	int		n;
 
-    if ((n = cr.scanf("%s%d%s", &name, &port, &msg)) <= 0)
-	{
+    if ((n = cr.scanf("%s%d%s", &name, &port, &msg)) <= 0) {
 		if (n == -1)
 			DestroyConnection("read error, Webinfo needs host/port");
 		return n;
@@ -210,28 +208,27 @@ int ConnectionControlScoreServer::ReceiveWebInfo()
 	webHost = name;
 	webPort = port;
 	webMsg = msg;
-	hasWebHost = true;
+	hasWebInfo = true;
 	return(TRUE);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-String ConnectionControlScoreServer::GetWebInfo()
-{
+String ConnectionControlScoreServer::GetWebInfo() {
 	String	s;
-	if (!hasWebHost)
+	if (!hasWebInfo)
 		return(s);
-	s.printf("http://%s:%d/", (PCSTR)webHost, webPort);
-	if (webMsg.GetLength())
-	{
-		s += " - ";
-		s += webMsg;
+	if (!webHost.IsEmpty()) {
+		s.printf("http://%s:%d/", (PCSTR)webHost, webPort);
+		if (!webMsg.IsEmpty())
+			s += " - ";
 	}
+	if (!webMsg.IsEmpty())
+		s += webMsg;
 	return(s);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-int ConnectionControlScoreServer::RequestPlayerScore(Player* pl)
-{
+int ConnectionControlScoreServer::RequestPlayerScore(Player* pl) {
 	uint	cookie = 0;
 	if (pl->conn)
 		cookie = pl->conn->cookie;
@@ -240,8 +237,7 @@ int ConnectionControlScoreServer::RequestPlayerScore(Player* pl)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-int ConnectionControlScoreServer::RequestPlayerRanks(bool onOff)
-{
+int ConnectionControlScoreServer::RequestPlayerRanks(bool onOff) {
 	cw.printf("%c%c%c", PKT_CTL, GetRanks, onOff ? 1 : 0);
 	return(TRUE);
 }
@@ -250,7 +246,7 @@ int ConnectionControlScoreServer::RequestPlayerRanks(bool onOff)
 ///////////////////////////////////////////////////////////////////////////////
 void ConnectionControlScoreServer::SendPlayerScore(PCSTR nick, DFLOAT score, int kills, int deaths)
 {
-	cw.printf("%c%c%s%d%d%d", PKT_CTL, SendScore, nick,
+	cw.printf("%c%c%s%d%d%d", PKT_CTL, SendScore, nick, 
 		(int)(score * 100 + (score > 0 ? 0.5 : -0.5)),
 		kills, deaths);
 	return;
@@ -259,11 +255,11 @@ void ConnectionControlScoreServer::SendPlayerScore(PCSTR nick, DFLOAT score, int
 
 ///////////////////////////////////////////////////////////////////////////////
 void ConnectionControlScoreServer::SendScoreEvent(PCSTR killer, PlayerType ptr, DFLOAT wscore,
-												  PCSTR killee, PlayerType pte, DFLOAT lscore,
+												  PCSTR killee, PlayerType pte, DFLOAT lscore, 
 												  ScoreType st)
 {
 	cw.printf("%c%c%s%c%s%c%d%d%c", PKT_CTL, ScoreEvent,
-		killer, ptr, killee, pte,
+		killer, ptr, killee, pte, 
 		(int)(wscore * 100 + (wscore > 0 ? 0.5 : -0.5)),
 		(int)(lscore * 100 + (lscore > 0 ? 0.5 : -0.5)),
 		st);

@@ -2,7 +2,7 @@
  *
  * XPilot, a multiplayer gravity war game.  Copyright (C) 1991-2001 by
  *
- *      Bjï¿½rn Stabell        <bjoern@xpilot.org>
+ *      Bjørn Stabell        <bjoern@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
  *      Dick Balaska         <dick@xpilot.org>
@@ -51,11 +51,11 @@
 #include "bit.h"
 
 /* for blitting items onto the screen */
-extern HDC			itemsDC;
+extern HDC			itemsDC;		
 
 /* very unfortunate, but about the only way i could do this */
-HDC hDCb;
-HDC hDC;
+HDC hDCb; 
+HDC hDC; 
 
 xp_picture_t radar_colors;
 
@@ -78,8 +78,8 @@ void delete_bitmaps()
 {
     int i,j;
     SelectObject(itemsDC, GetStockObject(BLACK_PEN));
-
-    for (i = 0; i < NUM_BITMAPS; i++) {
+	    
+    for (i = 0; i < NUM_BITMAPS; i++) {	
 	for (j = 0; j < xp_pixmaps[i].picture.images; j++) {
 	    if (xp_pixmaps[i].bitmaps[j].bitmap) {
 		DeleteObject((HBITMAP)xp_pixmaps[i].bitmaps[j].bitmap);
@@ -98,8 +98,8 @@ void Block_bitmap_create_begin(Drawable d,xp_pixmap_t *xp_pixmap, int image,
         SelectObject(itemsDC, GetStockObject(BLACK_PEN));
 	DeleteObject((HBITMAP)xp_pixmap->bitmaps[image].bitmap);
     }
-
-    hbm = CreateCompatibleBitmap(hDC, width,
+    
+    hbm = CreateCompatibleBitmap(hDC, width, 
 				 height);
     SelectObject(hDCb, hbm);
     if (bHasPal)
@@ -107,7 +107,7 @@ void Block_bitmap_create_begin(Drawable d,xp_pixmap_t *xp_pixmap, int image,
         SelectPalette(hDCb, myPal, FALSE);
         RealizePalette(hDCb);
     }
-
+    
     if (!hbm)
         error("Can't create item bitmaps");
     xp_pixmap->bitmaps[image].bitmap = (Pixmap)hbm;
@@ -125,12 +125,12 @@ void Block_bitmap_set_pixel(xp_pixmap_t *xp_pixmap, int image, int x, int y, RGB
 }
 
 void Block_bitmap_paint(Drawable d, int type, int x, int y, int width, int height,
-		 int number)
+		 int number) 
 {
     HDC		hDC = xid[d].hwnd.hBmpDC;
 
     SelectObject(itemsDC, (HBITMAP)xp_pixmaps[type].bitmaps[number].bitmap);
-
+    
     if (bHasPal)
     {
 	SelectPalette(itemsDC, myPal, FALSE);
@@ -147,23 +147,23 @@ int radar_light(int *radar, int x, int y)
 {
 /*   int light_matrix[25] ={ 0, -1, -2, -2, -3,
 			   1,  0, -1, -2, -2,
-			   2,  1,  0, -1, -2,
+			   2,  1,  0, -1, -2, 
 			   2,  2,  1,  0, -1,
-			   3,  2,  2,  1,  0
+			   3,  2,  2,  1,  0 
 			};
 */
 
    int light_matrix[25] ={ 0,  1,  2,  1, 0,
 			   1,  2,  3,  2, 1,
-			   2,  3,  0,  3, 2,
+			   2,  3,  0,  3, 2, 
 			   1,  2,  3,  2, 1,
-			   0,  1,  2,  1, 0
+			   0,  1,  2,  1, 0 
 			};
 /*   int light_matrix[25] ={ 0,  1,  -1, -1,  0,
 			   1,  2,  -1, -2, -1,
-			   2,  3,  0, -2, -2,
+			   2,  3,  0, -2, -2, 
 			   1,  2,  3,  -1, -1,
-			   0,  1,  2,  1, 0
+			   0,  1,  2,  1, 0 
 			};
 */
     int xi, yi, light;
@@ -174,7 +174,7 @@ int radar_light(int *radar, int x, int y)
 	cx = (xi + x + 256) %256;
        for (yi = -2; yi < 3; yi ++) {
 	    cy = (yi + y + RadarHeight) % RadarHeight;
-	    if (radar[cy * 256 + cx])
+	    if (radar[cy * 256 + cx]) 
 		light += light_matrix[(xi + 2) + ((yi + 2) *5)];
        }
    }
@@ -220,7 +220,7 @@ void Winpaint_world_radar()
     }
 
     memset(visibleColor, 0, sizeof visibleColor);
-    visibleColor[SETUP_FILLED] =
+    visibleColor[SETUP_FILLED] = 
 	visibleColor[SETUP_FILLED_NO_DRAW] =
 	visibleColor[SETUP_REC_LU] =
 	visibleColor[SETUP_REC_RU] =
@@ -235,9 +235,9 @@ void Winpaint_world_radar()
     }
     if (BIT(iniClient.instruments, SHOW_DECOR)) {
 	visibleColor[SETUP_DECOR_FILLED] =
-	    visibleColor[SETUP_DECOR_LU] =
-	    visibleColor[SETUP_DECOR_RU] =
-	    visibleColor[SETUP_DECOR_LD] =
+	    visibleColor[SETUP_DECOR_LU] = 
+	    visibleColor[SETUP_DECOR_RU] = 
+	    visibleColor[SETUP_DECOR_LD] = 
 	    visibleColor[SETUP_DECOR_RD] = iniClient.decorRadarColor;
     }
 
@@ -257,23 +257,23 @@ void Winpaint_world_radar()
     }
     for (xi = 0; xi < 256; xi++) {
 	for (yi = 0; yi < RadarHeight; yi++) {
-	    light = radar_light(radar, xi, yi);
+	    light = radar_light(radar, xi, yi); 
 	    color = Picture_get_pixel(&radar_colors, 0,
-			xi % RADAR_TEXTURE_SIZE,
+			xi % RADAR_TEXTURE_SIZE, 
 			yi % RADAR_TEXTURE_SIZE);
 	    cr = RED_VALUE(color);
 	    cg = GREEN_VALUE(color);
 	    cb = BLUE_VALUE(color);
 	    if (radar[yi * 256 + xi]) {
-		SetPixelV(hDC, xi, yi, RGB( (cr * light) /36,
+		SetPixelV(hDC, xi, yi, RGB( (cr * light) /36,  
 		    (cg * light) / 36, (cb * light) / 36));
 	    } else {
-		SetPixelV(hDC, xi, yi, RGB( (cr * (20 + light)) /72,
+		SetPixelV(hDC, xi, yi, RGB( (cr * (20 + light)) /72, 
 		    (cg * (20 + light)) / 72, (cb * (20 +light)) / 72));
 	    }
 	}
     }
-
+    
     for (i = 0;; i++) {
 	int dead_time, damage;
 	if (Target_by_index(i, &xi, &yi, &dead_time, &damage) == -1) {
@@ -286,25 +286,25 @@ void Winpaint_world_radar()
     }
 }
 
-void Block_bitmap_paint_fuel_slice(Drawable d, int type, int x, int y, int width, int height, int image, int size)
+void Block_bitmap_paint_fuel_slice(Drawable d, int type, int x, int y, int width, int height, int image, int size) 
 {
 
     HDC		hDC = xid[d].hwnd.hBmpDC;
 
     SelectObject(itemsDC, (HBITMAP)xp_pixmaps[type].bitmaps[image].bitmap);
-
+    
     if (bHasPal)
     {
 	SelectPalette(itemsDC, myPal, FALSE);
 	RealizePalette(itemsDC);
     }
-
+    
     BitBlt(hDC, x, y, width, size, itemsDC, 0, 0, SRCPAINT);
-
+    
 }
 
 
-void Block_bitmap_paint_meter(Drawable d, int type, int x, int y, int width, int height, int size)
+void Block_bitmap_paint_meter(Drawable d, int type, int x, int y, int width, int height, int size) 
 {
     HDC		hDC = xid[d].hwnd.hBmpDC;
 
@@ -315,7 +315,7 @@ void Block_bitmap_paint_meter(Drawable d, int type, int x, int y, int width, int
 	SelectPalette(itemsDC, myPal, FALSE);
 	RealizePalette(itemsDC);
     }
-
+    
     BitBlt(hDC, x, y, size, height, itemsDC, 0, 0, SRCPAINT);
 
     SelectObject(itemsDC, (HBITMAP)xp_pixmaps[type].bitmaps[0].bitmap);
@@ -332,7 +332,7 @@ void Block_bitmap_paint_meter(Drawable d, int type, int x, int y, int width, int
 /*
 void paintItemSymbol(unsigned char type, Drawable d, GC gc, int x, int y, int color)
 {
-    PaintBitmap(d, BM_ALL_ITEMS, x, y, WINSCALE(16), WINSCALE(16), type);
-//    PaintBitmap(d, BM_ALL_ITEMS, x, y, 16, 16, type);
+    PaintBitmap(d, BM_ALL_ITEMS, x, y, WINSCALE(16), WINSCALE(16), type); 
+//    PaintBitmap(d, BM_ALL_ITEMS, x, y, 16, 16, type); 
 }
 */

@@ -2,7 +2,7 @@
  *
  * XPilot, a multiplayer gravity war game.  Copyright (C) 1991-2002 by
  *
- *      Bjï¿½rn Stabell        <bjoern@xpilot.org>
+ *      Bjørn Stabell        <bjoern@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
  *      Dick Balaska         <dick@xpilot.org>
@@ -243,7 +243,7 @@ void Break_asteroid(World* w, WireObject* asteroid)
 					5, 10,
 					3, 10);
 	}
-	if ((w->options.asteroidMaxItems->GetInt() > 0)
+	if ((w->options.asteroidMaxItems->GetInt() > 0) 
 				&& (rfrac() < w->options.asteroidItemProb->GetDouble())) {
 		int 	nitems = (int)(rfrac() * w->options.asteroidMaxItems->GetInt()) + 1;
 		int 	i;
@@ -274,7 +274,7 @@ void Break_asteroid(World* w, WireObject* asteroid)
 					  item, num_per_pack,
 					  status);
 		}
-	}
+	}	
 	SoundPlaySensors(w, asteroid->pos.x, asteroid->pos.y, ASTEROID_BREAK_SOUND);
 
 	w->asteroids.num -= 1 << (asteroid->size - 1);
@@ -398,8 +398,8 @@ static void PlaceAsteroid(World* w)
 	space |= FRICTION_BIT;
 	/* would be dubious: space |= CANNON_BIT; */
 
-		if (w->numAsteroidConcs > 0
-				&& rfrac() < w->options.asteroidConcentratorProb->GetDouble())
+		if (w->numAsteroidConcs > 0 
+				&& rfrac() < w->options.asteroidConcentratorProb->GetDouble()) 
 		{
 				con = &w->asteroidConcs[(int)(rfrac() * w->numAsteroidConcs)];
 	} else {

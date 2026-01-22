@@ -2,7 +2,7 @@
  *
  * XPilot, a multiplayer gravity war game.  Copyright (C) 1991-2001 by
  *
- *      Bjï¿½rn Stabell        <bjoern@xpilot.org>
+ *      Bjørn Stabell        <bjoern@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
  *      Dick Balaska         <dick@xpilot.org>
@@ -92,12 +92,12 @@ Sockbuf::~Sockbuf()
 ///////////////////////////////////////////////////////////////////////////////
 int Sockbuf::Init(Sock* _sock, int _size, int _state)
 {
-	if ((buf = ptr = (char *) malloc(_size)) == NULL)
+	if ((buf = ptr = (char *) malloc(_size)) == NULL) 
 		return -1;
 
-	if (_sock != (Sock *) NULL)
+	if (_sock != (Sock *) NULL) 
 		sock = *_sock;
-	else
+	else 
 		sock.Init();
 
 	state = _state;
@@ -195,7 +195,7 @@ int Sockbuf::Flush()
 {
 	int 		_len;
 	int 			i;
-	if (BIT(state, SOCKBUF_WRITE) == 0)
+	if (BIT(state, SOCKBUF_WRITE) == 0) 
 	{
 		seterrno(0);
 		emh(emhThis, EmError, "No flush on non-writable socket buffer");
@@ -400,9 +400,9 @@ int Sockbuf::Read()
 						return(-1);
 				}
 				xpprintf("Sockbuf: read error %s\n", (PCSTR)sock.GetErrorString());
-//				xpprintf("errno=%d (%s) len = %d during sock_read\n",
+//				xpprintf("errno=%d (%s) len = %d during sock_read\n", 
 //						errno, GetSockErrText(errno), _len);
-
+						
 			if (++i > MAX_SOCKBUF_RETRIES) {
 				emh(emhThis, EmError, "Can't recv on socket");
 				return -1;

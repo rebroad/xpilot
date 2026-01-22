@@ -2,7 +2,7 @@
  *
  * XPilot, a multiplayer gravity war game.  Copyright (C) 1991-2001 by
  *
- *      Bjï¿½rn Stabell        <bjoern@xpilot.org>
+ *      Bjørn Stabell        <bjoern@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
  *      Dick Balaska         <dick@xpilot.org>
@@ -55,7 +55,7 @@
 # include "../common/NT/winX.h"
 # include "NT/winbitmap.h"
 # include "NT/winClient.h"
-#endif
+#endif 
 
 #include "blockbitmaps.h"
 #include "gfx2d.h"
@@ -79,13 +79,13 @@ void Block_bitmap_create(Display* dpy, Drawable d, xp_pixmap_t *xp_pixmap, int n
 static void Block_bitmap_picture_copy(xp_pixmap_t *xp_pixmap, int image);
 static void Block_bitmap_picture_scale(xp_pixmap_t *xp_pixmap, int image);
 
-/*
-    i got a terrible feeling that the right thing is to add all of
-    these to options in default.c?
-    (2 options for all? (one for filename, one for on/off), and those who can be
-    rotated might need a value that specifies the resolution.
+/* 
+    i got a terrible feeling that the right thing is to add all of 
+    these to options in default.c? 
+    (2 options for all? (one for filename, one for on/off), and those who can be 
+    rotated might need a value that specifies the resolution. 
     (the 3 ships alone really chews memory : 128*32*32*4*3 bytes of space (~3072K))
-
+    
     This means a number of options explosion, but is there any alternative?
 */
 
@@ -163,7 +163,7 @@ int Block_bitmaps_create(void)
 {
     int		i, j, images;
     static int	block_bitmaps_loaded = 0;
-
+    
     if (block_bitmaps_loaded) {
 	return (block_bitmaps_loaded == 2) ? 0 : -1;
     }
@@ -173,8 +173,8 @@ int Block_bitmaps_create(void)
     for (i = 0 ; i < NUM_BITMAPS; i++) {
 	IFWINDOWS( Progress("Loading image: %s", xp_pixmaps[i].filename); )
 
-	images = (xp_pixmaps[i].rotations > 0 ) ?
-			    xp_pixmaps[i].rotations :
+	images = (xp_pixmaps[i].rotations > 0 ) ? 
+			    xp_pixmaps[i].rotations : 
 			    -xp_pixmaps[i].rotations;
 
 	xp_pixmaps[i].bitmaps = (xp_bitmap_t*)malloc(images * sizeof(xp_bitmap_t));
@@ -190,7 +190,7 @@ int Block_bitmaps_create(void)
 	}
 
 	if (Picture_init(&xp_pixmaps[i].picture,
-			  xp_pixmaps[i].height,
+			  xp_pixmaps[i].height, 
 			  xp_pixmaps[i].width,
 			  images) == -1) {
 	    break;
@@ -199,7 +199,7 @@ int Block_bitmaps_create(void)
 			  xp_pixmaps[i].filename) == -1) {
 	    break;
 	}
-
+    
 	if (xp_pixmaps[i].rotations > 1) {
 	    Picture_rotate(&xp_pixmaps[i].picture);
 	}
@@ -217,7 +217,7 @@ int Block_bitmaps_create(void)
 /*
     Purpose: Draw a bitmap/pixmap, name should be changed(Block_bitmap_paint??)
     unix implementation probably need extra parameters?
-    I rather only change name and parameters once,
+    I rather only change name and parameters once, 
     as i call it all over the place in guimap.c and guiobjects.c.
     There is a scale check, if the bitmap is not correct size then it'll
     scale before drawing.
@@ -254,7 +254,7 @@ void PaintFuelSlice(Drawable d, int type,
 
 
 /*
-    Purpose: Paint a meter, size, is how much of the meter that is used,
+    Purpose: Paint a meter, size, is how much of the meter that is used, 
     first image is the empty meter, second is the filled meter
  */
 
@@ -262,12 +262,12 @@ void PaintMeter(Drawable d, int type, int x, int y, int width, int height, int s
 {
 	if (xp_pixmaps[type].bitmaps)
 	{
-		if (xp_pixmaps[type].bitmaps[0].scale_height != height)
+		if (xp_pixmaps[type].bitmaps[0].scale_height != height) 
 		{
 			Block_bitmap_create(iniClient.dpy, d, &xp_pixmaps[type], 0, width, height);
 			scaled_bitmaps++;
 		}
-		if (xp_pixmaps[type].bitmaps[1].scale_height != height)
+		if (xp_pixmaps[type].bitmaps[1].scale_height != height) 
 		{
 			Block_bitmap_create(iniClient.dpy, d, &xp_pixmaps[type], 1, width, height);
 			scaled_bitmaps++;
@@ -310,19 +310,19 @@ void Cache_ships(Drawable d)
 				    &xp_pixmaps[rotation_types[type]],
 				    number, WINSCALE(32), WINSCALE(32));
 	    }
-	}
-
+	}	
+	
     }
     scaled_bitmaps = 0;
 }
 
 
-/* Purpose: Take a device independent picture and create a
-    device/os dependent image.
+/* Purpose: Take a device independent picture and create a 
+    device/os dependent image. 
     This is only used in the scalefactor 1.0 special case.
 
     Actually this function could be killed, but it's very fast
-    and it uses the intended original image.
+    and it uses the intended original image. 
 */
 
 static void Block_bitmap_picture_copy(xp_pixmap_t *xp_pixmap, int image)
@@ -332,7 +332,7 @@ static void Block_bitmap_picture_copy(xp_pixmap_t *xp_pixmap, int image)
 
     for (y=0; y < xp_pixmap->height; y++)
 	for (x=0; x < xp_pixmap->width; x++) {
-	    color = Picture_get_pixel(&(xp_pixmap->picture),
+	    color = Picture_get_pixel(&(xp_pixmap->picture), 
 					    image, x, y);
 	    Block_bitmap_set_pixel(xp_pixmap, image, x, y, color);
 	}
@@ -344,13 +344,13 @@ static void Block_bitmap_picture_copy(xp_pixmap_t *xp_pixmap, int image)
 
 
 /*  Purpose: Take a device independent picture and create a
-    scaled device/os dependent image.
+    scaled device/os dependent image. 
     This is for some of us the general case.
-    The trick is for each pixel in the target image
+    The trick is for each pixel in the target image 
     to find the area it responds to in the original image, and then
     find an average of the colors in this area.
 */
-
+    
 static void Block_bitmap_picture_scale(xp_pixmap_t *xp_pixmap, int image)
 {
     int		x, y;
@@ -359,8 +359,8 @@ static void Block_bitmap_picture_scale(xp_pixmap_t *xp_pixmap, int image)
     double      dx_scaled, dy_scaled;
     double	orig_height, orig_width;
     int		height, width;
-
-    orig_height = xp_pixmap->height;
+    
+    orig_height = xp_pixmap->height; 
     orig_width = xp_pixmap->width;
     height = xp_pixmap->bitmaps[image].scale_height;
     width = xp_pixmap->bitmaps[image].scale_width;
@@ -403,20 +403,20 @@ static void Block_bitmap_picture_scale(xp_pixmap_t *xp_pixmap, int image)
     Purpose: create a device/OS dependent bitmap.
     The windows version need to create and lock a device context.
     I got no clue what the unix version needs before and after drawing the
-    picture to the pixmap.
+    picture to the pixmap. 
     (the windows version just need the Drawable as parameter, the unix version
     might need more)
 
   */
 
 void Block_bitmap_create(Display* dpy, Drawable d,
-			 xp_pixmap_t *xp_pixmap,
+			 xp_pixmap_t *xp_pixmap, 
 			 int image, int width, int height)
 {
     Block_bitmap_create_begin(d, xp_pixmap, image, width, height);
 
-    xp_pixmap->bitmaps[image].scale_width = width;
-    xp_pixmap->bitmaps[image].scale_height = height;
+    xp_pixmap->bitmaps[image].scale_width = width;		
+    xp_pixmap->bitmaps[image].scale_height = height;		
 
     if (height == xp_pixmap->height && width == xp_pixmap->width) {
 	/* exactly same size as original */
@@ -486,7 +486,7 @@ void Block_bitmap_create_begin(Drawable d,
 	xgc.cap_style = CapButt;
 	xgc.join_style = JoinMiter;
 	xgc.graphics_exposures = False;
-	values =
+	values = 
 	    GCLineWidth|GCLineStyle|GCCapStyle|GCJoinStyle|GCGraphicsExposures;
 	maskGC = XCreateGC(iniClient.dpy, pixmap, values, &xgc);
     }
@@ -529,9 +529,9 @@ void Block_bitmap_set_pixel(xp_pixmap_t * xp_pixmap,
     Will require a new unix drawbitmap operation, as it works
     by drawing less than the height in the image specify.
 */
-void Block_bitmap_paint_fuel_slice(Drawable d, int type,
-				   int x, int y,
-				   int width, int height,
+void Block_bitmap_paint_fuel_slice(Drawable d, int type, 
+				   int x, int y, 
+				   int width, int height, 
 				   int image, int size)
 {
     xp_pixmap_t	*pix = &xp_pixmaps[type];
@@ -556,10 +556,10 @@ void Block_bitmap_paint_fuel_slice(Drawable d, int type,
      Note, there is no bounding box, for clearity. (image has to be fullsize)
 */
 
-void Block_bitmap_paint_meter(Drawable d, int type,
-			      int x, int y,
-			      int width, int height,
-			      int size)
+void Block_bitmap_paint_meter(Drawable d, int type, 
+			      int x, int y, 
+			      int width, int height, 
+			      int size) 
 {
 
     /*First draw the part of the meter that should be filled */
@@ -567,14 +567,14 @@ void Block_bitmap_paint_meter(Drawable d, int type,
 	      d, gc,
 	      0, 0,
 	      size, xp_pixmaps[type].height,
-	      x, y);
+	      x, y); 
     /*Then draw the part of the meter that should be empty */
 
     XCopyArea(iniClient.dpy, xp_pixmaps[type].bitmaps[0].bitmap,	/* 0 = empty image */
 	      d, gc,
 	      size, 0,
 	      xp_pixmaps[type].width - size, xp_pixmaps[type].height,
-	      x + size, y);
+	      x + size, y); 
 }
 
 /*

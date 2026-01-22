@@ -2,7 +2,7 @@
  *
  * XPilot, a multiplayer gravity war game.  Copyright (C) 1991-2001 by
  *
- *      Bjï¿½rn Stabell        <bjoern@xpilot.org>
+ *      Bjørn Stabell        <bjoern@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
  *      Dick Balaska         <dick@xpilot.org>
@@ -674,7 +674,7 @@ static void Widget_draw_viewer(widget_t *widget, XExposeEvent *expose)
 #ifdef	_WINDOWS
 //		GetClientRect(xid[players].hwnd.hWnd, &rect);
 //		InvalidateRect(xid[players].hwnd.hWnd, &rect, FALSE);
-//		UpdateWindow(xid[players].hwnd.hWnd);
+//		UpdateWindow(xid[players].hwnd.hWnd);	
 
 #endif
 }
@@ -1464,7 +1464,7 @@ int Widget_create_activate(int parent_desc,
 	widget_activate_t	*activw;
 
 	if ((parent_widget = Widget_pointer(parent_desc)) == NULL
-		 || parent_widget->type != WIDGET_FORM)
+		 || parent_widget->type != WIDGET_FORM) 
 		{
 				seterrno(0);
 				error("Widget_create_activate: Invalid parent widget");
@@ -1512,7 +1512,7 @@ int Widget_create_bool(int parent_desc,
 	widget_bool_t		*boolw;
 
 	if ((parent_widget = Widget_pointer(parent_desc)) == NULL
-		 || parent_widget->type != WIDGET_FORM)
+		 || parent_widget->type != WIDGET_FORM) 
 		{
 				seterrno(0);
 				error("Widget_create_bool: Invalid parent widget");
@@ -2517,7 +2517,7 @@ int Widget_update_viewer(int popup_desc, const char *buf, int len)
 							end;
 
 	if (!popup || popup->type != WIDGET_FORM || !popup->name
-	  || strcmp(popup->name, "popup_viewer"))
+	  || strcmp(popup->name, "popup_viewer")) 
 	{
 		seterrno(0);
 		error("Widget_update_viewer: not a popup viewer");

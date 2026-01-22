@@ -1,4 +1,4 @@
-/* $Id: XPClientConfig.h,v 1.13 2004/05/28 18:20:29 dick Exp $
+/* $Id: XPClientConfig.h,v 1.14 2007/02/17 06:16:45 dick Exp $
  *
  * XPClientConfig - Configure options for the XPilot client
  *
@@ -27,6 +27,9 @@
  */
 /*
  * $Log: XPClientConfig.h,v $
+ * Revision 1.14  2007/02/17 06:16:45  dick
+ * Add the Sound Editor.
+ *
  * Revision 1.13  2004/05/28 18:20:29  dick
  * Automagically save changes as they occur, rather than have the user press a save button.
  *
@@ -141,7 +144,7 @@ private:
 	void	Config_create_texturedDecor(int);
 	void	Config_create_texturedBalls(int);
 	void	Config_create_maxFPS(int);
-#ifdef SOUND
+#ifdef SOUND_NOTUSED
 	void	Config_create_maxVolume(int);
 #endif
 	void	Config_create_showShipName(int);

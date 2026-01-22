@@ -1,4 +1,4 @@
-/* $Id: XPClientConfig.cpp,v 1.25 2004/06/01 18:18:28 dick Exp $
+/* $Id: XPClientConfig.cpp,v 1.26 2007/02/17 06:16:45 dick Exp $
  *
  * XPClientConfig - Configure options for the XPilot client
  *
@@ -27,6 +27,9 @@
  */
 /*
  * $Log: XPClientConfig.cpp,v $
+ * Revision 1.26  2007/02/17 06:16:45  dick
+ * Add the Sound Editor.
+ *
  * Revision 1.25  2004/06/01 18:18:28  dick
  * Save the config after handling XPInput
  *
@@ -313,7 +316,7 @@ XPClientConfig::XPClientConfig(int w,int h,const char *l)
 //			Config_create_texturedBalls(CCTAB_BOTTOM+4+CC_OPTIONSIZE*12);
 			break;
 		case Sound:
-#ifdef SOUND
+#ifdef SOUND_NOTUSED
 			Config_create_maxVolume(CCTAB_BOTTOM+4);
 #endif
 			break;
@@ -718,14 +721,13 @@ void	XPClientConfig::Config_create_maxFPS(int height)
 //	Config_create_int(height, "maxFPS", &iniClient.maxFPS, FPS / 2, FPS);
 }
 ///////////////////////////////////////////////////////////////////////////////
-#ifdef SOUND
+#ifdef SOUND_NOTUSED
 void	XPClientConfig::Config_create_maxVolume(int height)
 {
 	Config_create_int(height, "maxVolume", &maxVolume, 0, 255);
 }
-///////////////////////////////////////////////////////////////////////////////
-void
 #endif
+///////////////////////////////////////////////////////////////////////////////
 void	XPClientConfig::Config_create_showShipName(int height)
 {
 	//Config_create_bool(height, "showShipName", jlmljlj);

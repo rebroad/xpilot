@@ -7,7 +7,7 @@
  *      Jarrod Miller        <jarrod@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
- *      Bjï¿½rn Stabell        <bjoern@xpilot.org>
+ *      Bjørn Stabell        <bjoern@xpilot.org>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -84,7 +84,7 @@ void World::ScoreServerRequestPlayerRanks()
 
 ///////////////////////////////////////////////////////////////////////////////
 void World::ScoreServerScoreEvent(Player* killer, DFLOAT wscore,
-								  Player* killee, DFLOAT lscore,
+								  Player* killee, DFLOAT lscore, 
 								  ScoreType st)
 {
 	if (!scoreServer || !scoreServer->IsActive())
@@ -109,7 +109,7 @@ void World::ScoreServerScoreEvent(Player* killer, DFLOAT wscore,
 
 ///////////////////////////////////////////////////////////////////////////////
 void World::ScoreServerScoreEvent(PCSTR killer, PlayerType ptr, DFLOAT wscore,
-								  Player* killee, DFLOAT lscore,
+								  Player* killee, DFLOAT lscore, 
 								  ScoreType st)
 {
 	if (!scoreServer || !scoreServer->IsActive())
@@ -129,7 +129,7 @@ void World::ScoreServerScoreEvent(PCSTR killer, PlayerType ptr, DFLOAT wscore,
 
 ///////////////////////////////////////////////////////////////////////////////
 void World::ScoreServerScoreEvent(Player* killer, DFLOAT wscore,
-								  PCSTR killee, PlayerType pte, DFLOAT lscore,
+								  PCSTR killee, PlayerType pte, DFLOAT lscore, 
 								  ScoreType st)
 {
 	if (!scoreServer || !scoreServer->IsActive())

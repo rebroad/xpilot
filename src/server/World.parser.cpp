@@ -1,8 +1,8 @@
-/* $Id: World.parser.cpp,v 1.18 2004/02/03 03:39:54 dick Exp $
+/* $Id: World.parser.cpp,v 1.19 2007/01/13 09:31:09 dick Exp $
  *
  * XPilot, a multiplayer gravity war game.  Copyright (C) 1991-2001 by
  *
- *      Bjï¿½rn Stabell        <bjoern@xpilot.org>
+ *      Bjørn Stabell        <bjoern@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
  *      Dick Balaska         <dick@xpilot.org>
@@ -24,6 +24,9 @@
 /* Original options parsing code contributed by Ted Lemon <mellon@ncd.com> */
 /*
  * $Log: World.parser.cpp,v $
+ * Revision 1.19  2007/01/13 09:31:09  dick
+ * Whitespace/Rebrace to tighten up some code
+ *
  * Revision 1.18  2004/02/03 03:39:54  dick
  * Add Windows precompiled header support.
  *
@@ -342,46 +345,35 @@ static	String	GetMapName(int world)
  * and read the server defaults file and map file.
  * Then convert the map data into a World structure.
  */
-bool World::Parser(int argc, char** argv)
-{
-//	int				i;
+bool World::Parser(int argc, char** argv) {
 	bool			status = true;
-//	char*			fname;
-//	ServerOption*	opt;
 
+// XPilot5 Server doesn't handle command line arguments
 #if 0
-    for (i = 1; i < argc; i++)
-	{
-		if (argv[i][0] == '-' || argv[i][0] == '+')
-		{
+	int				i;
+	ServerOption*	opt;
+    for (i = 1; i < argc; i++) {
+		if (argv[i][0] == '-' || argv[i][0] == '+') {
 			opt = options.FindOptionByName(argv[i] + 1);
-			if (opt != NULL)
-			{
-				if (opt->valType == valBool)
-				{
+			if (opt != NULL) {
+				if (opt->valType == valBool) {
 					const char *bool_value;
-					if (argv[i][0] == '-')
-					{
+					if (argv[i][0] == '-') {
 						bool_value = "true";
 					}
-					else
-					{
+					else {
 						bool_value = "false";
 					}
 					options.SetValue(opt->name, bool_value, 1, OPT_COMMAND);
 				}
-				else if (opt->valType == valVoid)
-				{
+				else if (opt->valType == valVoid) {
 				}
-				else
-				{
-					if (i + 1 == argc)
-					{
+				else {
+					if (i + 1 == argc) {
 						seterrno(0);
 						error("Option '%s' needs an argument", opt->name);
 					}
-					else
-					{
+					else {
 						options.SetValue(opt->name, argv[++i], 1, OPT_COMMAND);
 					}
 				}
@@ -398,7 +390,7 @@ bool World::Parser(int argc, char** argv)
      */
 	String	fname;
 	fname = options.defaultsFileName->GetString();
-	if (fname.GetLength())
+	if (fname.GetLength()) 
 		parseDefaultsFile(this, fname);
 	else
 		parseDefaultsFile(this, Conf_defaults_file_name());
@@ -407,7 +399,7 @@ bool World::Parser(int argc, char** argv)
 	* Read local password file
 	*/
 	fname = options.passwordFileName->GetString();
-	if (fname.GetLength())
+	if (fname.GetLength()) 
 		parsePasswordFile(this, fname);
 	else
 		parsePasswordFile(this, Conf_server_password_file_name());
@@ -419,33 +411,26 @@ bool World::Parser(int argc, char** argv)
 	{
 		bool gotmap = false;
 		fname = options.mapFileName->GetString();
-		if (fname.IsEmpty())
-		{
+		if (fname.IsEmpty()) {
 			fname = GetMapName(0);		// XXX: This will fail if we are not World 0
 		}
-		if (fname.GetLength())
-		{
-			if (parseMapFile(this, fname))
-			{
+		if (fname.GetLength()) {
+			if (parseMapFile(this, fname)) {
 				gotmap = true;
 			}
-			else
-			{
+			else {
 				xpprintf("Unable to read %s, trying to open %s\n",
 					(PCSTR)fname, Conf_default_map());
-				if (!parseMapFile(this, Conf_default_map()))
-				{
+				if (!parseMapFile(this, Conf_default_map())) {
 					xpprintf("Unable to read %s\n", Conf_default_map());
 				}
 				else
 					gotmap = true;
 			}
-		} else
-		{
+		} else {
 			fname = Conf_default_map();
 			xpprintf("Map not specified, trying to open %s\n", (PCSTR)fname);
-			if (!parseMapFile(this, fname))
-			{
+			if (!parseMapFile(this, fname)) {
 				xpprintf("Unable to read %s\n", Conf_default_map());
 				fname = "";
 			}
@@ -454,8 +439,7 @@ bool World::Parser(int argc, char** argv)
 		}
 		if (gotmap)
 			options.mapFileName->Set(fname);
-		if (!gotmap)
-		{
+		if (!gotmap) {
 			xpprintf("Generating random world...");
 			WildMap::MakeWildMap(&options);
 		}

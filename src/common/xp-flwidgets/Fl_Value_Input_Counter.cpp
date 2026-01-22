@@ -9,7 +9,7 @@
  *      Jarrod Miller        <jarrod@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
- *      Bjï¿½rn Stabell        <bjoern@xpilot.org>
+ *      Bjørn Stabell        <bjoern@xpilot.org>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -70,7 +70,7 @@ void Fl_Value_Input_Counter::UpHandler(Fl_Widget*, void* myThis)
 DFLOAT Fl_Value_Input_Counter::CalcOffset(DFLOAT fval, DFLOAT min, DFLOAT max, DFLOAT delta, DFLOAT *fmin)
 {
 	DFLOAT offset;
-
+	
 	if (fval >= 0) {
 		if (min < 0) {
 			*fmin = 0;
@@ -87,7 +87,7 @@ DFLOAT Fl_Value_Input_Counter::CalcOffset(DFLOAT fval, DFLOAT min, DFLOAT max, D
 		offset = -fval + *fmin;
 	}
 	return offset;
-
+	
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -100,15 +100,15 @@ void Fl_Value_Input_Counter::UpHandler()
 		offset,
 		newoffset,
 		max, min;
-
+	
 	fval = text->value();
 	ival = (int) text->value();
 	max = text->maximum();
 	min = text->minimum();
 	delta = max - min;
-
+	
 	offset = CalcOffset(fval, min, max, delta, &fmin);
-
+	
 	switch (type) {
 	case integer:
 		ival = (int)(ival * 1.05 + 0.5);
@@ -131,12 +131,12 @@ void Fl_Value_Input_Counter::UpHandler()
 	} else {
 		fval = fmin - newoffset;
 	}
-
+	
 	LIMIT(fval, min, max);
 	if (fval != text->value())
 		text->value(fval);
-
-
+	
+	
 	//	text->value(text->clamp(text->value()+text->step()));
 	TextHandler();
 }
@@ -158,15 +158,15 @@ void Fl_Value_Input_Counter::DownHandler()
 		offset,
 		newoffset,
 		max, min;
-
+	
 	fval = text->value();
 	ival = (int) text->value();
 	max = text->maximum();
 	min = text->minimum();
 	delta = max - min;
-
+	
 	offset = CalcOffset(fval, min, max, delta, &fmin);
-
+	
 
 	switch (type) {
 	case integer:
@@ -186,20 +186,20 @@ void Fl_Value_Input_Counter::DownHandler()
 		}
 		break;
 	}
+	
 
-
-
+	
 	if (fval >= 0) {
 		fval = fmin + newoffset;
 	} else {
 		fval = fmin - newoffset;
 	}
-
+	
 	LIMIT(fval, min, max);
 	if (fval != text->value())
 		text->value(fval);
-
-
+	
+	
 	//	text->value(text->clamp(text->value()-text->step()));
 	TextHandler();
 }

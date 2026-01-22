@@ -1,4 +1,4 @@
-# $Id: Makefile.in,v 1.20 2004/05/02 03:08:00 dick Exp $
+# $Id: Makefile.in,v 1.22 2007/01/11 05:08:13 dick Exp $
 # @configure_input@
 #
 # Makefile.in for xpilot++'s program xpilots++
@@ -26,6 +26,13 @@
 # Please report all bugs and problems to "xpilot++@buckosoft.com".
 #
 # $Log: Makefile.in,v $
+# Revision 1.22  2007/01/11 05:08:13  dick
+# Robots in subdirectories builds on Linux
+#
+# Revision 1.21  2007/01/10 18:14:47  dick
+# All robot actions are now handled through RobotMan.
+# There is one RobotMan per World.
+#
 # Revision 1.20  2004/05/02 03:08:00  dick
 # Audio support.  Separate client and server audio support.
 # Servers will probably always build with -DSOUND
@@ -104,7 +111,7 @@
 
 PROGNAME = xpilotserver
 
-SUBDIRS =
+SUBDIRS = robots
 
 CPPFILES = \
 	Alliance.cpp asteroid.cpp Cannon.cpp cmdline.cpp command.cpp \
@@ -114,7 +121,6 @@ CPPFILES = \
 	id.cpp item.cpp laser.cpp metaserver.cpp \
 	Object.cpp objpos.cpp option.cpp \
 	Player.cpp \
-	Robot.cpp robotdef.cpp \
 	saudio.cpp score.cpp \
 	ServerOptionWorld.cpp ship.cpp shot.cpp \
 	update.cpp \
@@ -122,8 +128,10 @@ CPPFILES = \
 	World.main.cpp World.netserver.cpp World.parser.cpp World.play.cpp \
 	World.rules.cpp World.ScoreServer.cpp World.tag.cpp World.walls.cpp
 
-LIBS = \
-	$(SERVERLIBLIB) $(COMMONLIB)
+ROBOTLIB = robots/librobots.a
+
+DEPLIBS = \
+	$(SERVERLIBLIB) $(COMMONLIB) $(ROBOTLIB)
 
 CLEAN =
 
@@ -133,26 +141,44 @@ TOP=@top_srcdir@
 include @top_srcdir@/makeinclude
 
 #XPCXXFLAGS = $(SERVERLIBINC) $(COMMONINC) $(FLTKWIDGETSINC)
-XPCXXFLAGS = $(COMMONINC) $(SERVERLIBINC) $(SERVERSOUND)
-XPLDFLAGS = $(COMMONLIB) $(SERVERLIBLIB)
+XPCXXFLAGS = $(COMMONINC) $(SERVERLIBINC) $(SERVERSOUND) -I robots/
+XPLDFLAGS = $(COMMONLIB) $(SERVERLIBLIB) $(ROBOTLIB)
 
 OBJECTS = $(CPPFILES:.cpp=.o) $(CFILES:.c=.o)
 
-all:	$(PROGNAME)
+all::	$(SUBDIRS)
+	@for dir in $(SUBDIRS); do\
+		echo "=== making $$dir ===";\
+		(cd $$dir; $(MAKE) $(MFLAGS)) || exit 1;\
+	done
 
-$(PROGNAME): $(OBJECTS) $(LIBS)
+all::	$(PROGNAME)
+
+$(PROGNAME): $(OBJECTS) $(DEPLIBS)
 	echo $(CXX) $@ ...
 	$(CXX) -o $@ $(OBJECTS) $(XPLDFLAGS) $(LDFLAGS) $(LDLIBS)
 
 
 clean :
+	@for dir in $(SUBDIRS); do\
+		echo "=== cleaning $$dir ===";\
+		(cd $$dir; $(MAKE) $(MFLAGS) clean) || exit 1;\
+	done
 	-@ rm -f *.o *.do $(PROGNAME) $(CLEAN) core *~ *.bak .depend cmap
 	-@ touch .depend
 
 distclean: clean
+	@for dir in $(SUBDIRS); do\
+		echo "=== distcleaning $$dir ===";\
+		(cd $$dir; $(MAKE) $(MFLAGS) distclean) || exit 1;\
+	done
 	-@ rm -f Makefile
 
 depend:
+	@for dir in $(SUBDIRS); do\
+		echo "=== making dependencies in $$dir ===";\
+		(cd $$dir; $(MAKE) $(MFLAGS) depend) || exit 1;\
+	done
 	-@ makedepend $(OSFLAG) $(XPCXXFLAGS) $(FLTKINC) -f .depend $(CPPFILES) $(CFILES)
 
 include .depend
@@ -165,5 +191,5 @@ install:
 	chmod 555 $(bindir)/$(PROGNAME)
 
 #
-# End of "$Id: Makefile.in,v 1.20 2004/05/02 03:08:00 dick Exp $".
+# End of "$Id: Makefile.in,v 1.22 2007/01/11 05:08:13 dick Exp $".
 #

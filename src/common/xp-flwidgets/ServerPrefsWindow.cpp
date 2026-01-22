@@ -1,4 +1,4 @@
-/* $Id: ServerPrefsWindow.cpp,v 1.23 2004/05/24 07:35:26 dick Exp $
+/* $Id: ServerPrefsWindow.cpp,v 1.24 2007/02/03 09:22:31 dick Exp $
  *
  * XPilotedit, the cross platform map editor for XPilot.
  *      Copyright (C) 2001 by
@@ -8,7 +8,7 @@
  *      Dick Balaska         <dick@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
- *      Bjï¿½rn Stabell        <bjoern@xpilot.org>
+ *      Bjørn Stabell        <bjoern@xpilot.org>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -29,6 +29,9 @@
  */
 /*
  * $Log: ServerPrefsWindow.cpp,v $
+ * Revision 1.24  2007/02/03 09:22:31  dick
+ * Remove the listeners before deleting the netclient
+ *
  * Revision 1.23  2004/05/24 07:35:26  dick
  * Fix the dim color for PrefsInput (the text widget)
  *
@@ -163,7 +166,7 @@ PrefsComments::PrefsComments(int x,int y,int w,int h,const char *l)
 PrefsPushButton::PrefsPushButton(int x,int y,int w,int h,const char *l)
         : Fl_Button(x,y,w,h,l)
 {
-
+	
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -220,9 +223,14 @@ ServerPrefsWindow::ServerPrefsWindow(int w, int h, const char* l)
 ///////////////////////////////////////////////////////////////////////////////
 ServerPrefsWindow::~ServerPrefsWindow()
 {
-	if (sonc)
+	if (sonc) {
+		sonc->RemoveServerOptions();
 		delete sonc;
+	}
 	sonc = NULL;
+//	if (sosOwned && sos)
+//		delete sos;
+//	sos = NULL;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -253,21 +261,23 @@ void ServerPrefsWindow::Initialize(ServerOptions* lpServerOptions)
 
 	color(xpblack);
 
+	sosOwned = false;
 	if (sos)
 		wintype = OPTIONMAP;
 	else
 	{
 		sos = new ServerOptions;
 		wintype = OPTIONALL;
+		sosOwned = true;
 	}
 
-	colorKey = new Fl_PrefsColorKey(WIDGET_INSET,
+	colorKey = new Fl_PrefsColorKey(WIDGET_INSET, 
 						   KEY_TOP,
 						   PREF_WIDTH-(WIDGET_INSET*2),
 						   KEY_HEIGHT);
 
 	Fl_Tabs* o = new Fl_Tabs(10,
-							 TAB_TOP,
+							 TAB_TOP, 
 							 PREF_WIDTH-(WIDGET_INSET*2),
 							 PREF_HEIGHT-(WIDGET_INSET*2)-STATUS_HEIGHT-KEY_HEIGHT);
 	flTabs = o;
@@ -286,16 +296,16 @@ void ServerPrefsWindow::Initialize(ServerOptions* lpServerOptions)
 		o->labelfont(FL_TIMES_ITALIC);
 		if (j==TabComments)
 		{
-			PrefsComments* comm =
+			PrefsComments* comm = 
 				new PrefsComments(WIDGET_INSET+TAB_GROUP_INSET,
-								  OPTIONS_TOP,
+								  OPTIONS_TOP, 
 								  PREF_WIDTH-(TAB_GROUP_INSET*2)-(WIDGET_INSET*2),
 								  OPTIONS_HEIGHT-(WIDGET_INSET*2));
 			comm->value(sos->comments);
 			comm->so = &sos->comments;
 			comm->callback((Fl_Callback *)prefs_comments_changed_cb);
 		}
-		for (i=0; i<sos->numPrefs; i++)
+		for (i=0; i<sos->numPrefs; i++) 
 		{
 			if (wintype != OPTIONALL)
 				if ((sos->prefsArray[i]->visibleto != wintype) &&
@@ -325,7 +335,7 @@ void ServerPrefsWindow::Initialize(ServerOptions* lpServerOptions)
 					inp->labelfont(FL_TIMES_ITALIC);
 
 					inp->callback((Fl_Callback *)prefs_input_changed_cb);
-					sos->prefsArray[i]->AddListener(&PrefsInput::HandleListener,
+					sos->prefsArray[i]->AddListener(&PrefsInput::HandleListener, 
 													&PrefsInput::HandleActivate,
 													inp);
 					inp->Listener();
@@ -349,7 +359,7 @@ void ServerPrefsWindow::Initialize(ServerOptions* lpServerOptions)
 
 					chkb->callback((Fl_Callback *)prefs_checkbutton_pressed_cb);
 					sos->prefsArray[i]->AddListener(&PrefsCheckButton::HandleListener,
-													&PrefsCheckButton::HandleActivate,
+													&PrefsCheckButton::HandleActivate, 
 													chkb);
 					chkb->Listener();
 					//inp->when(FL_WHEN_CHANGED);
@@ -365,7 +375,7 @@ void ServerPrefsWindow::Initialize(ServerOptions* lpServerOptions)
 					eventb->tooltip(MakeTooltip(eventb->so));
 
 					eventb->callback((Fl_Callback *)prefs_pushbutton_pressed_cb);
-					sos->prefsArray[i]->AddListener(&PrefsPushButton::HandleListener,
+					sos->prefsArray[i]->AddListener(&PrefsPushButton::HandleListener, 
 													&PrefsPushButton::HandleActivate,
 													eventb);
 					//inp->when(FL_WHEN_CHANGED);
@@ -376,10 +386,10 @@ void ServerPrefsWindow::Initialize(ServerOptions* lpServerOptions)
 		o->end();
 		Fl_Group::current()->resizable(o);
 	}
-
+	
 	o->end();
 
-	status = new Fl_Status(WIDGET_INSET,
+	status = new Fl_Status(WIDGET_INSET, 
 						   STATUS_TOP,
 						   PREF_WIDTH-(WIDGET_INSET*2),
 						   STATUS_HEIGHT);
@@ -419,11 +429,11 @@ PCSTR ServerPrefsWindow::MakeTooltip(ServerOption* so)
 {
 //	String s = so->help;	// I wanted to build a tooltip with the optionname
 //	s += so->name;          // and default value (and most importantly, the symbol :)
-	return(so->help);		// but tooltip wants a PCSTR, so skip it for now.
+	return(so->help);		// but tooltip wants a PCSTR, so skip it for now. 
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void ServerPrefsWindow::SetStatus(PCSTR fmt, ...)
+void ServerPrefsWindow::SetStatus(PCSTR fmt, ...) 
 {
     va_list	ap;
     char	s[512];
@@ -481,7 +491,7 @@ void PrefsInput::Activate(bool onOff)
 		activate();
 	else
 		deactivate();
-
+	
 	if (spw && spw->GetColorKey())
 	{
 		Fl_Color color = spw->GetColorKey()->GetOptColor(so->optOrigin);
@@ -493,7 +503,7 @@ void PrefsInput::Activate(bool onOff)
 			parent()->redraw();
 		}
 	}
-
+	
 }
 
 ///////////////////////////////////////////////////////////////////////////////

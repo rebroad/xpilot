@@ -8,7 +8,7 @@
  *      Jarrod Miller        <jarrod@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
- *      Bjï¿½rn Stabell        <bjoern@xpilot.org>
+ *      Bjørn Stabell        <bjoern@xpilot.org>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -43,7 +43,7 @@
 
 /***************************************************************************\
 *  sockerrs.cpp - Translate winsock error numbers into text					*
-*  Copyrightï¿½ 1996-1999 - BuckoSoft, Inc.									*
+*  Copyright© 1996-1999 - BuckoSoft, Inc.									*
 *																			*
 *																			*
 *  $Id: sockerrs.cpp,v 1.3 2004/02/03 03:39:52 dick Exp $					*
@@ -99,7 +99,7 @@ EADDRINUSE, "EADDRINUSE",
 EADDRNOTAVAIL, "EADDRNOTAVAIL",
 ENETDOWN, "ENETDOWN",
 ENETUNREACH, "ENETUNREACH",
-ENETRESET, "ENETRESET",
+ENETRESET, "ENETRESET", 
 ECONNABORTED, "ECONNABORTED",
 ECONNRESET, "ECONNRESET",
 ENOBUFS, "ENOBUFS",

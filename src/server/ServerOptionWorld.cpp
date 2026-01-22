@@ -1,8 +1,8 @@
-/* $Id: ServerOptionWorld.cpp,v 1.29 2005/03/17 22:12:14 kps Exp $
+/* $Id: ServerOptionWorld.cpp,v 1.31 2007/02/03 09:21:12 dick Exp $
  *
  * XPilot, a multiplayer gravity war game.  Copyright (C) 1991-2001 by
  *
- *      Bjï¿½rn Stabell        <bjoern@xpilot.org>
+ *      Bjørn Stabell        <bjoern@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
  *      Dick Balaska         <dick@xpilot.org>
@@ -22,6 +22,13 @@
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
  *  $Log: ServerOptionWorld.cpp,v $
+ *  Revision 1.31  2007/02/03 09:21:12  dick
+ *  Whitespace
+ *
+ *  Revision 1.30  2007/01/10 18:14:47  dick
+ *  All robot actions are now handled through RobotMan.
+ *  There is one RobotMan per World.
+ *
  *  Revision 1.29  2005/03/17 22:12:14  kps
  *  Get rid of warnings from makedepend about "non-portable whitespace".
  *
@@ -157,7 +164,7 @@
 #include "World.h"
 
 #include "ServerOptionWorld.h"
-#include "Robot.h"
+#include "RobotMan.h"
 
 ///////////////////////////////////////////////////////////////////////////////
 // SYSTEM WIDE Server Options initialization for XPilotServer
@@ -293,7 +300,7 @@ void ServerOptionWorld::TunerBallMass(void)
 
 	for (i = 0; i < w->numObjs; i++) {
 		if (BIT(w->objs[i]->type, OBJ_BALL)) {
-				w->objs[i]->mass = GetDouble();
+			w->objs[i]->mass = GetDouble();
 		}
 	}
 }
@@ -312,7 +319,7 @@ void ServerOptionWorld::TunerMaxRobots(void)
 	}
 
 	while (GetInt() < w->numRobots) {
-		Robot_delete(w, -1, true);
+		w->robotMan->Delete(-1, true);
 	}
 }
 
@@ -466,7 +473,7 @@ void ServerOptionWorld::TunerModifiers(void)
 	w->SetWorldRules();
 
 	for (i = 0; i < w->numPlayers; i++) {
-				w->FilterMods(&w->players[i]->mods);
+		w->FilterMods(&w->players[i]->mods);
 	}
 }
 
@@ -486,8 +493,7 @@ void ServerOptionWorld::TunerMineLife(void)
 
 		if (!BIT(w->objs[i]->status, FROMCANNON)) {
 			life =
-				(GetInt() ? GetInt() : MINE_LIFETIME) / (w->objs[i]->mods.mini +
-														 1);
+				(GetInt() ? GetInt() : MINE_LIFETIME) / (w->objs[i]->mods.mini + 1);
 
 			w->objs[i]->life = (int)(rfrac() * life);
 			/* We wouldn't want all the mines
@@ -514,8 +520,8 @@ void ServerOptionWorld::TunerMissileLife(void)
 
 		if (!BIT(w->objs[i]->status, FROMCANNON)) {
 			life =
-				(GetInt()
-						? GetInt()
+				(GetInt() 
+						? GetInt() 
 						: (MISSILE_LIFETIME * w->GetFPS())) / (w->objs[i]->mods.mini + 1);
 
 			w->objs[i]->life = (int)(rfrac() * life);
@@ -716,7 +722,7 @@ void ServerOptionWorld::TunerSaveTuned()
 		w->options.saveTuned->Set(e);
 		w->BroadcastOption(w->options.saveTuned);
 		return;
-	}
+	}	
 	fname += tweakName;
 	xpprintf("%sSaving tweaks to \"%s\"\n", showtime(), (PCSTR)fname);
 	FILE*	fp;

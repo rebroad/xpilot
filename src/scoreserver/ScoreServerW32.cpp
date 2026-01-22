@@ -9,7 +9,7 @@
  *      Jarrod Miller        <jarrod@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
- *      Bjï¿½rn Stabell        <bjoern@xpilot.org>
+ *      Bjørn Stabell        <bjoern@xpilot.org>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -96,9 +96,9 @@ ScoreServerW32::ScoreServerW32()
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-int PASCAL WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
-	LPSTR lpszCmdLine, int nCmdShow)
-{
+int PASCAL WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, 
+	LPSTR lpszCmdLine, int nCmdShow) 
+{ 
 	return(scoreServerW32.WinMain(hInstance, hPrevInstance, lpszCmdLine, nCmdShow));
 }
 
@@ -127,31 +127,31 @@ int ScoreServerW32::WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
 		wc.hbrBackground = (HBRUSH)GetStockObject(DKGRAY_BRUSH);
 		wc.lpszMenuName =  "MainMenu";
 		wc.lpszClassName = "MainWndClass";
-
+ 
 		if (!RegisterClass(&wc))
 			return FALSE;
 	}
-
+ 
 	hinst = hInstance;	// save instance handle
-
+ 
 	// Create the main window.
-
+ 
 	mainWnd = CreateWindow("MainWndClass", "XPScoreServer",
 		WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT,
 		MAINWIN_WIDTH, MAINWIN_HEIGHT, (HWND) NULL,
 		(HMENU) NULL, hinst, (LPVOID) NULL);
-
+ 
 	// If the main window cannot be created, terminate
 	// the application.
-
+ 
 	if (!mainWnd)
 		return FALSE;
-
+ 
 	theApp.cfg.hWnd = mainWnd;
 	notifyWnd = mainWnd;	// where the network layer sends his messages
 
-	// Show the window and paint its contents.
-
+	// Show the window and paint its contents. 
+ 
 	int ret;
 	WSADATA	wsaData;
 	ret = WSAStartup(1, &wsaData);
@@ -163,12 +163,12 @@ int ScoreServerW32::WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
 
 	ShowWindow(mainWnd, nCmdShow);
 	UpdateWindow(mainWnd);
-
+ 
 	AddMiniTrayIcon();
 
 	// Start the message loop.
  	while( (bRet = GetMessage( &msg, NULL, 0, 0 )) != 0)
-	{
+	{ 
 		if (bRet == -1)
 		{
 			// handle the error and possibly exit
@@ -192,7 +192,7 @@ LRESULT CALLBACK MainWndProc(
 	UINT uMsg,		  // message identifier
 	WPARAM wParam,	  // first message parameter
 	LPARAM lParam)	  // second message parameter
-{
+{ 
 	return(scoreServerW32.MainWndProc(hwnd, uMsg, wParam, lParam));
 }
 
@@ -202,11 +202,11 @@ LRESULT ScoreServerW32::MainWndProc(
 	UINT uMsg,		  // message identifier
 	WPARAM wParam,	  // first message parameter
 	LPARAM lParam)	  // second message parameter
-{
-
+{ 
+ 
 	//Trace("Wnd: %x Msg: %x\n", hwnd, uMsg);
-	switch (uMsg)
-	{
+	switch (uMsg) 
+	{ 
 		case WM_CREATE:
 		{
 			// Initialize the window.
@@ -217,7 +217,7 @@ LRESULT ScoreServerW32::MainWndProc(
 				5, 5, lpcs->cx - 20, lpcs->cy - 40, hwnd, NULL, hinst, NULL);
 			printfWnd = editWnd;
 			editFont = CreateFont(-12, 0, 0, 0, FW_MEDIUM, FALSE, FALSE, FALSE,
-				ANSI_CHARSET, OUT_DEVICE_PRECIS, CLIP_DEFAULT_PRECIS,
+				ANSI_CHARSET, OUT_DEVICE_PRECIS, CLIP_DEFAULT_PRECIS, 
 				PROOF_QUALITY, FF_SWISS|DEFAULT_PITCH, NULL);
 			if (editFont)
 				SendMessage(editWnd, WM_SETFONT, (WPARAM)editFont, TRUE);
@@ -273,7 +273,7 @@ LRESULT ScoreServerW32::MainWndProc(
 			DeleteObject(editFont);
 			WSACleanup();
 			PostQuitMessage(0);
-			return 0;
+			return 0; 
 		case WM_SYSCOMMAND:
  			if (trayIconOn && wParam == SC_MINIMIZE)
 			{
@@ -284,7 +284,7 @@ LRESULT ScoreServerW32::MainWndProc(
 				return(ShowWindow(mainWnd, SW_HIDE));
 			}
 			return DefWindowProc(hwnd, uMsg, wParam, lParam);
-
+ 
 		case WM_COMMAND:
 			switch (wParam)
 			{
@@ -296,12 +296,12 @@ LRESULT ScoreServerW32::MainWndProc(
 			default:
 				return DefWindowProc(hwnd, uMsg, wParam, lParam);
 			}
-		//
-		// Process other non-Windows(tm) messages.
-		//
+		// 
+		// Process other non-Windows(tm) messages. 
+		// 
 		case WM_TRAYICONMSG:
 			return(OnTrayIconMsg(wParam, lParam));
-		case WMB_HTTP:
+		case WMB_HTTP: 
 			return(OnWMB_HTTP(wParam, lParam));
 		case WMB_UDP:
 			return(OnWMB_UDP(wParam, lParam));
@@ -358,11 +358,11 @@ void ScoreServerW32::AddMiniTrayIcon()
 		nd.cbSize = sizeof(NOTIFYICONDATA);
 		nd.hWnd = mainWnd;
 		nd.uID  = 1;
-		nd.uFlags = NIF_ICON | NIF_TIP | NIF_MESSAGE;
+		nd.uFlags = NIF_ICON | NIF_TIP | NIF_MESSAGE; 
 		nd.uCallbackMessage = WM_TRAYICONMSG;
 		//nd.hIcon = AfxGetApp()->LoadIcon(IDI_ICON_TRAY);
 		nd.hIcon = ::LoadIcon(hinst, MAKEINTRESOURCE(100));
-		strcpy(nd.szTip, szAppName);
+		strcpy(nd.szTip, szAppName); 
 		Shell_NotifyIcon(NIM_ADD, &nd);
 
 		miniMenu = CreatePopupMenu();

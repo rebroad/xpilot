@@ -1,8 +1,8 @@
-/* $Id: World.contact.cpp,v 1.51 2006/09/24 05:05:23 dick Exp $
+/* $Id: World.contact.cpp,v 1.53 2007/01/20 19:28:07 dick Exp $
  *
  * XPilot, a multiplayer gravity war game.  Copyright (C) 1991-2001 by
  *
- *      Bjï¿½rn Stabell        <bjoern@xpilot.org>
+ *      Bjørn Stabell        <bjoern@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
  *      Dick Balaska         <dick@xpilot.org>
@@ -23,6 +23,13 @@
  */
 /*
  *  $Log: World.contact.cpp,v $
+ *  Revision 1.53  2007/01/20 19:28:07  dick
+ *  Comment out unused debug
+ *
+ *  Revision 1.52  2007/01/10 18:14:47  dick
+ *  All robot actions are now handled through RobotMan.
+ *  There is one RobotMan per World.
+ *
  *  Revision 1.51  2006/09/24 05:05:23  dick
  *  Better diagnostic when failing to create contact port
  *
@@ -243,7 +250,7 @@
 #include "showtime.h"
 #include "portability.h"
 #include "metaserver.h"
-#include "Robot.h"
+#include "RobotMan.h"
 
 char contact_version[] = VERSION;
 
@@ -292,7 +299,7 @@ bool World::ContactInit()
 			(void *)this);
 		if (localAddr != serverAddr)
 		{
-			if (ContactInit(remoteContactBuf, remoteContactSocket,
+			if (ContactInit(remoteContactBuf, remoteContactSocket, 
 					serverAddr, options.contactPort->GetInt()))
 			{
 				netServer->InstallInput(&World::ContactFromRemote, remoteContactSocket.fd,
@@ -344,7 +351,7 @@ int World::KickRobotPlayers(int team)
 	if (numRobots == 0) 		/* no robots available for kicking */
 		return 0;
 	if (team == TEAM_NOT_SET) {
-		if (BIT(rules->mode, TEAM_PLAY)
+		if (BIT(rules->mode, TEAM_PLAY) 
 				&& options.reserveRobotTeam->GetBool()) {
 			/* kick robot with lowest score from any team but robotTeam */
 			DFLOAT low_score = INT_MAX;
@@ -359,13 +366,13 @@ int World::KickRobotPlayers(int team)
 				}
 			}
 			if (low_i >= 0) {
-				Robot_delete(this, low_i, true);
+				robotMan->Delete(low_i, true);
 				return 1;
 			}
 			return 0;
 		} else {
 			/* kick random robot */
-			Robot_delete(this, -1, true);
+			robotMan->Delete(-1, true);
 			return 1;
 		}
 	} else {
@@ -383,7 +390,7 @@ int World::KickRobotPlayers(int team)
 				}
 			}
 			if (low_i >= 0) {
-				Robot_delete(this, low_i, true);
+				robotMan->Delete(low_i, true);
 				return 1;
 			}
 			return 0;
@@ -403,20 +410,20 @@ int World::KickPausedPlayers(int team)
 	int 				i;
 	int 				num_unpaused = 0;
 
-	for (i = numPlayers - 1; i >= 0; i--)
+	for (i = numPlayers - 1; i >= 0; i--) 
 	{
 		if (players[i]->conn
 			&& BIT(players[i]->status, PAUSE)
-			&& (team == TEAM_NOT_SET || players[i]->team == team))
+			&& (team == TEAM_NOT_SET || players[i]->team == team)) 
 		{
-			if (team == TEAM_NOT_SET)
+			if (team == TEAM_NOT_SET) 
 			{
 				sprintf(msg,	// DIK: whoa.  global msg?
 						"The paused \"%s\" was kicked because the game is full.",
 						players[i]->name);
 				players[i]->conn->DestroyConnection("no pause with full game");
 			}
-			else
+			else 
 			{
 				sprintf(msg,
 						"The paused \"%s\" was kicked because team %d is full.",
@@ -570,7 +577,7 @@ void World::Contact(Sockbuf& ibuf)
 
 	// Handle version forks between 4.5.1 and 5.0.0 (i.e 4.6.0ng)
 	if (version > 0x4501 && version < 0x5000)
-		version = 0x4501;
+		version = 0x4501; 
 	/*
 	 * Read core of packet.
 	 */
@@ -623,7 +630,7 @@ void World::Contact(Sockbuf& ibuf)
 		}
 		if (reply_to == PASSWORD_pack)
 		{
-
+						
 			if (ibuf.scanf("%s", &str) <= 0)
 				return;
 			if (options.password->GetString() == str)
@@ -757,8 +764,8 @@ void World::Contact(Sockbuf& ibuf)
 		 * Someone asked for information.
 		 */
 
-		D(xpprintf("%s%s@%s asked for info about current game.\n",
-			   showtime(), (PCSTR)real_name, host_addr);)
+//		D(xpprintf("%s%s@%s asked for info about current game.\n",
+//			   showtime(), (PCSTR)real_name, host_addr);)
 		ibuf.Clear();
 		ibuf.printf("%u%c%c", my_magic, reply_to, SUCCESS);
 		ServerInfo(ibuf.buf + ibuf.len, ibuf.size - ibuf.len);
@@ -989,7 +996,7 @@ void World::Contact(Sockbuf& ibuf)
 				minRobots = maxRobots;
 			}
 			while (maxRobots < numRobots) {
-				Robot_delete(this, -1, true);
+				robotMan->Delete(-1, true);
 			}
 		}
 
@@ -1493,7 +1500,7 @@ static int Check_address(char *str)
 		return -1;
 	}
 	for (i = 0; i < num_addr_mask; i++) {
-		if ((addr_mask_list[i].addr & addr_mask_list[i].mask) ==
+		if ((addr_mask_list[i].addr & addr_mask_list[i].mask) == 
 			(addr & addr_mask_list[i].mask)) {
 			return 1;
 		}

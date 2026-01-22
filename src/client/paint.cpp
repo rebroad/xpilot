@@ -1,4 +1,4 @@
-/* $Id: paint.cpp,v 1.23 2004/06/03 06:04:42 dick Exp $
+/* $Id: paint.cpp,v 1.25 2007/01/17 21:35:15 dick Exp $
  *
  * paint - the master drawing handling.
  *
@@ -6,7 +6,7 @@
  *
  * XPilot, a multiplayer gravity war game.  Copyright (C) 1991-2001 by
  *
- *      Bjï¿½rn Stabell        <bjoern@xpilot.org>
+ *      Bjørn Stabell        <bjoern@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
  *      Dick Balaska         <dick@xpilot.org>
@@ -27,6 +27,15 @@
  */
 /*
  * $Log: paint.cpp,v $
+ * Revision 1.25  2007/01/17 21:35:15  dick
+ * Encapsulate all of the RobotWatch features into a RobotWatchMan object.
+ *
+ * Revision 1.24  2007/01/17 08:59:49  dick
+ * RobotWatch is a list of Strings sent from the client when a player is paused
+ * and watching a robot.  This list contains diagnostic information about
+ * what the heck the robot thinks it's doing.
+ * It's kinda like the Terminator view where he's looking at a 6502 dump.
+ *
  * Revision 1.23  2004/06/03 06:04:42  dick
  * struct other_t becomes class Other.
  * array Others becomes ObjList others.
@@ -144,6 +153,7 @@
 #include "commonproto.h"
 #include "Ini.h"
 #include "ScoreTable.h"
+#include "RobotWatchMan.h"
 
 char paint_version[] = VERSION;
 
@@ -341,6 +351,7 @@ void Paint_frame(void)
 		Paint_messages();
 		Paint_radar();
 		Paint_score_objects();
+		robotWatchMan.Paint();
 	}
 	else {
 		/* Damaged. */
@@ -373,7 +384,7 @@ void Paint_frame(void)
 			XCopyArea(iniClient.dpy, p_radar, radar, gc,
 					  0, 0, 256, RadarHeight, 0, 0);
 #else
-			WinXBltPixToWin(p_radar, radar,
+			WinXBltPixToWin(p_radar, radar, 
 							0, 0, 256, RadarHeight, 0, 0);
 #endif
 		} else {
@@ -409,7 +420,7 @@ void Paint_frame(void)
 			XCopyArea(iniClient.dpy, p_radar, radar, gc,
 					  x, y, w, h, 0, 0);
 #else
-			Paint_world_radar();
+			Paint_world_radar();						  
 #endif
 		}
 	}
@@ -483,8 +494,8 @@ static void Paint_score_background(int thisLine)
 	} else {
 		XSetForeground(iniClient.dpy, scoreListGC, colors[BLACK].pixel);
 
-		IFWINDOWS( XFillRectangle(iniClient.dpy, players, scoreListGC,
-								  0, 0,
+		IFWINDOWS( XFillRectangle(iniClient.dpy, players, scoreListGC, 
+								  0, 0, 
 								  players_width, BG_IMAGE_HEIGHT); )
 
 		PaintBitmap(players, BM_SCORE_BG,
@@ -493,13 +504,13 @@ static void Paint_score_background(int thisLine)
 					0);
 
 		if (players_height > BG_IMAGE_HEIGHT + LOGO_HEIGHT) {
-			XFillRectangle(iniClient.dpy, players, scoreListGC,
-						   0, BG_IMAGE_HEIGHT,
+			XFillRectangle(iniClient.dpy, players, scoreListGC, 
+						   0, BG_IMAGE_HEIGHT, 
 						   players_width,
 						   players_height - (BG_IMAGE_HEIGHT + LOGO_HEIGHT));
 		}
-		PaintBitmap(players, BM_LOGO,
-					0, players_height - LOGO_HEIGHT,
+		PaintBitmap(players, BM_LOGO, 
+					0, players_height - LOGO_HEIGHT, 
 					players_width, LOGO_HEIGHT,
 					0);
 
@@ -533,7 +544,7 @@ void Paint_score_start(void)
 		} else {
 			strlcpy(headingStr, "AL", sizeof(headingStr));
 		}
-
+		
 		if (scoreTableType == STKills)
 			strcat(headingStr, " KILL DETH RATIO ");
 		else if (scoreTableType == STRank)
@@ -629,7 +640,7 @@ void Paint_score_entry(int entry_num,
 
 		if (scoreTableType == STKills)
 		{
-			scoreStr.printf("%4d %4d %5.1f",
+			scoreStr.printf("%4d %4d %5.1f", 
 					other->kills, other->deaths, other->ratio);
 		}
 		else if (scoreTableType == STRank)
@@ -671,13 +682,13 @@ void Paint_score_entry(int entry_num,
 
 		if (!iniClient.blockBitmaps) {
 			XSetForeground(iniClient.dpy, scoreListGC, colors[BLACK].pixel);
-		} else {
+		} else { 
 			/*
-			** hm, this grey color is pretty, but am i guaranteed that there is
+			** hm, this grey color is pretty, but am i guaranteed that there is 
 			** 16 standard colors just because blockBitmaps = true?
 			*/
 			XSetForeground(iniClient.dpy, scoreListGC, colors[12].pixel);
-		}
+		}		
 		XDrawString(iniClient.dpy, players, scoreListGC,
 					SCORE_BORDER, thisLine,
 					label, strlen(label));

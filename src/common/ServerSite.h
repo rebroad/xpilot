@@ -2,12 +2,12 @@
 *  ServerSite.h : Describe a single server                                  *
 *  $Id: ServerSite.h,v 1.14 2005/03/17 22:12:13 kps Exp $   				*
 *                                                                           *
-*  Copyrightï¿½ 1994-2001 by                                                  *
+*  Copyright© 1994-2001 by                                                  *
 *      Dick Balaska         <dick@xpilot.org>                               *
 *      Jarrod Miller        <jarrod@xpilot.org>                             *
 *      Bert Gijsbers        <bert@xpilot.org>                               *
 *      Ken Ronny Schouten   <ken@xpilot.org>                                *
-*      Bjï¿½rn Stabell        <bjoern@xpilot.org>                             *
+*      Bjørn Stabell        <bjoern@xpilot.org>                             *
 *                                                                           *
 * This program is free software; you can redistribute it and/or modify      *
 * it under the terms of the GNU General Public License as published by      *
@@ -91,7 +91,7 @@
 #define	MAX_TEAMS	10
 class Watch;
 
-#define PING_UNKNOWN	10000	/* never transmitted a ping to it */
+#define PING_UNKNOWN	10000	/* never transmitted a ping to it */	
 #define PING_NORESP		 9999	/* never responded to our ping */
 #define PING_SLOW		 9998	/* responded to first ping after
 								 * we had already retried (ie slow!) */
@@ -185,7 +185,7 @@ public:
 	ServerSitePlayer() {};
 	ServerSitePlayer(const ServerSitePlayer&);
 	ServerSitePlayer& operator=(const ServerSitePlayer&);
-
+	
 	String	name;
 
 	int		status;
@@ -208,7 +208,7 @@ public:
 
 	String		serverName;
 	int			serverPort;
-//	StringList	players;		// used by dings
+//	StringList	players;		// used by dings 
 };
 
 

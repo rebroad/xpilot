@@ -1,4 +1,4 @@
-/* $Id: ControlClient.cpp,v 1.34 2005/03/17 22:12:13 kps Exp $
+/* $Id: ControlClient.cpp,v 1.35 2007/01/18 21:20:23 dick Exp $
  *
  * ControlClient - a network control to give us come client side commands
  *
@@ -6,7 +6,7 @@
  *
  *      Dick Balaska         <dick@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
- *      Bjï¿½rn Stabell        <bjoern@xpilot.org>
+ *      Bjørn Stabell        <bjoern@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -25,6 +25,9 @@
  */
 /*
  * $Log: ControlClient.cpp,v $
+ * Revision 1.35  2007/01/18 21:20:23  dick
+ * Move MAX_RELIABLE_DATA_PACKET_SIZE to packet.h
+ *
  * Revision 1.34  2005/03/17 22:12:13  kps
  * Get rid of warnings from makedepend about "non-portable whitespace".
  *
@@ -134,7 +137,7 @@
 #include "PacketCtl.h"
 //#include "ServerOptions.h"
 
-#define MAX_RELIABLE_DATA_PACKET_SIZE	1024
+#define MAX_RELIABLE_DATA_PACKET_SIZE	2048
 
 /////////////////////////////////////////
 // These time values are all number of seconds
@@ -232,7 +235,7 @@ void ControlClient::SetErrMsgHandler(ErrMsgHandler _emh, void* _emhThis)
 ///////////////////////////////////////////////////////////////////////////////
 void	ControlClient::SetFirewallPortList(FirewallPortList& _fwpl)
 {
-	fwpl = _fwpl;
+	fwpl = _fwpl; 
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -245,8 +248,8 @@ void ControlClient::SetControlType(PCSTR type)
 #if defined(_WINDOWS) && !defined(_CYGWIN)
 void ControlClient::SetWindowMsg(HWND hw, UINT m)
 {
-	hWnd = hw;
-	wMsg = m;
+	hWnd = hw; 
+	wMsg = m; 
 }
 #endif
 
@@ -261,7 +264,7 @@ bool ControlClient::Connect(PCSTR server, int port, PCSTR password)
 		conpar.realName = cp;
 	else
 		GetLoginName(conpar.realName);
-	if (CheckRealName(conpar.realName) == NAME_ERROR)
+	if (CheckRealName(conpar.realName) == NAME_ERROR) 
 	{
 		emh(emhThis, EmInfo, "fixing name from \"%s\" ", (PCSTR)conpar.realName);
 		FixRealName(conpar.realName);
@@ -328,7 +331,7 @@ bool ControlClient::ContactServer(PCSTR serverName, int serverPort)
 		return(false);
 	}
     if (sbuf.Init(&sock, CLIENT_RECV_SIZE,
-		     SOCKBUF_READ | SOCKBUF_WRITE | SOCKBUF_DGRAM) == -1)
+		     SOCKBUF_READ | SOCKBUF_WRITE | SOCKBUF_DGRAM) == -1) 
 	{
 		emh(emhThis, EmError, "Can't create contact Sockbuf");
 		return(false);
@@ -345,7 +348,7 @@ bool ControlClient::ContactServer(PCSTR serverName, int serverPort)
 		(PCSTR)conpar.realName, sock.GetPort(), CONTACT_pack);
 		if (sock.SendDest(conpar.serverName,
 						  conpar.contactPort,
-						  sbuf.buf, sbuf.len) == -1)
+						  sbuf.buf, sbuf.len) == -1) 
 		{
 			if (sock.sockError.call == SOCK_CALL_GETHOSTBYNAME)
 			{
@@ -355,15 +358,15 @@ bool ControlClient::ContactServer(PCSTR serverName, int serverPort)
 			emh(emhThis, EmError, "Can't contact %s on port %d\n",
 			(PCSTR)conpar.serverName, conpar.contactPort);
 		}
-		if (retries)
+		if (retries) 
 		{
-			emh(emhThis, EmInfo, "Retrying %s...%d\n",
+			emh(emhThis, EmInfo, "Retrying %s...%d\n", 
 								 (PCSTR)conpar.serverName, retries);
 		}
 		if (GetContactMessage(sbuf))
 		{
 			contacted = true;
-
+			
 		}
 	} while (!contacted && retries++ < max_retries);
 	// Cleanup();
@@ -424,7 +427,7 @@ bool ControlClient::GetContactMessage(Sockbuf& sbuf)
 	    allow = version = MAGIC2VERSION(magic);
 	    LIMIT(allow, MIN_SERVER_VERSION, MAX_SERVER_VERSION);
 	    if (version != allow) {
-		xpprintf("%sIncompatible version with server %s.\n",
+		xpprintf("%sIncompatible version with server %s.\n", 
 			showtime(), (PCSTR)conpar.serverName);
 		xpprintf("%sWe run version %04x, while server is running %04x.\n", showtime(),
 		       MY_VERSION, MAGIC2VERSION(magic));
@@ -474,7 +477,7 @@ int ControlClient::GetReplyMessage(Sockbuf& sbuf)
 	}
 
 	if (MAGIC2VERSION(magic) != conpar.serverVersion) {
-	    xpprintf("%sIncompatible version with server on %s.\n",
+	    xpprintf("%sIncompatible version with server on %s.\n", 
 			showtime(), (PCSTR)conpar.serverName);
 	    xpprintf("%sWe run version %04x, while server is running %04x.\n", showtime(),
 		   MY_VERSION, MAGIC2VERSION(magic));
@@ -505,7 +508,7 @@ bool ControlClient::LoginToServer(PCSTR password)
 		emh(emhThis, EmError, "No memory for info buffer");
 		return(false);
     }
-//	if ((success = create_dgram_socket(&ibuf->sock, 0)) == SOCK_IS_ERROR)
+//	if ((success = create_dgram_socket(&ibuf->sock, 0)) == SOCK_IS_ERROR) 
 	if (sbuf.sock.OpenUdp(conpar.serverAddr, fwpl) == SOCK_IS_ERROR)
 	{
 		emh(emhThis, EmError, "Could not create socket %s",
@@ -531,10 +534,10 @@ bool ControlClient::LoginToServer(PCSTR password)
 	int retries = 2;
 	for (int i = 0; i <= retries; i++)
 	{
-		if (i > 0)
+		if (i > 0) 
 		{
 			sbuf.sock.SetTimeout(1, 0);
-			if (sbuf.sock.Readable())
+			if (sbuf.sock.Readable()) 
 				break;
 		}
 		if (sbuf.sock.Write(sbuf.buf, sbuf.len) != sbuf.len)
@@ -549,20 +552,20 @@ bool ControlClient::LoginToServer(PCSTR password)
 	 */
 	sbuf.sock.SetTimeout(2, 0);
 	int max_replies = 1;
-	do
+	do 
 	{
 		char	reply_to;
 		char	status;
 	    char	linebuf[MSG_LEN];
 
 	    sbuf.Clear();
-	    if (GetReplyMessage(sbuf) <= 0)
+	    if (GetReplyMessage(sbuf) <= 0) 
 		{
 			seterrno(0);
 			emh(emhThis, EmError, "No answer from server");
 			return false;
 	    }
-	    if (sbuf.scanf("%c%c", &reply_to, &status) <= 0)
+	    if (sbuf.scanf("%c%c", &reply_to, &status) <= 0) 
 		{
 			seterrno(0);
 			emh(emhThis, EmError, "Incomplete reply from server");
@@ -581,22 +584,22 @@ bool ControlClient::LoginToServer(PCSTR password)
 			/*
 			 * Oh glorious success.
 			 */
-			switch (reply_to & 0xFF)
+			switch (reply_to & 0xFF) 
 			{
 
 			case OPTION_LIST_pack:
-				while (sbuf.scanf("%S", linebuf) > 0)
+				while (sbuf.scanf("%S", linebuf) > 0) 
 				{
 					xpprintf("%s\n", linebuf);
 				}
 				break;
 			case CREDENTIALS_pack:
-				if (sbuf.scanf("%ld", &key) <= 0)
+				if (sbuf.scanf("%ld", &key) <= 0) 
 				{
 					seterrno(0);
 					emh(emhThis, EmError, "Incomplete credentials reply from server");
 				}
-				else
+				else 
 				{
 //					has_credentials++;
 //					cmd_credentials = c;
@@ -606,13 +609,13 @@ bool ControlClient::LoginToServer(PCSTR password)
 			case CONNECT_CTL_pack:
 				int port;
 				port = 0;
-				if (sbuf.scanf("%hu", &port) <= 0)
+				if (sbuf.scanf("%hu", &port) <= 0) 
 				{
 					seterrno(0);
 					emh(emhThis, EmError, "Incomplete login reply from server");
 					conpar.loginPort = -1;
-				}
-				else
+				} 
+				else 
 					conpar.loginPort = port;
 				//printf("*** Login allowed.\n");
 				break;
@@ -629,7 +632,7 @@ bool ControlClient::LoginToServer(PCSTR password)
 
 	    if (reply_to == CONNECT_CTL_pack)
 		{
-			if (status == SUCCESS && conpar.loginPort > 0)
+			if (status == SUCCESS && conpar.loginPort > 0) 
 				return true;
 			return(false);
 	    }
@@ -707,14 +710,14 @@ bool ControlClient::NetInit()
 #endif
 
 	if (sock.OpenUdp(NULL, fwpl) == SOCK_IS_ERROR)
-		return(false);
+		return(false);    
 
 #if defined(_WINDOWS) && !defined(_CYGWIN)
 	sock.SetWindowMsg(hWnd, wMsg);
 #endif
 
     if (sock.Connect(conpar.serverAddr, conpar.loginPort) == -1) {
-	emh(emhThis, EmError, "Can't connect to server %s on port %d\n",
+	emh(emhThis, EmError, "Can't connect to server %s on port %d\n", 
 		(PCSTR)conpar.serverName, conpar.loginPort);
 	sock.Close();
 	return false;
@@ -842,7 +845,7 @@ bool ControlClient::NetVerify()
 		return false;
 	    }
 	    wbuf.Clear();
-	    n = wbuf.printf("%c%s%s%s%u", PKT_VERIFY,
+	    n = wbuf.printf("%c%s%s%s%u", PKT_VERIFY, 
 			(PCSTR)conpar.realName, (PCSTR)conpar.nick, (PCSTR)conpar.dispName, 0);
 	    if (n <= 0
 		|| wbuf.Flush() <= 0) {
@@ -1021,7 +1024,7 @@ int ControlClient::ReceiveAck()
 		// DestroyConnection("bad ack");
 		return -1;
 	}
-	else if (diff <= 0)
+	else if (diff <= 0) 
 	{
 		/* Late or duplicate ack of old data.  Discard. */
 		DR(Trace("duplicate (@%d)\n", reliable_offset);)
@@ -1033,7 +1036,7 @@ int ControlClient::ReceiveAck()
 	{
 		acks = n;
 	}
-	else
+	else 
 	{
 		acks++;
 	}
@@ -1043,7 +1046,7 @@ int ControlClient::ReceiveAck()
 		* All reliable data has been sent and acked.
 		*/
 		retransmit_at_loop = 0;
-		//if (state == CONN_DRAIN)
+		//if (state == CONN_DRAIN) 
 		//	SetState(drainState, drainState);
 	}
 //	if (state == CONN_READY
@@ -1051,7 +1054,7 @@ int ControlClient::ReceiveAck()
 //		|| (cw.buf[0] != PKT_REPLY
 //		&& cw.buf[0] != PKT_PLAY
 //		&& cw.buf[0] != PKT_SUCCESS
-//		&& cw.buf[0] != PKT_FAILURE)))
+//		&& cw.buf[0] != PKT_FAILURE))) 
 //	{
 //		SetState(drainState, drainState);
 //	}
@@ -1071,30 +1074,30 @@ int ControlClient::ReceiveReliable(void)
 	rel_loops;
 
 	if ((n = rbuf.scanf("%c%hd%ld%ld",
-						&ch, &len, &rel, &rel_loops)) == -1)
+						&ch, &len, &rel, &rel_loops)) == -1) 
 	{
 		return -1;
 	}
-	if (n == 0)
+	if (n == 0) 
 	{
 		seterrno(0);
 		emh(emhThis, EmError, "Incomplete reliable data packet");
 		return 0;
 	}
 #	if DEBUG
-	if (reliableOffset >= rel + len)
+	if (reliableOffset >= rel + len) 
 	{
 		Trace("Reliable my=%ld pkt=%ld len=%d loops=%ld\n",
 			  reliableOffset, rel, len, rel_loops);
 	}
 #	endif
-	if (len <= 0)
+	if (len <= 0) 
 	{
 		seterrno(0);
 		emh(emhThis, EmError, "Bad reliable data length (%d)", len);
 		return -1;
 	}
-	if (rbuf.ptr + len > rbuf.buf + rbuf.len)
+	if (rbuf.ptr + len > rbuf.buf + rbuf.len) 
 	{
 		seterrno(0);
 		emh(emhThis, EmWarning, "Not all reliable data in packet (%d,%d,%d)",
@@ -1103,7 +1106,7 @@ int ControlClient::ReceiveReliable(void)
 		rbuf.Advance(rbuf.ptr - rbuf.buf);
 		return -1;
 	}
-	if (rel > reliableOffset)
+	if (rel > reliableOffset) 
 	{
 		/*
 		* We miss one or more packets.
@@ -1112,12 +1115,12 @@ int ControlClient::ReceiveReliable(void)
 		*/
 		rbuf.ptr += len;
 		rbuf.Advance(rbuf.ptr - rbuf.buf);
-		if (SendAck(rel_loops) == -1)
+		if (SendAck(rel_loops) == -1) 
 			return -1;
 		wbuf.Flush();
 		return 1;
 	}
-	if (rel + len <= reliableOffset)
+	if (rel + len <= reliableOffset) 
 	{
 		/*
 		* Duplicate data.  Probably an ack got lost.
@@ -1130,7 +1133,7 @@ int ControlClient::ReceiveReliable(void)
 		wbuf.Flush();
 		return 1;
 	}
-	if (rel < reliableOffset)
+	if (rel < reliableOffset) 
 	{
 		len -= (short)(reliableOffset - rel);
 		rbuf.ptr += reliableOffset - rel;
@@ -1139,7 +1142,7 @@ int ControlClient::ReceiveReliable(void)
 	if (crbuf.ptr > crbuf.buf)
 		crbuf.Advance(crbuf.ptr - crbuf.buf);
 
-	if (crbuf.Write(rbuf.ptr, len) != len)
+	if (crbuf.Write(rbuf.ptr, len) != len) 
 	{
 		seterrno(0);
 		emh(emhThis, EmWarning, "Can't copy reliable data to buffer");
@@ -1150,7 +1153,7 @@ int ControlClient::ReceiveReliable(void)
 	reliableOffset += len;
 	rbuf.ptr += len;
 	rbuf.Advance(rbuf.ptr - rbuf.buf);
-	if (SendAck(rel_loops) == -1)
+	if (SendAck(rel_loops) == -1) 
 		return -1;
 	wbuf.Flush();
 	return 1;
@@ -1193,10 +1196,10 @@ int ControlClient::SendReliable()
 	max_todo = cwbuf.len;
 	rel_off = reliable_offset;
 	//DR(for (i=0; i<cwbuf.len; i++)
-	//	Trace("%02X ", (unsigned)(cwbuf.buf[i]&255));
+	//	Trace("%02X ", (unsigned)(cwbuf.buf[i]&255)); 
 	//   Trace("\nSendReliable: ");
 	//  )
-	if (wbuf.len > 0)
+	if (wbuf.len > 0) 
 	{
 		/* We are piggybacking on a frame update. */
 		if (wbuf.len >= max_packet_size - min_send_size)
@@ -1211,7 +1214,7 @@ int ControlClient::SendReliable()
 			max_todo = max_packet_size - wbuf.len;
 		}
 	}
-	if (retransmit_at_loop > main_loops)
+	if (retransmit_at_loop > main_loops) 
 	{
 	   /*
 		* It is not time to retransmit yet.
@@ -1260,8 +1263,8 @@ int ControlClient::SendReliable()
 			{
 				acks = 0;
 				break;
-			}
-			else
+			} 
+			else 
 			{
 				error("Cannot flush reliable data (%d)", n);
 				// DestroyConnection("flush error");
@@ -1282,7 +1285,7 @@ int ControlClient::SendReliable()
 
 	last_send_loops = main_loops;
 
-	if (max_todo - todo <= 0)
+	if (max_todo - todo <= 0) 
 	{
 	   /*
 		* We have not transmitted anything at all.
@@ -1294,22 +1297,22 @@ int ControlClient::SendReliable()
 	/*
 	* Retransmission timer with exponential backoff.
 	*/
-	if (rtt_retransmit > MAX_RETRANSMIT)
+	if (rtt_retransmit > MAX_RETRANSMIT) 
 	{
 		rtt_retransmit = MAX_RETRANSMIT;
 	}
-	if (retransmit_at_loop <= main_loops)
+	if (retransmit_at_loop <= main_loops) 
 	{
 		retransmit_at_loop = (long)(main_loops + (rtt_retransmit/TIMER_INTERVAL));
 		rtt_retransmit *= 2.0;
 		rtt_timeouts++;
 	}
-	else
+	else 
 	{
 		retransmit_at_loop = (long)(main_loops + (rtt_retransmit/TIMER_INTERVAL));
 	}
 
-	if (rel_off > reliable_unsent)
+	if (rel_off > reliable_unsent) 
 	{
 		reliable_unsent = rel_off;
 	}
@@ -1357,7 +1360,7 @@ int ControlClient::RbufSelected()
 		return(-1);
 	DR(	Trace("RbufSelected!\n"); )
 	rbuf.Clear();
-	if (rbuf.Read() == -1)
+	if (rbuf.Read() == -1) 
 	{
 		connected = false;
 		//	DestroyConnection(ind, "input error");
@@ -1365,7 +1368,7 @@ int ControlClient::RbufSelected()
 		Disconnect();
 		return(-1);
 	}
-	if (rbuf.len <= 0)
+	if (rbuf.len <= 0) 
 	{
 		/*
 		* No input.
@@ -1382,21 +1385,21 @@ int ControlClient::RbufSelected()
 	while (rbuf.buf + rbuf.len > rbuf.ptr)
 	{
 		type = (*rbuf.ptr & 0xFF);
-
+		
 		DR(Trace("RbufSelected: handle rbuf type=%d\n", type);)
 		if (receiveTbl[type] == 0)
 		{
 			seterrno(0);
-			IFNWINDOWS(error("Received unknown packet type (%d, %d), dropping frame.",
+			IFNWINDOWS(error("Received unknown packet type (%d, %d), dropping frame.", 
 				type, prev_type);)
 			rbuf.Clear();
 			break;
 		}
 		else if ((result = (this->*receiveTbl[type])()) <= 0)
 		{
-			if (result == -1)
+			if (result == -1) 
 			{
-				if (type != PKT_QUIT)
+				if (type != PKT_QUIT) 
 				{
 					seterrno(0);
 					emh(emhThis, EmError, "Processing packet type (%d, %d) failed",
@@ -1416,9 +1419,9 @@ int ControlClient::RbufSelected()
 		DR(Trace("RbufSelected: handle crbuf type=%d\n", type);)
 		if (type == PKT_REPLY)
 		{
-			if ((result = ReceiveReply(&replyto, &status)) <= 0)
+			if ((result = ReceiveReply(&replyto, &status)) <= 0) 
 			{
-				if (result == 0)
+				if (result == 0) 
 					break;
 				return -1;
 			}
@@ -1436,7 +1439,7 @@ int ControlClient::RbufSelected()
 			for (i = 0; i < cbuf.len; i++)
 			{
 				Trace("%3d", cbuf.buf[i] & 0xFF);
-				if (i % 20 == 0)
+				if (i % 20 == 0) 
 					Trace("\n");
 				else
 					Trace(" ");
@@ -1447,7 +1450,7 @@ int ControlClient::RbufSelected()
 		}
 		else if ((result = (this->*reliableTbl[type])()) <= 0)
 		{
-			if (result == 0)
+			if (result == 0) 
 				break;
 			return -1;
 		}
@@ -1473,14 +1476,14 @@ int ControlClient::ReceiveCtl()
 	if (ctlTbl[ctlType] == 0)
 	{
 		seterrno(0);
-		emh(emhThis, EmWarning, "Received unknown ctl type (%d, %d), dropping packet.",
+		emh(emhThis, EmWarning, "Received unknown ctl type (%d, %d), dropping packet.", 
 			ctlType);
 		crbuf.Clear();
 		return(0);
 	}
 	else if ((result = (this->*ctlTbl[ctlType])()) <= 0)
 	{
-		if (result == -1)
+		if (result == -1) 
 			return -1;
 		/* Drop rest of incomplete packet */
 		emh(emhThis, EmError, "ControlClient: Error processing control type %d", ctlType);
@@ -1537,14 +1540,14 @@ int ControlClient::ReceiveQuit()
 		sbuf = &rbuf;
 	else
 		sbuf = &crbuf;
-	if (sbuf->scanf("%c", &pkt) != 1)
+	if (sbuf->scanf("%c", &pkt) != 1) 
 	{
 		seterrno(0);
 		emh(emhThis, EmError, "Can't read quit packet");
-	}
-	else
+	} 
+	else 
 	{
-		if (sbuf->scanf("%s", reason) <= 0)
+		if (sbuf->scanf("%s", reason) <= 0) 
 			strlcpy(reason, "unknown reason", MAX_CHARS);
 		seterrno(0);
 		emh(emhThis, EmError, "Got quit packet: \"%s\"", reason);
@@ -1596,8 +1599,8 @@ bool ControlClient::SendPlayerMessage(PCSTR message, PCSTR player, PlayerType pt
 	if (!connected)
 		return(false);
 	D(xpprintf(LOGMED, "SendPlayerMessage: \"%s\" to \"\"\n", message, player ? player : "");)
-	cwbuf.printf("%c%c%s%S%c", PKT_CTL, PlayerMessage,
-							 message,
+	cwbuf.printf("%c%c%s%S%c", PKT_CTL, PlayerMessage, 
+							 message, 
 							 player ? player : "",
 							 pt);
 	if (wbuf.Flush() <= 0)

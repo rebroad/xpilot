@@ -1,4 +1,4 @@
-# $Id: Makefile.in,v 1.10 2004/06/03 06:04:42 dick Exp $
+# $Id: Makefile.in,v 1.12 2007/02/17 19:46:11 dick Exp $
 # @configure_input@
 #
 # Makefile.in for xpilot++'s program xpilot++
@@ -26,6 +26,12 @@
 # Note that like *NONE* of the client options have been ported to autoconf
 #
 # $Log: Makefile.in,v $
+# Revision 1.12  2007/02/17 19:46:11  dick
+# Audio moved to common/AudioMan
+#
+# Revision 1.11  2007/01/17 23:20:31  dick
+# Unix client needs RobotWatchMan
+#
 # Revision 1.10  2004/06/03 06:04:42  dick
 # struct other_t becomes class Other.
 # array Others becomes ObjList others.
@@ -78,15 +84,16 @@ PROGNAME = xpilotclient
 SUBDIRS =
 
 CPPFILES = \
-	about.cpp Audio.cpp blockbitmaps.cpp \
+	about.cpp blockbitmaps.cpp \
 	client.cpp colors.cpp configure.cpp \
 	datagram.cpp dbuff.cpp \
 	gfx2d.cpp gfx3d.cpp guimap.cpp guiobjects.cpp \
 	join.cpp netclient.cpp \
 	Other.cpp \
 	paint.cpp paintdata.cpp painthud.cpp paintmap.cpp \
-	paintobjects.cpp paintradar.cpp query.cpp record.cpp sim.cpp \
-	syslimit.cpp Sound.cpp SoundEvent.cpp \
+	paintobjects.cpp paintradar.cpp query.cpp \
+	record.cpp RobotWatchMan.cpp \
+	sim.cpp syslimit.cpp Sound.cpp SoundEvent.cpp \
 	talk.cpp talkmacros.cpp textinterface.cpp texture.cpp \
 	welcome.cpp widget.cpp xeventhandlers.cpp \
 	xevent.cpp xinit.cpp xpilot.cpp xpmread.cpp
@@ -136,5 +143,5 @@ install:
 	chmod 555 $(bindir)/$(PROGNAME)
 
 #
-# End of "$Id: Makefile.in,v 1.10 2004/06/03 06:04:42 dick Exp $".
+# End of "$Id: Makefile.in,v 1.12 2007/02/17 19:46:11 dick Exp $".
 #

@@ -10,7 +10,7 @@
  *      Jarrod Miller        <jarrod@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
- *      Bjï¿½rn Stabell        <bjoern@xpilot.org>
+ *      Bjørn Stabell        <bjoern@xpilot.org>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -160,17 +160,17 @@ class ScoreEngine
 // Network functions
 	virtual bool GetInitialScore(PCSTR nick, PlayerType pt,  uint& cookie,
 								 DFLOAT& score, int& kills, int& deaths);
-	virtual bool SetPlayerValues(PCSTR nick, PlayerType pt, uint cookie,
+	virtual bool SetPlayerValues(PCSTR nick, PlayerType pt, uint cookie, 
 								 DFLOAT  score, int  kills, int  deaths);
 	virtual void ReceivePlayerEvent(PCSTR name, PlayerType pt,ScorePlayerEvent pse,
 									PCSTR real, PCSTR host, PCSTR addr, uint cookie) {};
-	virtual void ReceiveScoreEvent(PCSTR killer, PlayerType ptr, DFLOAT wscore,
-								   PCSTR killee, PlayerType pte, DFLOAT score,
+	virtual void ReceiveScoreEvent(PCSTR killer, PlayerType ptr, DFLOAT wscore, 
+								   PCSTR killee, PlayerType pte, DFLOAT score, 
 								   ScoreType st) {};
 	virtual	void ReceiveGetRanks(bool onOff) {};
 
 	String GetPlayerValue(SEPlayer* pl, const ObjList& opts);
-
+	
 	ObjList	playerList;
 
   protected:

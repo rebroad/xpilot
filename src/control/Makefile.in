@@ -1,4 +1,4 @@
-# $Id: Makefile.in,v 1.46 2006/09/24 05:46:30 dick Exp $
+# $Id: Makefile.in,v 1.47 2007/02/17 20:28:39 dick Exp $
 # @configure_input@
 #
 # Makefile.in for xpilot++'s program xpilotedit
@@ -26,6 +26,9 @@
 # Please report all bugs and problems to "xpilot++@buckosoft.com".
 #
 # $Log: Makefile.in,v $
+# Revision 1.47  2007/02/17 20:28:39  dick
+# Add FLAUDIOCONFIGLIB, the SoundEditor
+#
 # Revision 1.46  2006/09/24 05:46:30  dick
 # Add /usr/local/include to make depend's list.  FLTK tends to get installed
 # there and for some reason makedepend doesn't include it in it's includes
@@ -213,7 +216,6 @@ CPPFILES = \
 	ScoreServerControlClient.cpp ServerButtonsGroup.cpp ServerOptionsToImage.cpp \
 	ShipEditWindow.cpp ShipUndoableCommand.cpp ShipWindow.cpp \
 	SplashPanel.cpp \
-	tools.cpp\
 	XPClientConfig.cpp XPFileChooser.cpp XPFileChooser2.cpp XPilotControl.cpp XPInput.cpp \
 	XPilotControlWindow.cpp XPPresetConfig.cpp XPVisualList.cpp XPVisual.cpp
 
@@ -230,7 +232,9 @@ TOP=@top_srcdir@
 include @top_srcdir@/makeinclude
 
 XPCXXFLAGS = $(SERVERLIBINC) $(KBCONFIGINC) $(XPFLWIDGETSINC) $(FLTKWIDGETSINC) $(COMMONINC)
-XPLDFLAGS =  $(SERVERLIBLIB) $(KBCONFIGLIB) $(XPFLWIDGETSLIB) $(FLTKWIDGETSLIB) $(COMMONLIB)
+XPLDFLAGS =  $(SERVERLIBLIB) $(FLAUDIOCONFIGLIB) $(KBCONFIGLIB) $(XPFLWIDGETSLIB) \
+			 $(FLTKWIDGETSLIB) $(COMMONLIB)
+
 
 OBJECTS = $(CPPFILES:.cpp=.o) $(CFILES:.c=.o)
 
@@ -266,5 +270,5 @@ install:
 
 
 #
-# End of "$Id: Makefile.in,v 1.46 2006/09/24 05:46:30 dick Exp $".
+# End of "$Id: Makefile.in,v 1.47 2007/02/17 20:28:39 dick Exp $".
 #

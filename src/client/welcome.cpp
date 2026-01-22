@@ -2,7 +2,7 @@
  *
  * XPilot, a multiplayer gravity war game.  Copyright (C) 1991-2001 by
  *
- *      Bjï¿½rn Stabell        <bjoern@xpilot.org>
+ *      Bjørn Stabell        <bjoern@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
  *      Dick Balaska         <dick@xpilot.org>
@@ -165,7 +165,7 @@ struct ServerInfo {
 };
 typedef struct ServerInfo		server_info_t;
 
-#define PING_UNKNOWN	10000			/* never transmitted a ping to it */
+#define PING_UNKNOWN	10000			/* never transmitted a ping to it */	
 #define PING_NORESP 	9999			/* never responded to our ping */
 #define PING_SLOW		9998			/* responded to first ping after
 										 * we had already retried (ie slow!) */
@@ -359,7 +359,7 @@ static int Local_status_cb(int widget, void *user_data, const char **text)
 }
 #endif
 
-/*
+/* 
  * Cleanup when leaving the mode ModeLocalnet.
  */
 static void Localnet_cleanup(void)
@@ -591,7 +591,7 @@ static int Welcome_sort_server_list(void)
 	list_t				new_list = List_new();
 	list_iter_t 		it;
 	int 				delta;
-	void				*vp;
+	void				*vp; 
 	server_info_t		*sip_old;
 	server_info_t		*sip_new;
 
@@ -1086,7 +1086,7 @@ static int Get_meta_data(void)
 	/* connect asynchronously. */
 	Meta_connect(&connections, &max);
 	if (!connections) {
-		Welcome_create_label(1,
+		Welcome_create_label(1, 
 				"Could not establish connections with any metaserver");
 		return -1;
 	}
@@ -1244,7 +1244,7 @@ static int Get_meta_data(void)
 		server_count = List_size(server_list);
 	}
 	if (server_count > 0) {
-		sprintf(buf, "Received information about %d Internet servers",
+		sprintf(buf, "Received information about %d Internet servers", 
 				server_count);
 		server_list_creation_time = time(NULL);
 	} else {
@@ -1727,7 +1727,7 @@ static int Welcome_show_server_list(Connectparam *conpar)
 	return -1;
 }
 
-/*
+/* 
  * Cleanup when leaving the mode ModeLocalnet.
  */
 static void Internet_cleanup(void)

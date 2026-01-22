@@ -1,6 +1,6 @@
 /* $Id: ShipDocument.FL.cpp,v 1.1 2004/05/28 17:35:32 dick Exp $
  *
- * ShipDocument.FL.cpp - FL methods for ShipDocument
+ * ShipDocument.FL.cpp - FL methods for ShipDocument 
  *
  * common/xp-flwidgets - A library of FLTK widgets for XPilot5.
  *
@@ -11,7 +11,7 @@
  *      Jarrod Miller        <jarrod@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
- *      Bjï¿½rn Stabell        <bjoern@xpilot.org>
+ *      Bjørn Stabell        <bjoern@xpilot.org>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by

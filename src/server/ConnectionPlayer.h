@@ -1,10 +1,10 @@
-/* $Id: ConnectionPlayer.h,v 1.11 2004/06/03 06:06:14 dick Exp $
+/* $Id: ConnectionPlayer.h,v 1.13 2007/02/12 07:55:27 dick Exp $
  *
  * Describe a server's connection to a client.
  *
  * XPilot, a multiplayer gravity war game.  Copyright (C) 1991-2001 by
  *
- *      Bjï¿½rn Stabell        <bjoern@xpilot.org>
+ *      Bjørn Stabell        <bjoern@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
  *      Dick Balaska         <dick@xpilot.org>
@@ -25,6 +25,12 @@
  */
 /*
  *  $Log: ConnectionPlayer.h,v $
+ *  Revision 1.13  2007/02/12 07:55:27  dick
+ *  Support RobotWatchDeco, which is decorated shapes displayed on the playfield.
+ *
+ *  Revision 1.12  2007/01/17 09:06:22  dick
+ *  Send the RobotWatch packets to the client
+ *
  *  Revision 1.11  2004/06/03 06:06:14  dick
  *  shipobj becomes ShipObj.
  *
@@ -72,7 +78,7 @@
 
 /*
  * The decision to put member functions in this class as opposed to
- * Connection is completely arbitrary based on whether i thought a
+ * Connection is completely arbitrary based on whether i thought a 
  * command might be useful to a ConnectionControl.
  */
 
@@ -82,6 +88,7 @@
 #include "Connection.h"
 
 class Player;
+class RobotWatchDeco;
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -136,7 +143,7 @@ public:
 	int		SendTiming(int id, int check, int round);
 	int		SendBase(int id, int num);
 	int		SendFuel(int num, int fuel);
-	int		SendScoreObject(DFLOAT score, int x, int y, const char *string);
+	int		SendScoreObject(DFLOAT score, int x, int y, PCSTR string);
 	int		SendCannon(int num, int dead_time);
 	int		SendDestruct(int count);
 	int		SendThrustTime(int count, int max);
@@ -157,7 +164,7 @@ public:
 	int		SendEcm(int x, int y, int size);
 	int		SendTrans(int x1, int y1, int x2, int y2);
 	int		SendShip(int x, int y, int id, int dir,
-					 int shield, int cloak, int emergency_shield,
+					 int shield, int cloak, int emergency_shield, 
 					 int phased, int deflector);
 	int		SendRefuel(int x0, int y0, int x1, int y1);
 	int		SendConnector(int x0, int y0, int x1, int y1, int tractor);
@@ -168,7 +175,9 @@ public:
 	int		SendAudio(int type, int vol);
 	int		SendTimeLeft(long sec);
 	int		SendEyes(int watcherId, int watchedId);
-	int		SendPlayMessage(const char *msg);
+	int		SendPlayMessage(PCSTR msg);
+	int		SendRobotWatch(int y, PCSTR msg);
+	int		SendRobotWatchDeco(const RobotWatchDeco* rwd);
 	int		SendLoseItem(int lose_item_index);
 	int		SendStartOfFrame();
 	int		SendEndOfFrame();

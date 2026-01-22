@@ -1,4 +1,4 @@
-/* $Id: Obj.cpp,v 1.19 2004/05/13 09:06:27 dick Exp $
+/* $Id: Obj.cpp,v 1.20 2007/02/17 06:10:47 dick Exp $
  *
  * XPwhere - Where in the world can i find people playing XPilot.
  *      Copyright (C) 2001 by
@@ -8,7 +8,7 @@
  *      Jarrod Miller        <jarrod@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
- *      Bjï¿½rn Stabell        <bjoern@xpilot.org>
+ *      Bjørn Stabell        <bjoern@xpilot.org>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -29,6 +29,9 @@
  */
 /*
  * $Log: Obj.cpp,v $
+ * Revision 1.20  2007/02/17 06:10:47  dick
+ * Add GetAt(index) which is the same as operator[].
+ *
  * Revision 1.19  2004/05/13 09:06:27  dick
  * operator[] returns NULL rather than walk off the end of the list and crashing
  *
@@ -197,14 +200,14 @@ int	ObjList::GetValue(PCSTR name)
 void ObjList::Empty()
 {
 	Obj*	o = GetHead();
-
+	
 	while (o)
 	{
 		Obj* o1 = o->GetNext();
 		delete o;
 		o = o1;
 	}
-
+	
 	head = NULL;
 	tail = NULL;
 }
@@ -224,6 +227,17 @@ int ObjList::GetCount()
 
 ///////////////////////////////////////////////////////////////////////////////
 Obj* ObjList::operator[](int n)
+{
+	Obj* o = GetHead();
+	if (!o)
+		return(NULL);
+	for (int i=0; i<n && o; o = o->GetNext(), i++)
+		;
+	return(o);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+Obj* ObjList::GetAt(int n)
 {
 	Obj* o = GetHead();
 	if (!o)
@@ -292,9 +306,9 @@ void ObjList::Remove(Obj* o)
 		head = o1->GetNext();
 		o->next = NULL;
 		o->prev = NULL;
-		if(head)
+		if(head) 
 			head->prev = NULL;
-		if(!head)
+		if(!head) 
 			tail = NULL;
 		return;
 	}

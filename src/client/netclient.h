@@ -1,4 +1,4 @@
-/* $Id: netclient.h,v 1.7 2004/05/28 18:02:29 dick Exp $
+/* $Id: netclient.h,v 1.9 2007/02/12 07:57:18 dick Exp $
  *
  * netclient - receive stuff from the server and decode it.
  *
@@ -27,6 +27,15 @@
  */
 /*
  * $Log: netclient.h,v $
+ * Revision 1.9  2007/02/12 07:57:18  dick
+ * Support RobotWatchDeco, which is decorated shapes displayed on the playfield.
+ *
+ * Revision 1.8  2007/01/17 08:59:49  dick
+ * RobotWatch is a list of Strings sent from the client when a player is paused
+ * and watching a robot.  This list contains diagnostic information about
+ * what the heck the robot thinks it's doing.
+ * It's kinda like the Terminator view where he's looking at a 6502 dump.
+ *
  * Revision 1.7  2004/05/28 18:02:29  dick
  * Send_shape() takes a PCSTR, not a char*.
  *
@@ -82,6 +91,8 @@ int Receive_rounddelay(void);
 int Receive_debris(void);
 int Receive_wreckage(void);
 int Receive_asteroid(void);
+int ReceiveRobotWatch(void);
+int ReceiveRobotWatchDeco(void);
 int Receive_wormhole(void);
 int Receive_fastshot(void);
 int Receive_ecm(void);

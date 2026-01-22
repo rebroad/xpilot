@@ -1,4 +1,4 @@
-/* $Id: Player.h,v 1.21 2004/06/03 06:06:14 dick Exp $
+/* $Id: Player.h,v 1.24 2007/02/12 07:55:27 dick Exp $
  *
  * XPilot, a multiplayer gravity war game.  Copyright (C) 1991-2001 by
  *
@@ -21,6 +21,21 @@
  */
 /*
  *  $Log: Player.h,v $
+ *  Revision 1.24  2007/02/12 07:55:27  dick
+ *  Support RobotWatchDeco, which is decorated shapes displayed on the playfield.
+ *
+ *  Revision 1.23  2007/01/17 09:10:45  dick
+ *  RobotWatch for a player (and his connection, yuck) are managed here.
+ *  robotWatchList contains a list of RobotWatch.
+ *  During a Robot's play cycle, he may stuff data in this list.
+ *  Once his play cycle is over, the list is locked as full until the connection
+ *  emptys it.
+ *
+ *  Revision 1.22  2007/01/13 22:27:28  dick
+ *  Now, a Robot* is a member of Player.
+ *  Robot contains the interface to drive a robot.
+ *  Robot4 is the old robotdef.cpp handler.
+ *
  *  Revision 1.21  2004/06/03 06:06:14  dick
  *  shipobj becomes ShipObj.
  *
@@ -98,6 +113,7 @@
 #ifndef	_PLAYER_H_
 #define	_PLAYER_H_
 
+#include "Obj.h"
 #include "PacketCtl.h"	// For PlayerType
 #include "rules.h"
 
@@ -117,7 +133,7 @@ public:
     int		time;
 };
 
-class RobotData;
+class Robot;
 class ConnectionPlayer;
 
 class Player : public ObjectBase
@@ -138,7 +154,9 @@ public:
 	void	SetMass();
 	void	AddTank(long tank_fuel);
 	void	RemoveTank(int which_tank);
-	void	SetMessage(const char *message);
+	void	SetMessage(PCSTR message);
+	void	SetRobotWatch(int y, PCSTR message);
+
 	void	SetEyes(int id);		/* Tell everyone who i'm looking at */
 	void	SetLock(int id);
 	void	HitArmor();
@@ -289,11 +307,16 @@ public:
     BallObject*	ball;
 
     /*
-     * Pointer to robot private data (dynamically allocated).
+     * Pointer to Robot object (dynamically allocated).
      * Only used in robot code.
      */
-    RobotData*	robot_data_ptr;
-
+    Robot*	robot;
+	int		robotWatchPage;			// which robot logic page am i looking at? (if any)
+	ObjList	robotWatchList;			// list of RobotWatch
+	ObjList	robotWatchDecoList;		// list of RobotWatchDeco
+	bool	robotWatchFull;			// The list is data to be emptied.
+									// Robot is locked from putting in more data until
+									// this latch is cleared
     /*
      * A record of who's been pushing me (a circular buffer).
      */

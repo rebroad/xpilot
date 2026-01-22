@@ -2,7 +2,7 @@
  *
  * XPilot, a multiplayer gravity war game.  Copyright (C) 1991-2001 by
  *
- *      Bjï¿½rn Stabell        <bjoern@xpilot.org>
+ *      Bjørn Stabell        <bjoern@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
  *      Dick Balaska         <dick@xpilot.org>
@@ -179,7 +179,7 @@ static void WinXScaled(HDC hDC, int cx, int cy)
 	if (iScaleFactor != SCALEPREC)
 	{
 		SetMapMode(hDC, MM_ANISOTROPIC);
-
+	
 		SetWindowExtEx(hDC, WinXUnscale(cx), WinXUnscale(cy), NULL);
 		SetWindowOrgEx(hDC, 0, 0, NULL);
 		SetViewportExtEx(hDC, cx, cy, NULL);
@@ -250,13 +250,13 @@ BOOL ChangePalette(HWND hWnd)
 	XID i;
 	HDC hDC;
 	HPALETTE hOldPal;
-
+			
 	for (i = 0; i < MAX_XIDS; i += 1)
 	{
 		if (xid[i].type == XIDTYPE_HWND)
 		{
 			HWND hwnd = xid[i].hwnd.hWnd;
-
+			
 			hDC = xid[i].hwnd.hBmpDC;
 			hOldPal = SelectPalette(hDC, myPal, FALSE);
 			RealizePalette(hDC);
@@ -466,13 +466,13 @@ LRESULT	CALLBACK	WinXWindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPar
 		XID		i;
 		XAnyEvent*	enter = (XAnyEvent*)&event;
 
-		/* Trace("MouseMove in %d %d/%d %s:%d\n", xidno,
+		/* Trace("MouseMove in %d %d/%d %s:%d\n", xidno, 
 			LOWORD(lParam), HIWORD(lParam), xid[xidno].any.file, xid[xidno].any.line); */
 
 		enter->type			= LeaveNotify;
 		for (i=0; i<MAX_XIDS; i++)
 		{
-			if (i != xidno && xid[i].type == XIDTYPE_HWND && xid[i].hwnd.mouseover
+			if (i != xidno && xid[i].type == XIDTYPE_HWND && xid[i].hwnd.mouseover 
 				&& xid[i].hwnd.event_mask & LeaveWindowMask)
 			{
 				// Trace("LeaveNotify %d %s:%d\n", xidno, xid[xidno].any.file, xid[xidno].any.line);
@@ -537,7 +537,7 @@ LRESULT	CALLBACK	WinXWindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPar
 			if (xidno >= 0 && xidno < MAX_XIDS)
 			{
 				HDC hBmpDC;
-
+				
 				hBmpDC = xid[xidno].hwnd.hBmpDC;
 				if (hBmpDC)
 				{
@@ -545,7 +545,7 @@ LRESULT	CALLBACK	WinXWindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPar
 					HDC	hDC;
 					XEvent			event;
 					XExposeEvent*	expose = (XExposeEvent*)&event;
-
+					
 					if (iniClient.threadedDraw && xidno == (int)draw)
 					{
 						ValidateRect(hwnd, &rect);
@@ -736,7 +736,7 @@ void InitWinX(HWND hWnd)
 		Trace("%d: pen=%08X brush=%08X\n", i, objs[i].pen, objs[i].brush);
 #endif
 	}
-
+	
 #ifndef PENS_OF_PLENTY
 	objs[WHITE+CLOAKCOLOROFS].color = objs[WHITE].color;
 	objs[WHITE+CLOAKCOLOROFS].brush = objs[WHITE].brush;
@@ -843,7 +843,7 @@ static HPEN WinXMakePen(int cur_color, int Style, int Width)
 	{
 		LOGBRUSH lb;
 		DWORD	*dshs;
-
+	
 		lb.lbStyle = BS_SOLID;
 		lb.lbColor = WinXPColour(cur_color);
 		lb.lbHatch = 0;
@@ -860,14 +860,14 @@ static HPEN WinXMakePen(int cur_color, int Style, int Width)
 
 	return hPen;
 }
-
+				
 ///////////////////////////////////////////////////////////////////////////////
 static void WinXSetPen(int xidno)
 {
 	HDC		hDC = xid[xidno].hwnd.hBmpDC;
 	HPEN	hPen = NULL;
 	int		cur_color = xid[xidno].hwnd.cur_color;
-
+	
 	if (xid[xidno].hwnd.line_style == LineSolid)
 	{
 		if (xid[xidno].hwnd.line_width > 2)
@@ -889,7 +889,7 @@ static void WinXSetPen(int xidno)
 		{
 			if (objs[cur_color].cdashpen == NULL)
 				objs[cur_color].cdashpen = WinXMakePen(cur_color, PS_DOT, 0);
-			hPen = objs[cur_color].cdashpen;
+			hPen = objs[cur_color].cdashpen;	
 		}
 		else
 		{
@@ -948,7 +948,7 @@ BOOL AngleArc2(HDC hdc, int X, int Y, DWORD dwRadius,
   double fStartRadians;   // Start angle in radians
   double fEndRadians;     // End angle in radians
   BOOL bResult;            // Function result
-
+ 
   /* Get the starting and ending angle in radians */
   if (fSweepDegrees > 0.0) {
     fStartRadians = ((fStartDegrees / 360.0) * fTwoPi);
@@ -957,37 +957,37 @@ BOOL AngleArc2(HDC hdc, int X, int Y, DWORD dwRadius,
     fStartRadians = (((fStartDegrees + fSweepDegrees)  / 360.0) * fTwoPi);
     fEndRadians =  ((fStartDegrees / 360.0) * fTwoPi);
   }
-
+ 
   /* Calculate a point on the starting radial line via */
   /* polar -> cartesian conversion */
   iXStart = X + (int)((double)dwRadius * (double)cos(fStartRadians));
   iYStart = Y - (int)((double)dwRadius * (double)sin(fStartRadians));
-
+ 
   /* Calculate a point on the ending radial line via */
   /* polar -> cartesian conversion */
   iXEnd = X + (int)((double)dwRadius * (double)cos(fEndRadians));
   iYEnd = Y - (int)((double)dwRadius * (double)sin(fEndRadians));
-
+ 
   /* Draw a line to the starting point */
   LineTo(hdc, iXStart, iYStart);
-
+ 
   /* Draw the arc */
   if (bFilled)
-    bResult = Pie(hdc, X - dwRadius, Y - dwRadius,
+    bResult = Pie(hdc, X - dwRadius, Y - dwRadius, 
 	                   X + dwRadius, Y + dwRadius,
                        iXStart, iYStart, iXEnd, iYEnd);
   else
     bResult = Arc(hdc, X - dwRadius, Y - dwRadius,
                        X + dwRadius, Y + dwRadius,
                        iXStart, iYStart, iXEnd, iYEnd);
-
+ 
   /* Move to the ending point - Arc() wont do this and ArcTo() */
   /* wont work on Win32s or Win16 */
   MoveToEx(hdc, iXEnd, iYEnd, NULL);
 
   return bResult;
 }
-
+ 
 ///////////////////////////////////////////////////////////////////////////////
 void WinXParseFont(LOGFONT* lf, const char* name)
 {
@@ -1046,7 +1046,7 @@ XFontStruct* WinXLoadFont(const char* name)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-XParseColor(Display* display, Colormap colormap, char* spec,
+XParseColor(Display* display, Colormap colormap, char* spec, 
 					XColor* exact_def_return)
 {
 	Trace("Parsing color <%s>\n", spec);
@@ -1054,7 +1054,7 @@ XParseColor(Display* display, Colormap colormap, char* spec,
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-Pixmap WinXCreateBitmapFromData(Display* dpy, Drawable d, char* data,
+Pixmap WinXCreateBitmapFromData(Display* dpy, Drawable d, char* data, 
 							  unsigned int width, unsigned int height, int color)
 {
 	HBITMAP	hbm;
@@ -1063,19 +1063,19 @@ Pixmap WinXCreateBitmapFromData(Display* dpy, Drawable d, char* data,
 	WORD*	e;
 
 	BITMAP bm = {
-		0,							//   LONG   bmType;
-		16,							//   LONG   bmWidth;
-		16,							//   LONG   bmHeight;
-		4,							//   LONG   bmWidthBytes;
-		1,							//   WORD   bmPlanes;
-		1,							//   WORD   bmBitsPixel;
-		NULL						//   LPVOID bmBits;
+		0,							//   LONG   bmType; 
+		16,							//   LONG   bmWidth; 
+		16,							//   LONG   bmHeight; 
+		4,							//   LONG   bmWidthBytes; 
+		1,							//   WORD   bmPlanes; 
+		1,							//   WORD   bmBitsPixel; 
+		NULL						//   LPVOID bmBits; 
 	};
 	RECT rect = { 0,0,16,16};
 
 	HDC		hDC = GetDC(xid[d].hwnd.hWnd);
 	HDC		hDCb = CreateCompatibleDC(hDC);
-
+	
 	hbm = CreateCompatibleBitmap(hDC, width, height);
 	SelectObject(hDCb, hbm);
 	if (bHasPal)
@@ -1083,7 +1083,7 @@ Pixmap WinXCreateBitmapFromData(Display* dpy, Drawable d, char* data,
 		SelectPalette(hDCb, myPal, FALSE);
 		RealizePalette(hDCb);
 	}
-
+	
 	FillRect(hDCb, &rect, (HBRUSH)GetStockObject(BLACK_BRUSH));
 	if (!hbm)
 		error("Can't create item bitmaps");
@@ -1108,7 +1108,7 @@ Pixmap WinXCreateBitmapFromData(Display* dpy, Drawable d, char* data,
 XResizeWindow(Display* dpy, Window w, unsigned int width, unsigned int height)
 {
 	HWND	hWnd = xid[w].hwnd.hWnd;
-
+	
 	SetWindowPos(hWnd, NULL, 0, 0, width, height, SWP_NOMOVE | SWP_NOZORDER);
 	return(0);
 }
@@ -1144,7 +1144,7 @@ void	PaintWinClient()
 #if 0
 	RECT	rect;
 	static int updates = 0;
-
+	
 	if (drawPending)
 		return;				// bogus dude.
 
@@ -1213,7 +1213,7 @@ void MarkPlayersForRedraw()
 
 	GetClientRect(xid[players].hwnd.hWnd, &rect);
 	InvalidateRect(xid[players].hwnd.hWnd, &rect, FALSE);
-	UpdateWindow(xid[players].hwnd.hWnd);
+	UpdateWindow(xid[players].hwnd.hWnd);	
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -1223,7 +1223,7 @@ void MarkMotdForRedraw(Window w)
 
 	GetClientRect(xid[w].hwnd.hWnd, &rect);
 	InvalidateRect(xid[w].hwnd.hWnd, &rect, FALSE);
-	UpdateWindow(xid[w].hwnd.hWnd);
+	UpdateWindow(xid[w].hwnd.hWnd);	
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -1343,11 +1343,11 @@ BOOL WinXGetWindowPlacement(Window w, WINDOWPLACEMENT* wp)
 ///////////////////////////////////////////////////////////////////////////////
 XID	GetFreeXid()
 {
-	int i;
-	for (i=0; i<MAX_XIDS; i++)
-		if (xid[i].type == XIDTYPE_UNUSED)
+	int i; 
+	for (i=0; i<MAX_XIDS; i++) 
+		if (xid[i].type == XIDTYPE_UNUSED) 
 			return(i);
-	error("No Free XIDs");
+	error("No Free XIDs"); 
 	return(MAX_XIDS);
 }
 

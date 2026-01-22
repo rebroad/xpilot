@@ -43,7 +43,7 @@ RSC=rc.exe
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /MD /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_AFXDLL" /D "_MBCS" /Yu"stdafx.h" /c
-# ADD CPP /nologo /MD /W3 /GX /I "..\..\common" /I "..\..\serverlib" /D "NDEBUG" /D "WIN32" /D "_WINDOWS" /D "_MBCS" /D "_SOCKWINDOWS" /D "SOUND" /Fr /Yu"StdAfx.h" /FD /c
+# ADD CPP /nologo /MD /W3 /GX /I "..\..\common" /I "..\..\serverlib" /I "..\robots" /I "..\\" /D "NDEBUG" /D "WIN32" /D "_WINDOWS" /D "_MBCS" /D "_SOCKWINDOWS" /D "SOUND" /Fr /Yu"StdAfx.h" /FD /c
 # ADD BASE MTL /nologo /D "NDEBUG" /win32
 # ADD MTL /nologo /D "NDEBUG" /mktyplib203 /win32
 # ADD BASE RSC /l 0x409 /d "NDEBUG" /d "_AFXDLL"
@@ -70,7 +70,7 @@ LINK32=link.exe
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /MDd /W3 /Gm /GX /Zi /Od /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_AFXDLL" /D "_MBCS" /Yu"stdafx.h" /c
-# ADD CPP /nologo /MTd /W3 /Gm /GX /ZI /Od /I "..\..\common" /I "..\..\serverlib" /D "_DEBUG" /D "NOTRANDOM" /D "WIN32" /D "_WINDOWS" /D "_MBCS" /D "_SOCKWINDOWS" /D "SOUND" /FR /Yu"StdAfx.h" /FD /c
+# ADD CPP /nologo /MTd /W3 /Gm /GX /ZI /Od /I "..\robots" /I "..\\" /I "..\..\common" /I "..\..\serverlib" /D "_DEBUG" /D "NOTRANDOM" /D "WIN32" /D "_WINDOWS" /D "_MBCS" /D "_SOCKWINDOWS" /D "SOUND" /FR /Yu"StdAfx.h" /FD /c
 # ADD BASE MTL /nologo /D "_DEBUG" /win32
 # ADD MTL /nologo /D "_DEBUG" /mktyplib203 /win32
 # ADD BASE RSC /l 0x409 /d "_DEBUG" /d "_AFXDLL"
@@ -91,38 +91,61 @@ LINK32=link.exe
 # Begin Group "server"
 
 # PROP Default_Filter ""
+# Begin Group "robots"
+
+# PROP Default_Filter ""
 # Begin Source File
 
-SOURCE=..\.cvsignore
+SOURCE=..\robots\defaultFactory.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=..\Alliance.cpp
+SOURCE=..\robots\Makefile.in
 # End Source File
 # Begin Source File
 
-SOURCE=..\asteroid.cpp
+SOURCE=..\robots\Robot.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=..\asteroid.h
+SOURCE=..\robots\Robot.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\Cannon.cpp
+SOURCE=..\robots\robot2000.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=..\Cannon.h
+SOURCE=..\robots\Robot4.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=..\click.h
+SOURCE=..\robots\Robot4.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\command.cpp
+SOURCE=..\robots\Robot5.cpp
 # End Source File
+# Begin Source File
+
+SOURCE=..\robots\Robot5.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\robots\RobotMan.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=..\robots\RobotMan.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\robots\testFactory.cpp
+# End Source File
+# End Group
+# Begin Group "network"
+
+# PROP Default_Filter ""
 # Begin Source File
 
 SOURCE=..\ConnectionControl.cpp
@@ -154,6 +177,51 @@ SOURCE=..\ConnectionPlayer.cpp
 # Begin Source File
 
 SOURCE=..\ConnectionPlayer.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\metaserver.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=..\metaserver.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\NetServerServer.h
+# End Source File
+# End Group
+# Begin Source File
+
+SOURCE=..\.cvsignore
+# End Source File
+# Begin Source File
+
+SOURCE=..\Alliance.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=..\asteroid.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=..\asteroid.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\Cannon.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=..\Cannon.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\click.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\command.cpp
 # End Source File
 # Begin Source File
 
@@ -197,18 +265,6 @@ SOURCE=..\Makefile.in
 # End Source File
 # Begin Source File
 
-SOURCE=..\metaserver.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=..\metaserver.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\NetServerServer.h
-# End Source File
-# Begin Source File
-
 SOURCE=..\Object.cpp
 # End Source File
 # Begin Source File
@@ -238,18 +294,6 @@ SOURCE=..\Player.h
 # Begin Source File
 
 SOURCE=..\proto.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\Robot.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=..\Robot.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\robotdef.cpp
 # End Source File
 # Begin Source File
 
@@ -540,6 +584,10 @@ SOURCE=..\..\common\Ini.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\common\Ini.h
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\common\Ini.Save.cpp
 # End Source File
 # Begin Source File
@@ -553,6 +601,10 @@ SOURCE=..\..\common\IniServer.cpp
 # Begin Source File
 
 SOURCE=..\..\common\IniServer.Defaults.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\common\IniServer.h
 # End Source File
 # Begin Source File
 
@@ -609,6 +661,10 @@ SOURCE=..\..\common\portability.h
 # Begin Source File
 
 SOURCE=..\..\common\randommt.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\common\randommt.h
 # End Source File
 # Begin Source File
 
@@ -669,6 +725,10 @@ SOURCE=..\..\common\strdup.cpp
 # Begin Source File
 
 SOURCE=..\..\common\strlcpy.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\common\talk.h
 # End Source File
 # Begin Source File
 

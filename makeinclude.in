@@ -1,5 +1,5 @@
 #
-# "$Id: makeinclude.in,v 1.23 2004/05/04 00:23:30 dick Exp $"
+# "$Id: makeinclude.in,v 1.26 2007/02/17 19:45:19 dick Exp $"
 # @configure_input@
 #
 # makeinclude.in for xpilot++
@@ -29,6 +29,15 @@
 # common rules
 #
 # $Log: makeinclude.in,v $
+# Revision 1.26  2007/02/17 19:45:19  dick
+# Add the SoundEditor to linux
+#
+# Revision 1.25  2007/02/03 08:05:39  dick
+# Build mysql support
+#
+# Revision 1.24  2007/01/11 05:08:13  dick
+# Robots in subdirectories builds on Linux
+#
 # Revision 1.23  2004/05/04 00:23:30  dick
 # Linux needs to install client sound.conf and sounds/*.wav
 #
@@ -78,6 +87,11 @@ CFLAGS			=@CPPFLAGS@ @CFLAGS@
 CXXFLAGS		=@FLTKINC@ @CPPFLAGS@ @CXXFLAGS@
 FLTKINC			=@FLTKINC@
 
+# MySQL support
+MYSQLFLAG		=@MYSQLFLAG@
+MYSQLINC		=@MYSQLINC@
+MYSQLLIB		=@MYSQLLIB@
+
 # sound support
 SERVERSOUND		=@SERVERSOUND@
 CLIENTSOUND		=@CLIENTSOUND@
@@ -112,7 +126,7 @@ LDLIBS			=@LDFLAGS@ @LIBS@ @FLTKLIB@ @FLTKIMAGESLIB@ @IMAGELIBS@ -lX11 -lXext @X
 # if kde is available, define KDE = kde
 KDE			= @KDE@
 
-# additional xpilot++ include directories
+# additional xpilot5 include directories
 COMMONINC		= -I $(TOP)/src/common
 COMMONLIB		=    $(TOP)/src/common/libxpcommon.a
 FLTKWIDGETSINC	= -I $(TOP)/src/common/fltk-widgets
@@ -121,6 +135,8 @@ XPFLWIDGETSINC	= -I $(TOP)/src/common/xp-flwidgets
 XPFLWIDGETSLIB	=	 $(TOP)/src/common/xp-flwidgets/xp-flwidgets.a
 KBCONFIGINC		= -I $(TOP)/src/common/xp-flwidgets/kbconfig
 KBCONFIGLIB		=	 $(TOP)/src/common/xp-flwidgets/kbconfig/xp-kbconfig.a
+FLAUDIOCONFIGINC = -I $(TOP)/src/common/xp-flwidgets/audio
+FLAUDIOCONFIGLIB =	  $(TOP)/src/common/xp-flwidgets/audio/xp-flaudio.a
 SERVERLIBINC	= -I $(TOP)/src/serverlib
 SERVERLIBLIB	=	 $(TOP)/src/serverlib/libxpserverlib.a
 EXPATLIBINC		= -I $(TOP)/src/common/expat/lib
@@ -170,5 +186,5 @@ include $(TOP)/xpilot.version
 
 
 #
-# End of "$Id: makeinclude.in,v 1.23 2004/05/04 00:23:30 dick Exp $".
+# End of "$Id: makeinclude.in,v 1.26 2007/02/17 19:45:19 dick Exp $".
 #

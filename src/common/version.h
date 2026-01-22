@@ -28,14 +28,14 @@
 #if defined(__hpux)
 #   pragma COPYRIGHT_DATE	"1991-2005"
 #   pragma COPYRIGHT		"Dick Balaska, Jarrod Miller, Bert Gijsbers, Bjørn Stabell & Ken Ronny Schouten"
-#   pragma VERSIONID		"XPilot 5.0.0"
+#   pragma VERSIONID		"XPilot 5.0.1a3"
 #endif
 
-#define VERSION			"5.0.0"
+#define VERSION			"5.0.1a3"
 #ifdef	_WINDOWS
-#define	TITLE			"5.0.0-NT"
+#define	TITLE			"5.0.1a3-NT"
 #else
-#define TITLE			"XPilot 5.0.0"
+#define TITLE			"XPilot 5.0.1a3"
 #endif
 #define AUTHORS			"Dick Balaska, Jarrod Miller, Bert Gijsbers, Bjørn Stabell & Ken Ronny Schouten"
 #define COPYRIGHT		"Copyright © 1991-2005 by Dick Balaska, Jarrod Miller, Bert Gijsbers, Bjørn Stabell & Ken Ronny Schouten"

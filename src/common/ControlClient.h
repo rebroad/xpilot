@@ -6,7 +6,7 @@
  *
  *      Dick Balaska         <dick@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
- *      Bjï¿½rn Stabell        <bjoern@xpilot.org>
+ *      Bjørn Stabell        <bjoern@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -115,7 +115,7 @@ protected:
 	virtual int		ReceiveWorldInfo()		{ return(0); }
 	virtual int		ReceiveServerInfo()		{ return(0); }
 
-public:
+public:	
 	String			serverName;
 	String			serverIP;
 	int				serverPort;

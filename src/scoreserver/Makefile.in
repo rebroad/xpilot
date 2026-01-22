@@ -1,5 +1,5 @@
 #
-# $Id: Makefile.in,v 1.9 2004/04/22 05:55:58 dick Exp $
+# $Id: Makefile.in,v 1.10 2007/01/30 06:56:04 dick Exp $
 # @configure_input@
 #
 # Makefile.in for xpilot++
@@ -25,6 +25,9 @@
 # Please report all bugs and problems to "xpilot++@buckosoft.com".
 #
 # $Log: Makefile.in,v $
+# Revision 1.10  2007/01/30 06:56:04  dick
+# Optionally build the sql engine
+#
 # Revision 1.9  2004/04/22 05:55:58  dick
 # Add ConnectionLocalCtl and NetServerScoreServer to Un*x Makefiles
 #
@@ -68,7 +71,7 @@ CPPFILES = \
 
 CLEAN =
 
-SCOREENGINELIB = engines/libscoreengines.a
+SCOREENGINELIB = engines/libscoreengines.a engines/sql/libscoreengineSQL.a
 
 DEPLIBS = $(COMMONLIB) $(SERVERLIBLIB) $(EXPATLIBLIB) $(WEBLIBLIB) $(SCOREENGINELIB)
 
@@ -77,8 +80,10 @@ TOP=@top_srcdir@
 
 include @top_srcdir@/makeinclude
 
-XPCXXFLAGS = $(SERVERLIBINC) $(COMMONINC) $(EXPATLIBINC) $(WEBLIBINC) $(VARRUN)
-XPLDFLAGS =  $(SERVERLIBLIB) $(COMMONLIB) $(EXPATLIBLIB) $(WEBLIBLIB) $(SCOREENGINELIB)
+XPCXXFLAGS = $(SERVERLIBINC) $(COMMONINC) $(EXPATLIBINC) $(WEBLIBINC) $(VARRUN) \
+			 $(MYSQLFLAG)
+XPLDFLAGS =  $(SERVERLIBLIB) $(COMMONLIB) $(EXPATLIBLIB) $(WEBLIBLIB) $(SCOREENGINELIB) \
+			 $(MYSQLLIB)
 
 
 OBJECTS = $(CPPFILES:.cpp=.o) $(CFILES:.c=.o)
@@ -129,5 +134,5 @@ install:
 	chmod 555 $(bindir)/$(PROGNAME)
 
 #
-# End of "$Id: Makefile.in,v 1.9 2004/04/22 05:55:58 dick Exp $".
+# End of "$Id: Makefile.in,v 1.10 2007/01/30 06:56:04 dick Exp $".
 #

@@ -2,7 +2,7 @@
  *
  * XPilot, a multiplayer gravity war game.  Copyright (C) 1991-2001 by
  *
- *      Bjï¿½rn Stabell        <bjoern@xpilot.org>
+ *      Bjørn Stabell        <bjoern@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
  *      Dick Balaska         <dick@xpilot.org>
@@ -59,7 +59,7 @@ void winXTDraw(HDC hDCx, Window w, RECT* rect)
 		dthread = CreateThread(NULL, 16000, DrawThreadProc, &dinfo, 0, &tid);
 		SetThreadPriority(dthread, THREAD_PRIORITY_BELOW_NORMAL);
 //		SetThreadPriority(dthread, THREAD_PRIORITY_HIGHEST);
-
+	
 	}
 	if (WaitForSingleObject(dinfo.eventNotDrawing, 0)	// 1 second timeout
 		== WAIT_OBJECT_0)
@@ -73,7 +73,7 @@ void winXTDraw(HDC hDCx, Window w, RECT* rect)
 		xid[w].hwnd.filling ^= 1;
 		xid[w].hwnd.hBmpDC = xid[w].hwnd.hBmpDCa[xid[w].hwnd.filling];
 		xid[w].hwnd.hBmp = xid[w].hwnd.hBmpa[xid[w].hwnd.filling];
-
+		
 //		SelectPalette(xid[w].hwnd.hBmpDC, myPal, FALSE);
 //		RealizePalette(xid[w].hwnd.hBmpDC);
 

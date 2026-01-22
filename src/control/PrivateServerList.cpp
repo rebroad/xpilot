@@ -8,7 +8,7 @@
  *      Jarrod Miller        <jarrod@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
- *      Bjï¿½rn Stabell        <bjoern@xpilot.org>
+ *      Bjørn Stabell        <bjoern@xpilot.org>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -246,7 +246,7 @@ bool PrivateServerList::ResolveHost(ServerSite* si)
 	si->serverIP = sock_get_addr_by_name(si->serverName);
 	if (si->serverIP.IsEmpty())
 	{
-		emh(emhThis, EmError, "Failed to resolve host \"%s\"",
+		emh(emhThis, EmError, "Failed to resolve host \"%s\"", 
 			(PCSTR)si->serverName);
 		return(false);
 	}
@@ -350,8 +350,8 @@ void PrivateServerList::RbufSelected(int fd)
 		inRbufSelected = false;
 		return;
 	}
-
-	if (*rbuf.ptr != '\0')
+	
+	if (*rbuf.ptr != '\0') 
 	{
 		if (rbuf.len < rbuf.size)
 			rbuf.buf[rbuf.len] = '\0';

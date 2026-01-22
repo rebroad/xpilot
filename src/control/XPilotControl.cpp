@@ -22,6 +22,9 @@
 */
 /*
  * $Log: XPilotControl.cpp,v $
+ * Revision 1.48  2007/02/17 06:16:45  dick
+ * Add the Sound Editor.
+ *
  * Revision 1.47  2004/05/13 09:29:59  dick
  * Whitespace
  *
@@ -140,7 +143,7 @@
 #include "IniClient.h"
 #include "IniServer.h"
 
-// On Linux, 2.95.3 (glibc 2.2.3), somewhere, string.h defines index as a macro:
+// On Linux, gcc 2.95.3 (glibc 2.2.3), somewhere, string.h defines index as a macro:
 // #define index(s,c) (strchr((s),(c)))
 // why this confuses Fl_Input from only this module i don't know
 #undef	index
@@ -174,7 +177,6 @@ ServerOption*	ServerOptionFactory(ServerOptions* _parent,
 ///////////////////////////////////////////////////////////////////////////////
 
 const char* szAppName= APPNAME;
-
 
 ///////////////////////////////////////////////////////////////////////////////
 int main(int argc, char **argv)

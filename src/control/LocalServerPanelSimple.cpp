@@ -11,7 +11,7 @@
  *      Jarrod Miller        <jarrod@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
- *      Bjï¿½rn Stabell        <bjoern@xpilot.org>
+ *      Bjørn Stabell        <bjoern@xpilot.org>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -104,10 +104,10 @@ const int	buttonTop = 50;
 
 static xpe_stbbutton localServerPanelSimpleButtonsDefs[numLocalServerPanelSimpleButtons] =
 {
-	{0, ROW(0), "&Play Game", "Connect a client to your local server",
+	{0, ROW(0), "&Play Game", "Connect a client to your local server", 
 		"xpilot",
 		&LocalServerPanelSimple::PlayGameCallback},
-	{0, ROW(1), "Change &Map", "Load a different world into your server",
+	{0, ROW(1), "Change &Map", "Load a different world into your server", 
 		"map",
 		&LocalServerPanelSimple::ChangeMapCallback},
 };

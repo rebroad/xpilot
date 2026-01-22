@@ -7,7 +7,7 @@
  *      Dick Balaska         <dick@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
- *      Bjï¿½rn Stabell        <bjoern@xpilot.org>
+ *      Bjørn Stabell        <bjoern@xpilot.org>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -61,11 +61,11 @@ BOOL CALLBACK TalkWindowDlgProc(HWND hwndDlg, UINT msg, WPARAM wParam, LPARAM lP
 			newRect.right-newRect.left, newRect.bottom-newRect.top, TRUE);
 		return(TRUE);
 	}
-
-	case WM_COMMAND:
-		switch (LOWORD(wParam))
+		
+	case WM_COMMAND: 
+		switch (LOWORD(wParam)) 
 		{
-		case IDOK:
+		case IDOK: 
 		{
 			char szItem[80];
 			TalkWindow::ts = "";

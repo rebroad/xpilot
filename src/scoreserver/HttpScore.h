@@ -4,7 +4,7 @@
 *  server/																	*
 *																			*
 *  Part of the BuckoSoft Animation Controller								*
-*  Copyrightï¿½ 1998 - BuckoSoft, Inc.										*
+*  Copyright© 1998 - BuckoSoft, Inc.										*
 *																			*
 *  $Id: HttpScore.h,v 1.5 2004/02/05 04:53:53 dick Exp $						*
 \***************************************************************************/
@@ -96,7 +96,7 @@ class HttpScore : public Http
 	void	HandlePlayer(const ObjList& opts);
 	void	HandleServerOpt(const ObjList& opts, const String soptname);
 
-	virtual void PrintServer();
+	virtual void PrintServer();	
 	virtual	void TokenSubst(String s);
 
 

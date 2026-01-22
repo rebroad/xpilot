@@ -2,7 +2,7 @@
  *
  * XPilot, a multiplayer gravity war game.  Copyright (C) 1991-2001 by
  *
- *      Bjï¿½rn Stabell        <bjoern@xpilot.org>
+ *      Bjørn Stabell        <bjoern@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
  *      Dick Balaska         <dick@xpilot.org>
@@ -624,10 +624,10 @@ static bool Process_commands(Sockbuf* ibuf,
 		retries = (c == 'J' || c == 'S') ? 2 : 0;
 		for (i = 0; i <= retries; i++)
 		{
-				if (i > 0)
+				if (i > 0) 
 				{
 						ibuf->sock.SetTimeout(1, 0);
-						if (ibuf->sock.Readable())
+						if (ibuf->sock.Readable()) 
 								break;
 				}
 				if (ibuf->sock.Write(ibuf->buf, ibuf->len) != ibuf->len)

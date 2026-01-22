@@ -1,8 +1,8 @@
-/* $Id: Player.cpp,v 1.46 2006/09/21 04:56:35 dick Exp $
+/* $Id: Player.cpp,v 1.50 2007/01/19 07:14:49 dick Exp $
  *
  * XPilot, a multiplayer gravity war game.  Copyright (C) 1991-2002 by
  *
- *      Bjï¿½rn Stabell        <bjoern@xpilot.org>
+ *      Bjørn Stabell        <bjoern@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
  *      Dick Balaska         <dick@xpilot.org>
@@ -24,6 +24,21 @@
  */
 /*
  *  $Log: Player.cpp,v $
+ *  Revision 1.50  2007/01/19 07:14:49  dick
+ *  Whitespace
+ *
+ *  Revision 1.49  2007/01/17 09:06:22  dick
+ *  Send the RobotWatch packets to the client
+ *
+ *  Revision 1.48  2007/01/13 22:27:28  dick
+ *  Now, a Robot* is a member of Player.
+ *  Robot contains the interface to drive a robot.
+ *  Robot4 is the old robotdef.cpp handler.
+ *
+ *  Revision 1.47  2007/01/10 18:14:47  dick
+ *  All robot actions are now handled through RobotMan.
+ *  There is one RobotMan per World.
+ *
  *  Revision 1.46  2006/09/21 04:56:35  dick
  *  Retab
  *
@@ -189,6 +204,7 @@
 
 #include "version.h"
 #include "config.h"
+#include "pack.h"
 #include "serverconst.h"
 #include "Object.h"
 #include "World.h"
@@ -202,7 +218,7 @@
 #include "draw.h"
 #include "ConnectionPlayer.h"
 #include "ConnectionControlScoreServer.h"
-#include "Robot.h"
+#include "RobotMan.h"
 
 char player_version[] = VERSION;
 
@@ -227,7 +243,7 @@ void Alloc_players(World* w, int number)
 	/* Allocate space for all visibility arrays, n arrays of n entries */
 	t = visibilityArray =
 		(Visibility *) calloc(number * number,
-									  sizeof(Visibility));
+							  sizeof(Visibility));
 
 	if (!w->players || !playerArray || !visibilityArray) {
 		error("Not enough memory for Players.");
@@ -299,10 +315,10 @@ int Player::Init(ShipObj *_ship)
 			ship = Default_ship();
 	}
 
-	power						= 45.0;
+	power				= 45.0;
 	turnspeed			= 30.0;
-	turnresistance				= 0.12;
-	power_s 					= 35.0;
+	turnresistance		= 0.12;
+	power_s 			= 35.0;
 	turnspeed_s 		= 25.0;
 	turnresistance_s	= 0.12;
 
@@ -360,11 +376,11 @@ int Player::Init(ShipObj *_ship)
 	for (i = 0; i < NUM_MODBANKS; i++)
 		CLEAR_MODS(modbank[i]);
 	for (i = 0; i < LOCKBANK_MAX; i++)
-				lockbank[i] = NOT_CONNECTED;
+		lockbank[i] = NOT_CONNECTED;
 
 	{
-				static unsigned short	pseudo_team_no = 0;
-				pseudo_team = pseudo_team_no++;
+		static unsigned short	pseudo_team_no = 0;
+		pseudo_team = pseudo_team_no++;
 	}
 	mychar				= ' ';
 	prev_mychar = mychar;
@@ -379,8 +395,8 @@ int Player::Init(ShipObj *_ship)
 	kills				= 0;
 	deaths				= 0;
 
-		if (BIT(world->rules->mode, ALLOW_CLUSTERS))
-				SET_BIT(mods.warhead, CLUSTER);
+	if (BIT(world->rules->mode, ALLOW_CLUSTERS))
+		SET_BIT(mods.warhead, CLUSTER);
 
 	/*
 	 * If limited lives and if nobody has lost a life yet, you may enter
@@ -402,29 +418,29 @@ int Player::Init(ShipObj *_ship)
 		}
 	}
 
-	team						= TEAM_NOT_SET;
-		alliance				= ALLIANCE_NOT_SET;
-		prev_alliance	= ALLIANCE_NOT_SET;
-		invite					= NO_ID;
+	team			= TEAM_NOT_SET;
+	alliance		= ALLIANCE_NOT_SET;
+	prev_alliance	= ALLIANCE_NOT_SET;
+	invite			= NO_ID;
 
-	lock.tagged = LOCK_NONE;
-	lock.pl_id	= 0;
+	lock.tagged		= LOCK_NONE;
+	lock.pl_id		= 0;
 
-	robot_data_ptr		= NULL;
+	robot			= NULL;
 
 	wormDrawCount	= 0;
 
-	id			= peek_ID();
-	world->getInd[id]	= Ind();
-	conn				= NULL;;
-	audio				= NULL;
+	id				= peek_ID();
+	world->getInd[id]= Ind();
+	conn			= NULL;;
+	audio			= NULL;
 
 	lose_item	= 0;
 	lose_item_state 	= 0;
 
 	shove_next = 0;
 	for (i = 0; i < MAX_RECORDED_SHOVES; i++) {
-				shove_record[i].pusher_id = NO_ID;
+		shove_record[i].pusher_id = NO_ID;
 	}
 
 	frame_last_busy 	= frame_loops;
@@ -449,13 +465,13 @@ void Player::PickStartpos(bool newbie)
 		return;
 	}
 
-	if (prev_num_bases != world->numBases)
+	if (prev_num_bases != world->numBases) 
 	{
 		prev_num_bases = world->numBases;
-		if (free_bases != NULL)
+		if (free_bases != NULL) 
 			free(free_bases);
 		free_bases = (char *) malloc(world->numBases * sizeof(*free_bases));
-		if (free_bases == NULL)
+		if (free_bases == NULL) 
 		{
 			error("Can't allocate memory for free_bases");
 			world->EndGame();
@@ -464,22 +480,22 @@ void Player::PickStartpos(bool newbie)
 
 	num_free = 0;
 	// find all the free bases for our team
-	for (i = 0; i < world->numBases; i++)
+	for (i = 0; i < world->numBases; i++) 
 	{
-		if (world->bases[i].team == team)
+		if (world->bases[i].team == team) 
 		{
 			num_free++;
 			free_bases[i] = 1;
-		}
+		} 
 		else
 			free_bases[i] = 0;	/* other team */
 	}
 	// and subtract the occupied ones
-	for (i = 0; i < world->numPlayers; i++)
+	for (i = 0; i < world->numPlayers; i++) 
 	{
 		if (world->players[i] != this
 			&& !IS_TANK_IND(world, i)
-			&& free_bases[world->players[i]->home_base])
+			&& free_bases[world->players[i]->home_base]) 
 		{
 			free_bases[world->players[i]->home_base] = 0;	/* occupado */
 			num_free--;
@@ -488,29 +504,29 @@ void Player::PickStartpos(bool newbie)
 
 	if (BIT(world->rules->mode, TIMING))
 	{	/* pick first free base */
-		for (i=0; i < world->numBases; i++)
+		for (i=0; i < world->numBases; i++) 
 		{
-			if (free_bases[world->baseorders[i].base_idx])
+			if (free_bases[world->baseorders[i].base_idx]) 
 				break;
 		}
 	}
-	else
+	else 
 	{
 		pick = (int)(rfrac() * num_free);
 		seen = 0;
-		for (i = 0; i < world->numBases; i++)
+		for (i = 0; i < world->numBases; i++) 
 		{
-			if (free_bases[i] != 0)
+			if (free_bases[i] != 0) 
 			{
-				if (seen < pick)
+				if (seen < pick) 
 					seen++;
-				else
+				else 
 					break;
 			}
 		}
 	}
 
-	if (i == world->numBases)
+	if (i == world->numBases) 
 	{
 		String e;
 		e.printf("Can't pick startpos (num=%d,free=%d,pick=%d,seen=%d)",
@@ -518,20 +534,20 @@ void Player::PickStartpos(bool newbie)
 		error(e);
 		world->EndGame(e);
 	}
-	else
+	else 
 	{
 		home_base = BIT(world->rules->mode, TIMING) ?
 						world->baseorders[i].base_idx : i;
-		if (!newbie)
+		if (!newbie) 
 		{
-			for (i = 0; i < world->numPlayers; i++)
+			for (i = 0; i < world->numPlayers; i++) 
 			{
-				if (world->players[i]->conn)
+				if (world->players[i]->conn) 
 					world->players[i]->conn->SendBase(id, home_base);
 			}
-			if (BIT(status, PLAYING) == 0)
+			if (BIT(status, PLAYING) == 0) 
 				count = RECOVERY_DELAY*world->GetFPS();
-			else if (BIT(status, PAUSE|GAME_OVER))
+			else if (BIT(status, PAUSE|GAME_OVER)) 
 				GoHome();
 		}
 	}
@@ -543,7 +559,7 @@ int Player::Ind()
 	for (int i=0; i<=world->numPlayers; i++)
 		if (world->players[i] == this)
 			return(i);
-	// assert(0);		// Can't match player
+	// assert(0);		// Can't match player 
 	return(0);
 }
 
@@ -562,9 +578,8 @@ void Player::GoHome()
     }
 
     if (BIT(world->rules->mode, TIMING)
-		&& round
-		&& !BIT(status, GAME_OVER))
-	{
+	 && round
+	 && !BIT(status, GAME_OVER)) {
 		if (check)
 		    _check = check - 1;
 		else
@@ -597,11 +612,9 @@ void Player::GoHome()
     memset(prev_keyv, 0, sizeof(prev_keyv));
     UsedKill();
 
-	if (world->options.playerStartsShielded->GetBool() == true)
-	{
+	if (world->options.playerStartsShielded->GetBool() == true)	{
 		SET_BIT(used, HAS_SHIELD);
-		if (world->options.allowShields->GetBool() == false)
-		{
+		if (world->options.allowShields->GetBool() == false) {
 			shield_time = 2 * world->GetFPS();
 			SET_BIT(have, HAS_SHIELD);
 		}
@@ -611,15 +624,13 @@ void Player::GoHome()
 	}
 	CLR_BIT(status, THRUSTING);
 	updateVisibility = 1;
-	for (i = 0; i < world->numPlayers; i++)
-	{
+	for (i = 0; i < world->numPlayers; i++)	{
 		visibility[i].lastChange = 0;
 		world->players[i]->visibility[ind].lastChange = 0;
 	}
 
-	if (IS_ROBOT_PTR(this))
-	{
-		Robot_go_home(world, ind);
+	if (IS_ROBOT_PTR(this)) {
+		world->robotMan->GoHome(ind);
 	}
 }
 
@@ -728,7 +739,7 @@ void Player::SetEyes(int plId)
 		myEyes = plId;
 		if (!world->options.anonymousViewing->GetBool())
 		{
-			for (int i = 0; i < world->numPlayers; i++)
+			for (int i = 0; i < world->numPlayers; i++) 
 			{
 				if (world->players[i]->conn)
 					world->players[i]->conn->SendEyes(id, plId);
@@ -745,7 +756,7 @@ void Player::SetLock(int plId)
 		lock.pl_id = plId;
 		if (world->options.showLocks->GetBool())
 		{
-			for (int i = 0; i < world->numPlayers; i++)
+			for (int i = 0; i < world->numPlayers; i++) 
 			{
 				if (world->players[i]->conn)
 					world->players[i]->conn->SendEyes(id, plId);
@@ -928,28 +939,28 @@ void Player::DeathReset()
 
     if (!BIT(status, PAUSE)) {
 
-	deaths++;
+		deaths++;
 
-	if (BIT(world->rules->mode, LIMITED_LIVES)) {
-	    life--;
-	    if (life == -1) {
-		if (IS_ROBOT_PTR(this)) {
-		    if (!BIT(world->rules->mode, TIMING|TEAM_PLAY)
-			|| (world->options.robotsLeave->GetBool()
-				&& score < world->options.robotLeaveScore->GetDouble())) {
-			Robot_delete(world, Ind(), false);
-			return;
-		    }
+		if (BIT(world->rules->mode, LIMITED_LIVES)) { 
+			life--;
+			if (life == -1) {
+				if (IS_ROBOT_PTR(this)) {
+					if (!BIT(world->rules->mode, TIMING|TEAM_PLAY)
+					 || (world->options.robotsLeave->GetBool()
+					 && score < world->options.robotLeaveScore->GetDouble())) {
+						world->robotMan->Delete(Ind(), false);
+						return;
+					}
+				}
+				life = 0;
+				SET_BIT(status, GAME_OVER);
+				mychar = 'D';
+				world->PlayerLockClosest(this, 0);
+			}
 		}
-		life = 0;
-		SET_BIT(status, GAME_OVER);
-		mychar = 'D';
-		world->PlayerLockClosest(this, 0);
-	    }
-	}
-	else {
-	    life++;
-	}
+		else {
+			life++;
+		}
     }
 
     have	= DEF_HAVE;
@@ -964,7 +975,7 @@ void Player::TransportToHome()
     /*
      * Transport a corpse from the place where it died back to its homebase,
      * or if in race mode, back to the last passed check point.
-     *
+     * 
      * During the first part of the distance we give it a positive constant
      * acceleration G, during the second part we make this a negative one -G.
      * This results in a visually pleasing take off and landing.
@@ -972,7 +983,7 @@ void Player::TransportToHome()
 	DFLOAT		bx, by, dx, dy,	t, m;
 	const int		T = RECOVERY_DELAY*world->GetFPS();
 
-	if (BIT(world->rules->mode, TIMING) && round)
+	if (BIT(world->rules->mode, TIMING) && round) 
 	{
 		int _check;
 
@@ -982,8 +993,8 @@ void Player::TransportToHome()
 		_check = world->numChecks - 1;
 		bx = (world->check[_check].x + 0.5) * BLOCK_SZ;
 		by = (world->check[_check].y + 0.5) * BLOCK_SZ;
-	}
-	else
+	} 
+	else 
 	{
 		bx = (world->bases[home_base].pos.x + 0.5) * BLOCK_SZ;
 		by = (world->bases[home_base].pos.y + 0.5) * BLOCK_SZ;
@@ -991,11 +1002,11 @@ void Player::TransportToHome()
 	dx = WRAP_DX(world, bx - pos.x);
 	dy = WRAP_DY(world, by - pos.y);
 	t = count + 0.5f;
-	if (2 * t <= T)
+	if (2 * t <= T) 
 	{
 		m = 2 / t;
 	}
-	else
+	else 
 	{
 		t = T - t;
 		m = (4 * t) / (T * T - 2 * t * t);
@@ -1181,7 +1192,7 @@ void Player::DoHyperjump()
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void Player::SetMessage(const char *message)
+void Player::SetMessage(PCSTR message)
 {
 	int 				i;
 	const char			*msg;
@@ -1199,12 +1210,36 @@ void Player::SetMessage(const char *message)
 		msg = message;
 	}
 	if (conn) {
-				conn->SendPlayMessage(msg);
+		conn->SendPlayMessage(msg);
 	}
 	else if (IS_ROBOT_PTR(this)) {
-				Robot_message(world, world->getInd[id], msg);
+		world->robotMan->Message(world->getInd[id], msg);
 	}
 }
+
+///////////////////////////////////////////////////////////////////////////////
+void Player::SetRobotWatch(int y, PCSTR message)
+{
+	int 				i;
+	const char			*msg;
+	char				tmp[MSG_LEN];
+
+	if ((i = strlen(message)) >= MSG_LEN) {
+#ifndef SILENT
+		errno = 0;
+		error("Max message len exceed (%d,%s)", i, message);
+#endif
+		memcpy(tmp, message, MSG_LEN - 1);
+		tmp[MSG_LEN - 1] = '\0';
+		msg = tmp;
+	} else {
+		msg = message;
+	}
+	if (conn) {
+		conn->SendRobotWatch(y, msg);
+	}
+}
+
 
 ///////////////////////////////////////////////////////////////////////////////
 /* determines if two players are immune to eachother */
@@ -1248,7 +1283,7 @@ void UpdateScoreTable(World* w)
 	int			i, j, check;
 	Player*		pl;
 
-	for (j = 0; j < w->numPlayers; j++)
+	for (j = 0; j < w->numPlayers; j++) 
 	{
 		pl = w->players[j];
 		if (pl->score != pl->prev_score
@@ -1260,9 +1295,9 @@ void UpdateScoreTable(World* w)
 			pl->prev_life = pl->life;
 			pl->prev_mychar = pl->mychar;
 			pl->prev_alliance = pl->alliance;
-			for (i = 0; i < w->numPlayers; i++)
+			for (i = 0; i < w->numPlayers; i++) 
 			{
-				if (w->players[i]->conn)
+				if (w->players[i]->conn) 
 					w->players[i]->conn->SendScore(pl);
 			}
 		}
@@ -1280,10 +1315,10 @@ void UpdateScoreTable(World* w)
 				}
 			}
 		}
-		if (BIT(w->rules->mode, TIMING))
+		if (BIT(w->rules->mode, TIMING)) 
 		{
 			if (pl->check != pl->prev_check
-			|| pl->round != pl->prev_round)
+			|| pl->round != pl->prev_round) 
 			{
 				pl->prev_check = pl->check;
 				pl->prev_round = pl->round;
@@ -1292,9 +1327,9 @@ void UpdateScoreTable(World* w)
 						: (pl->check == 0)
 						? (w->numChecks - 1)
 						: (pl->check - 1);
-				for (i = 0; i < w->numPlayers; i++)
+				for (i = 0; i < w->numPlayers; i++) 
 				{
-					if (w->players[i]->conn)
+					if (w->players[i]->conn) 
 						w->players[i]->conn->SendTiming(pl->id, check, pl->round);
 				}
 			}
@@ -1389,7 +1424,7 @@ void ResetAllPlayers(World* w)
 	/* Reset the teams */
 	for (i = 0; i < MAX_TEAMS; i++) {
 	    w->teams[i].treasuresDestroyed = 0;
-	    w->teams[i].treasuresLeft =
+	    w->teams[i].treasuresLeft = 
 			w->teams[i].numTreasures - w->teams[i].numEmptyTreasures;
 	}
 
@@ -1466,7 +1501,7 @@ void DeletePlayer(World* w, int ind)
 		w->tag = NO_ID;
 
 	if (IS_ROBOT_PTR(pl)) {
-		Robot_destroy(w, ind);
+		w->robotMan->Destroy(ind);
 	}
 
 	/* Delete remaining shots */
@@ -1486,7 +1521,7 @@ void DeletePlayer(World* w, int ind)
 				if (!w->options.keepShots->GetBool()) {
 					obj->life = 0;
 					if (BIT(obj->type,
-						OBJ_CANNON_SHOT|OBJ_MINE|OBJ_SMART_SHOT|OBJ_HEAT_SHOT|OBJ_TORPEDO))
+						OBJ_CANNON_SHOT|OBJ_MINE|OBJ_SMART_SHOT|OBJ_HEAT_SHOT|OBJ_TORPEDO)) 
 					{
 						obj->mass = 0;
 					}
@@ -1582,7 +1617,7 @@ void DeletePlayer(World* w, int ind)
 
 	for (i = w->numPlayers - 1; i >= 0; i--) {
 		if (IS_TANK_IND(w, i)
-			&& w->players[i]->lock.pl_id == id)
+			&& w->players[i]->lock.pl_id == id) 
 		{
 			/* remove tanks which were released by this player. */
 			if (w->options.keepShots->GetBool()) {
@@ -1593,14 +1628,14 @@ void DeletePlayer(World* w, int ind)
 			continue;
 		}
 		if (BIT(w->players[i]->lock.tagged, LOCK_PLAYER|LOCK_VISIBLE)
-			&& (w->players[i]->lock.pl_id == id || w->numPlayers <= 1))
+			&& (w->players[i]->lock.pl_id == id || w->numPlayers <= 1)) 
 		{
 			CLR_BIT(w->players[i]->lock.tagged, LOCK_PLAYER|LOCK_VISIBLE);
 			CLR_BIT(w->players[i]->used, HAS_TRACTOR_BEAM);
 		}
 		if (IS_ROBOT_IND(w, i)
-		  && Robot_war_on_player(w, i) == id) {
-			Robot_reset_war(w, i);
+		  && w->robotMan->WarOnPlayer(i) == id) {
+			w->robotMan->ResetWar(i);
 		}
 		for (j = 0; j < LOCKBANK_MAX; j++) {
 			if (w->players[i]->lockbank[j] == id)
@@ -1613,13 +1648,13 @@ void DeletePlayer(World* w, int ind)
 		}
 	}
 
-	for (i = w->numPlayers - 1; i >= 0; i--)
+	for (i = w->numPlayers - 1; i >= 0; i--) 
 	{
 		if (w->players[i]->conn)
 		w->players[i]->conn->SendLeave(id);
-		else if (IS_TANK_IND(w, i))
+		else if (IS_TANK_IND(w, i)) 
 		{
-			if (w->players[i]->lock.pl_id == id)
+			if (w->players[i]->lock.pl_id == id) 
 			{
 				DeletePlayer(w, i);
 			}

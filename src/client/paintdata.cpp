@@ -2,7 +2,7 @@
  *
  * XPilot, a multiplayer gravity war game.  Copyright (C) 1991-2001 by
  *
- *      Bjï¿½rn Stabell        <bjoern@xpilot.org>
+ *      Bjørn Stabell        <bjoern@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
  *      Dick Balaska         <dick@xpilot.org>
@@ -679,7 +679,7 @@ int Handle_ball(int x, int y, int id)
     return 0;
 }
 
-int Handle_ship(int x, int y, int id, int dir, int shield, int cloak, int eshield,
+int Handle_ship(int x, int y, int id, int dir, int shield, int cloak, int eshield, 
 				int phased, int deflector)
 {
     ship_t	t;

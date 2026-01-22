@@ -1,4 +1,4 @@
-/* $Id: Connection.h,v 1.21 2004/05/31 18:17:25 dick Exp $
+/* $Id: Connection.h,v 1.22 2007/01/18 21:11:08 dick Exp $
  *
  * Describe a server's connection to a client.
  *
@@ -25,6 +25,9 @@
  */
 /*
  *  $Log: Connection.h,v $
+ *  Revision 1.22  2007/01/18 21:11:08  dick
+ *  Move MAX_RELIABLE_DATA_PACKET_SIZE to packet.h
+ *
  *  Revision 1.21  2004/05/31 18:17:25  dick
  *  virtual destructors so subclasses don't leak.
  *
@@ -134,8 +137,6 @@
 #define CONN_DRAIN		0x20	/* wait for all reliable data to be acked */
 #define CONN_READY		0x40	/* draining after LOGIN and before PLAYING */
 #define	CONN_CTL		0x80	/* is a control connection */
-
-#define MAX_RELIABLE_DATA_PACKET_SIZE	1024
 
 // MOTD
 #define MAX_MOTD_CHUNK			512
