@@ -1,8 +1,12 @@
-/* $Id: client.h,v 5.8 2002/01/17 19:51:16 bertg Exp $
+/* $Id: client.h,v 1.17 2006/09/24 05:00:17 dick Exp $
+ *
+ * client - map stuff, radar stuff, network stuff, misc stuff, globals.
+ *
+ * client - the user interface to the game.
  *
  * XPilot, a multiplayer gravity war game.  Copyright (C) 1991-2001 by
  *
- *      Bjørn Stabell        <bjoern@xpilot.org>
+ *      Bjï¿½rn Stabell        <bjoern@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
  *      Dick Balaska         <dick@xpilot.org>
@@ -21,20 +25,33 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
+/*
+ * $Log: client.h,v $
+ * Revision 1.17  2006/09/24 05:00:17  dick
+ * scoresChanged is an int
+ *
+ * Revision 1.16  2005/03/17 22:12:13  kps
+ * Get rid of warnings from makedepend about "non-portable whitespace".
+ *
+ * Revision 1.15  2004/06/03 06:04:42  dick
+ * struct other_t becomes class Other.
+ * array Others becomes ObjList others.
+ * shipobj becomes ShipObj.
+ *
+ */
 
 #ifndef CLIENT_H
 #define CLIENT_H
 
-#ifdef _WINDOWS
-#ifndef	_WINSOCKAPI_
-#include <winsock.h>
-#endif
+#if defined(_WINDOWS) && !defined(_CYGWIN)
+#	ifndef	_WINSOCKAPI_
+#		include <winsock.h>
+#	endif
 
-#ifndef	_WINX_H_
-#include "NT/winX.h"
+#	ifndef	_WINX_H_
+#		include "NT/winX.h"
+#	endif
 #endif
-#endif
-
 
 #ifndef DRAW_H
 /* need shipobj */
@@ -45,55 +62,14 @@
 #include "item.h"
 #endif
 
-#define SHOW_HUD_INSTRUMENTS	(1L << 0)
-#define SHOW_HUD_VERTICAL	(1L << 1)
-#define SHOW_HUD_HORIZONTAL	(1L << 2)
-#define SHOW_FUEL_METER		(1L << 3)
-#define SHOW_FUEL_GAUGE		(1L << 4)
-#define SHOW_TURNSPEED_METER	(1L << 5)
-#define SHOW_POWER_METER	(1L << 6)
-#define SHOW_SHIP_NAME		(1L << 7)
-#define SHOW_SLIDING_RADAR	(1L << 8)
-#define SHOW_PACKET_SIZE_METER	(1L << 10)
-#define SHOW_PACKET_LOSS_METER	(1L << 11)
-#define SHOW_PACKET_DROP_METER	(1L << 12)
-#define SHOW_CLOCK		(1L << 13)
-#define SHOW_ITEMS		(1L << 14)
-#define SHOW_MESSAGES		(1L << 15)
-#define SHOW_MINE_NAME		(1L << 16)
-#define SHOW_OUTLINE_WORLD	(1L << 17)
-#define SHOW_FILLED_WORLD	(1L << 18)
-#define SHOW_TEXTURED_WALLS	(1L << 19)
-#define SHOW_DECOR		(1L << 20)
-#define SHOW_OUTLINE_DECOR	(1L << 21)
-#define SHOW_FILLED_DECOR	(1L << 22)
-#define SHOW_TEXTURED_DECOR	(1L << 23)
-#define SHOW_CLOCK_AMPM_FORMAT	(1L << 24)
-#define SHOW_TEXTURED_BALLS	(1L << 25)
-#define SHOW_REVERSE_SCROLL	(1L << 26)
-#define SHOW_HUD_RADAR          (1L << 27)
-#define SHOW_PACKET_LAG_METER	(1L << 28)
+#include "cstring.h"
+#include "ScoreTable.h"
 
 #define PACKET_LOSS		0
 #define PACKET_DROP		1
 #define PACKET_DRAW		2
 
 #define MAX_SCORE_OBJECTS	10
-
-#define MAX_SPARK_SIZE		8
-#define MIN_SPARK_SIZE		1
-#define MAX_MAP_POINT_SIZE	8
-#define MIN_MAP_POINT_SIZE	0
-#define MAX_SHOT_SIZE		8
-#define MIN_SHOT_SIZE		1
-#define MAX_TEAMSHOT_SIZE	8
-#define MIN_TEAMSHOT_SIZE	1
-
-#define MIN_SHOW_ITEMS_TIME	0.0
-#define MAX_SHOW_ITEMS_TIME	10.0
-
-#define MIN_SCALEFACTOR		0.2
-#define MAX_SCALEFACTOR		8.0
 
 
 #define FIND_NAME_WIDTH(other)						\
@@ -103,27 +79,35 @@
 					 (other)->name_len);		\
     }
 
-
+class Other;
+#if 0
 typedef struct {
-    DFLOAT	ratio;
-    short	id;
-    short	team;
-    DFLOAT	score;
-    short	check;
-    short	round;
-    short	timing;
-    long	timing_loops;
-    short	life;
-    short	mychar;
-    short	alliance;
-    short	war_id;
-    short	name_width;	/* In pixels */
-    short	name_len;	/* In bytes */
-    shipobj	*ship;
-    char	name[MAX_CHARS];
-    char	real[MAX_CHARS];
-    char	host[MAX_CHARS];
+    char		name[MAX_CHARS];
+    char		real[MAX_CHARS];
+    char		host[MAX_CHARS];
+    short		id;
+    short		warId;
+    short		team;
+    short		life;
+	short		kills;
+	short		deaths;
+	DFLOAT		kdratio;	// kills/deaths
+    DFLOAT		ratio;
+    DFLOAT		score;
+	DFLOAT		rate;
+	int			rank;
+	char		ipVer[MAX_CHARS];
+    short		check;
+    short		round;
+    short		timing;
+    long		timing_loops;
+    short		mychar;
+	short		alliance;
+    short		name_width;	/* In pixels */
+    short		name_len;	/* In bytes */
+    shipobj*	ship;
 } other_t;
+#endif
 
 typedef struct {
     int		pos;		/* Block index */
@@ -155,15 +139,15 @@ typedef struct {
 #define SCORE_OBJECT_COUNT	100
 typedef struct {
     DFLOAT	score;
-    int		x,
-		y,
-		count,
-		hud_msg_len,
-		hud_msg_width,
-		msg_width,
-		msg_len;
-    char	msg[10],
-		hud_msg[MAX_CHARS+10];
+	int		x;
+	int		y;
+	int		count;
+	int		hud_msg_len;
+	int		hud_msg_width;
+	int		msg_width;
+	int		msg_len;
+    char	msg[10];
+	char	hud_msg[MAX_CHARS+10];
 } score_object_t;
 
 
@@ -201,6 +185,7 @@ typedef struct {
     bool	keep_emphasizing;
 } selection_t;
 
+class Connectparam;
 
 extern ipos	pos;
 extern ipos	vel;
@@ -211,16 +196,14 @@ extern short	nextCheckPoint;
 extern u_byte	numItems[NUM_ITEMS];
 extern u_byte	lastNumItems[NUM_ITEMS];
 extern int	numItemsTime[NUM_ITEMS];
-extern DFLOAT	showItemsTime;
+//extern DFLOAT	showItemsTime;
 extern short	autopilotLight;
-extern int	showScoreDecimals;
 
 
 extern short	lock_id;		/* Id of player locked onto */
 extern short	lock_dir;		/* Direction of lock */
 extern short	lock_dist;		/* Distance to player locked onto */
 
-extern other_t*	self;			/* Player info */
 extern short	selfVisible;		/* Are we alive and playing? */
 extern short	damaged;		/* Damaged by ECM */
 extern short	destruct;		/* If self destructing */
@@ -238,14 +221,8 @@ extern int		roundDelayMax;
 
 extern int	RadarWidth;
 extern int	RadarHeight;
-extern int	map_point_distance;	/* spacing of navigation points */
-extern int	map_point_size;		/* size of navigation points */
-extern int	spark_size;		/* size of sparks and debris */
-extern int	shot_size;		/* size of shot */
-extern int	teamshot_size;		/* size of team shot */
-extern bool	showNastyShots;		/* show original flavor shots or the new "nasty shots" */
 extern long	control_count;		/* Display control for how long? */
-extern u_byte	spark_rand;		/* Sparkling effect */
+//extern u_byte	spark_rand;		/* Sparkling effect */
 extern u_byte	old_spark_rand;		/* previous value of spark_rand */
 
 extern long	fuelSum;		/* Sum of fuel in all tanks */
@@ -253,63 +230,39 @@ extern long	fuelMax;		/* How much fuel can you take? */
 extern short	fuelCurrent;		/* Number of currently used tank */
 extern short	numTanks;		/* Number of tanks */
 extern long	fuelCount;		/* Display fuel for how long? */
-extern int	fuelLevel1;		/* Fuel critical level */
-extern int	fuelLevel2;		/* Fuel warning level */
-extern int	fuelLevel3;		/* Fuel notify level */
-
-extern char	*shipShape;		/* Shape of player's ship */
-extern DFLOAT	power;			/* Force of thrust */
-extern DFLOAT	power_s;		/* Saved power fiks */
-extern DFLOAT	turnspeed;		/* How fast player acc-turns */
-extern DFLOAT	turnspeed_s;		/* Saved turnspeed */
-extern DFLOAT	turnresistance;		/* How much is lost in % */
-extern DFLOAT	turnresistance_s;	/* Saved (see above) */
 extern DFLOAT	displayedPower;		/* What the server is sending us */
 extern DFLOAT	displayedTurnspeed;	/* What the server is sending us */
 extern DFLOAT	displayedTurnresistance;/* What the server is sending us */
-extern DFLOAT	spark_prob;		/* Sparkling effect configurable */
-extern int	charsPerSecond;		/* Message output speed (config) */
+//extern DFLOAT	spark_prob;		/* Sparkling effect configurable */
+//extern int	charsPerSecond;		/* Message output speed (config) */
 
-extern DFLOAT	hud_move_fact;		/* scale the hud-movement (speed) */
-extern DFLOAT	ptr_move_fact;		/* scale the speed pointer length */
+//extern DFLOAT	hud_move_fact;		/* scale the hud-movement (speed) */
+//extern DFLOAT	ptr_move_fact;		/* scale the speed pointer length */
 extern char	mods[MAX_CHARS];	/* Current modifiers in effect */
-extern long	instruments;		/* Instruments on screen (bitmask) */
+//extern long	instruments;		/* Instruments on screen (bitmask) */
 extern int	packet_size;		/* Current frame update packet size */
 extern int	packet_loss;		/* lost packets per second */
 extern int	packet_drop;		/* dropped packets per second */
-extern int	packet_lag;		/* approximate lag in frames */
+extern int	packet_lag;			/* approximate lag in frames */
 extern char	*packet_measure;	/* packet measurement in a second */
 extern long	packet_loop;		/* start of measurement */
 
-extern bool	showRealName;		/* Show realname instead of nickname */
-extern char	name[MAX_CHARS];	/* Nick-name of player */
-extern char	realname[MAX_CHARS];	/* Real name of player */
+enum ScoreTableType;
+extern uint				scoreTablePages;
+extern ScoreTableType	scoreTableType;
 extern char	servername[MAX_CHARS];	/* Name of server connecting to */
 extern unsigned	version;		/* Version of the server */
 extern int	scoresChanged;
-extern int	toggle_shield;		/* Are shields toggled by a press? */
 extern int	shields;		/* When shields are considered up */
-extern int	auto_shield;            /* drops shield for fire */
-extern int	initialPointerControl;	/* Start by using mouse for control? */
-extern int	pointerControl;		/* current state of mouse ship flying */
-extern bool	useErase;		/* use the Erase hack for slow X */
+extern bool	initialPointerControl;	/* Start by using mouse for control? */
+extern bool	pointerControl;		/* current state of mouse ship flying */
 
-extern int	maxFPS;			/* Client's own FPS */
 extern int 	oldMaxFPS;
-
-extern int	clientPortStart;	/* First UDP port for clients */
-extern int	clientPortEnd;		/* Last one (these are for firewalls) */
 
 extern u_byte	lose_item;		/* flag and index to drop item */
 extern int	lose_item_active;	/* one of the lose keys is pressed */
 
-#ifdef SOUND
-extern char 	sounds[MAX_CHARS];	/* audio mappings */
-extern char 	audioServer[MAX_CHARS];	/* audio server */
-extern int 	maxVolume;		/* maximum volume (in percent) */
-#endif /* SOUND */
-
-extern int	maxLinesInHistory;	/* number of lines to save in history */
+//extern int	maxLinesInHistory;	/* number of lines to save in history */
 #define MAX_HIST_MSGS	128		/* maximum */
 
 int Fuel_by_pos(int x, int y);
@@ -323,14 +276,18 @@ int Base_info_by_pos(int x, int y, int *id, int *team);
 int Handle_base(int id, int ind);
 int Check_pos_by_index(int ind, int *xp, int *yp);
 int Check_index_by_pos(int x, int y);
-other_t *Other_by_id(int id);
-shipobj *Ship_by_id(int id);
+Other*		Other_by_id(int id);
+ShipObj*	Ship_by_id(int id);
 int Handle_leave(int id);
 int Handle_player(int id, int team, int mychar, char *player_name,
 		  char *real_name, char *host_name, char *shape);
-int Handle_score(int id, DFLOAT score, int life, int mychar, int alliance);
+int Handle_score(int id, DFLOAT score, int life, int mychar, int alliance,
+				 short kills, short deaths);
+int HandleScoreTablePages(uint pages);
+int	HandleScoreTableIPVer(int id, PCSTR s);
+int	HandleScoreTableRank(int id, int rank, DFLOAT rate);
 int Handle_score_object(DFLOAT score, int x, int y, char *msg);
-int Handle_team_score(int team, DFLOAT score);
+int	Handle_team_score(int team, DFLOAT score);
 int Handle_timing(int id, int check, int round);
 int Handle_war(int robot_id, int killer_id);
 int Handle_seek(int programmer_id, int robot_id, int sought_id);
@@ -338,7 +295,8 @@ void Map_dots(void);
 void Map_restore(int startx, int starty, int width, int height);
 void Map_blue(int startx, int starty, int width, int height);
 void Client_score_table(void);
-int Client_init(char *server, unsigned server_version);
+//int Client_init(char *server, unsigned server_version);
+int ClientInit(Connectparam* conpar);
 int Client_setup(void);
 void Client_cleanup(void);
 int Client_start(void);
@@ -350,26 +308,23 @@ void Client_flush(void);
 void Client_sync(void);
 int Client_wrap_mode(void);
 void Reset_shields(void);
-void Set_toggle_shield(int onoff);
-void Set_auto_shield(int onoff);
+void Set_toggle_shield(bool onoff);
+void Set_auto_shield(bool onoff);
 
 #ifdef XlibSpecificationRelease
 void Key_event(XEvent *event);
 #endif
-#ifndef _WINDOWS
+#if defined (_UNIX) || defined(_CYGWIN)
 int x_event(int);
 #else
 int win_xevent(XEvent event);
 void MarkPlayersForRedraw(void);
+void MarkMotdForRedraw(Window w);
 #endif
 
 int Key_init(void);
 int Key_update(void);
 int Check_client_fps(void);
-
-#ifdef	SOUND
-extern	void audioEvents();
-#endif
 
 #endif
 

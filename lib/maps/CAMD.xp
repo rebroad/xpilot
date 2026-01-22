@@ -1,5 +1,5 @@
 # Map converted by mapmapper
-# @(#)$Id: CAMD.xp,v 5.0 2001/04/07 20:00:58 dik Exp $ Version 1.0
+# @(#)$Id: CAMD.xp,v 1.1.1.1 2001/07/04 07:13:36 dick Exp $ Version 1.0
 mapWidth:            150
 mapHeight:           150
 mapName:             The Computer Aided Map Designer's first real test...

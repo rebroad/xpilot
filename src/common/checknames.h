@@ -1,4 +1,4 @@
-/* $Id: checknames.h,v 5.0 2001/04/07 20:00:59 dik Exp $
+/* $Id: checknames.h,v 1.2 2002/09/16 21:24:21 dick Exp $
  *
  * XPilot, a multiplayer gravity war game.  Copyright (C) 1991-2001 by
  *
@@ -28,12 +28,14 @@
 #define NAME_OK		1
 #define NAME_ERROR	0
 
-int Check_real_name(char *name);
-void Fix_real_name(char *name);
-int Check_nick_name(char *name);
-void Fix_nick_name(char *name);
-int Check_host_name(char *name);
-void Fix_host_name(char *name);
+class String;
+
+int CheckRealName(String& name);
+void FixRealName(String& name);
+int CheckNickName(String& name);
+void FixNickName(String& name);
+int CheckHostName(String& name);
+void FixHostName(String& name);
 int Check_disp_name(char *name);
 void Fix_disp_name(char *name);
 

@@ -1,8 +1,8 @@
-/*
+/* 
  *
- * XPilot, a multiplayer gravity war game.  Copyright (C) 1991-2002 by
+ * XPilot, a multiplayer gravity war game.  Copyright (C) 1991-2005 by
  *
- *      Bjï¿½rn Stabell        <bjoern@xpilot.org>
+ *      Bjørn Stabell        <bjoern@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
  *      Dick Balaska         <dick@xpilot.org>
@@ -26,19 +26,18 @@
 #define	VERSION_H
 
 #if defined(__hpux)
-#   pragma COPYRIGHT_DATE	"1991-2002"
-#   pragma COPYRIGHT		"Bjï¿½rn Stabell, Ken Ronny Schouten, Bert Gijsbers & Dick Balaska"
-#   pragma VERSIONID		"XPilot 4.5.5"
+#   pragma COPYRIGHT_DATE	"1991-2005"
+#   pragma COPYRIGHT		"Dick Balaska, Jarrod Miller, Bert Gijsbers, Bjørn Stabell & Ken Ronny Schouten"
+#   pragma VERSIONID		"XPilot 5.0.0"
 #endif
 
-#define VERSION			"4.5.5"
+#define VERSION			"5.0.0"
 #ifdef	_WINDOWS
-#define	TITLE			"4.5.5-NT13"
-#define	VERSION_WINDOWS	"13"
+#define	TITLE			"5.0.0-NT"
 #else
-#define TITLE			"XPilot 4.5.5"
+#define TITLE			"XPilot 5.0.0"
 #endif
-#define AUTHORS			"Bjï¿½rn Stabell, Ken Ronny Schouten, Bert Gijsbers & Dick Balaska"
-#define COPYRIGHT		"Copyright ï¿½ 1991-2002 by Bjï¿½rn Stabell, Ken Ronny Schouten, Bert Gijsbers & Dick Balaska"
+#define AUTHORS			"Dick Balaska, Jarrod Miller, Bert Gijsbers, Bjørn Stabell & Ken Ronny Schouten"
+#define COPYRIGHT		"Copyright © 1991-2005 by Dick Balaska, Jarrod Miller, Bert Gijsbers, Bjørn Stabell & Ken Ronny Schouten"
 
 #endif /* VERSION_H */

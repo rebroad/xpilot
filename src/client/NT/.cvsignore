@@ -1,8 +1,10 @@
 Debug
 Release
 xpilot__
-xpilot.aps
-xpilot.ncb
-xpilot.mdp
-xpilot.opt
-xpilot.plg
+*.aps
+*.clw
+*.ncb
+*.mdp
+*.opt
+*.plg
+.exrc

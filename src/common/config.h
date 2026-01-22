@@ -1,8 +1,8 @@
-/* $Id: config.h,v 5.3 2001/06/24 18:59:33 bertg Exp $
+/* $Id: config.h,v 1.29 2005/03/17 22:12:13 kps Exp $
  *
  * XPilot, a multiplayer gravity war game.  Copyright (C) 1991-2001 by
  *
- *      Bjørn Stabell        <bjoern@xpilot.org>
+ *      Bjï¿½rn Stabell        <bjoern@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
  *      Dick Balaska         <dick@xpilot.org>
@@ -21,18 +21,36 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
+/*
+ * $Log: config.h,v $
+ * Revision 1.29  2005/03/17 22:12:13  kps
+ * Get rid of warnings from makedepend about "non-portable whitespace".
+ *
+ * Revision 1.28  2004/03/03 08:03:08  dick
+ * Determine boot directory for Windows
+ *
+ * Revision 1.27  2004/01/26 17:21:47  dick
+ * Add Conf_browser which is the user's preferred browser
+ *
+ * Revision 1.26  2004/01/20 06:13:53  dick
+ * Add support for `make install` to a non-priv'd directory, like /home/dick/xpilot.
+ * If we are doing a default installation (/usr/local/xpilot) then the VARDIR
+ * becomes /var/xpilot .  If we are not default then use $prefix/var.
+ *
+ * Revision 1.25  2002/09/12 19:52:23  dick
+ * Add Conf_server_ini_file_name() to get path to XPilotServer.ini
+ *
+ * Revision 1.24  2002/09/09 23:27:52  dick
+ * define MAX_WORLDS as max worlds supported by server and control
+ *
+ */
 
 #ifndef CONFIG_H
 #define CONFIG_H
 
-#ifdef MOD2
-#error "MOD2 already defined - config.h should be included before const.h"
-#endif
-/*
- * Uncomment this if your machine doesn't use
- * two's complement negative numbers.
- */
-/* #define MOD2(x, m)	mod(x, m) */
+
+// max worlds that a server can run
+#define	MAX_WORLDS		4
 
 
 /*
@@ -62,6 +80,10 @@
 #    define COMPRESSED_MAPS
 #endif
 
+#ifdef	_DEBUG
+#define	DEBUG	1
+#endif
+
 #ifdef _WINDOWS
 #	ifdef	_DEBUG
 #		define	DEBUG	1
@@ -77,47 +99,70 @@
 #	endif
 #endif
 
-/* Windows doesn't play with stdin/out well at all... */
-/* So for the client i route the "debug" printfs to the debug stream */
-/* The server gets 'real' messages routed to the messages window */
-#ifdef _WINDOWS
-#	ifdef	_XPILOTNTSERVER_
-#	define	xpprintf	xpprintfW
-/*#	define	xpprintf	_Trace */
+/* Trace during socket debugging */
+#ifdef	_SOCKDEBUG
+#	ifndef	_DEBUG
+#	error "_SOCKDEBUG requires _DEBUG to be defined as well"
 #	else
-#	define	xpprintf	_Trace
+#	define	SOTRACE		Trace
 #	endif
 #else
-#	define	xpprintf	printf
+#define	SOTRACE
 #endif
 
-/*
- XPilot on Windows does lots of double to int conversions. So we have:
-warning C4244: 'initializing' : conversion from 'double ' to 'int ', possible loss of data
-a million times.  I used to fix each warning added by the Unix people, but
-this makes for harder to read code (and was tiring with each patch)
-*/
-#ifdef	_WINDOWS
-#pragma warning (disable : 4244 4761)
+
+/* Windows doesn't play with stdin/out well at all...
+ * So for the client i route the "debug" printfs to the debug stream
+ * The server gets 'real' messages routed to the messages window
+ */
+extern void ErrorHandler(const char *, ...);
+
+extern void warn(const char*, ...);
+extern void fatal(const char*, ...);
+
+#define	LOGNONE		0		// log nothing
+#define	LOGERR		1		// log only errors
+#define	LOGMIN		2		// minimal info
+#define	LOGMED		3
+#define	LOGLOTS		4
+#define	LOGMAX		5		// ludicrous speed!
+
+extern	void	xpprintf(const char* lpszFormat, ...);
+extern	void	xpprintf(int level, const char* lpszFormat, ...);
+
+#if defined(_WINDOWS)
+#	if defined	_XPILOTNTSERVER_
+#		define	xpprintf	xpprintfW
+		extern	void	xpprintfW(const char* lpszFormat, ...);
+#	endif
 #endif
 
-char *Conf_libdir(void);
-char *Conf_defaults_file_name(void);
-char *Conf_password_file_name(void);
-char *Conf_mapdir(void);
-char *Conf_default_map(void);
-char *Conf_servermotdfile(void);
-char *Conf_localmotdfile(void);
-char *Conf_logfile(void);
-char *Conf_ship_file(void);
-char *Conf_mapdir(void);
-char *Conf_texturedir(void);
-char *Conf_sounddir(void);
-char *Conf_soundfile(void);
-char *Conf_localguru(void);
-char *Conf_contactaddress(void);
-char *Conf_robotfile(void);
-char *Conf_zcat_ext(void);
-char *Conf_zcat_format(void);
+const char* Conf_libdir(void);
+const char* Conf_vardir(void);
+const char* Conf_bindir(void);
+const char* Conf_browser(void);
+const char* Conf_defaults_file_name(void);
+const char* Conf_server_password_file_name(void);
+const char* Conf_client_passwords_file_name(void);
+const char* Conf_client_cookies_file_name(void);
+const char* Conf_server_ini_file_name(void);
+const char* Conf_mapdir(void);
+const char* Conf_default_map(void);
+const char* Conf_servermotdfile(void);
+const char* Conf_localmotdfile(void);
+const char* Conf_logfile(void);
+const char* Conf_ship_file(void);
+const char* Conf_mapdir(void);
+const char* Conf_texturedir(void);
+const char* Conf_buttondir(void);
+const char* Conf_sounddir(void);
+const char* Conf_soundfile(void);
+const char* Conf_localguru(void);
+const char* Conf_contactaddress(void);
+const char* Conf_robotfile(void);
+const char* Conf_zcat_ext(void);
+const char* Conf_zcat_format(void);
+
+extern void ConfigStartup();
 
 #endif /* CONFIG_H */

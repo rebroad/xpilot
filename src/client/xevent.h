@@ -1,4 +1,4 @@
-/* $Id: xevent.h,v 1.1 2001/06/02 20:40:04 bertg Exp $
+/* $Id: xevent.h,v 1.4 2004/05/23 23:52:06 dick Exp $
  *
  * XPilot, a multiplayer gravity war game.  Copyright (C) 1991-2001 by
  *
@@ -36,6 +36,7 @@ bool Key_press_shield(keys_t key);
 bool Key_press_fuel(keys_t key);
 bool Key_press_swap_settings(keys_t key);
 bool Key_press_swap_scalefactor(keys_t key);
+bool KeyPressShowStdout(keys_t key);
 bool Key_press_increase_power(keys_t key);
 bool Key_press_decrease_power(keys_t key);
 bool Key_press_increase_turnspeed(keys_t key);
@@ -51,12 +52,14 @@ bool Key_press(keys_t key);
 bool Key_release(keys_t key);
 void Key_event(XEvent *event);
 void Reset_shields(void);
-void Set_auto_shield(int onoff);
-void Set_toggle_shield(int onoff);
+void Set_auto_shield(bool onoff);
+void Set_toggle_shield(bool onoff);
 void Talk_event(XEvent *event);
 void xevent_keyboard(int queued);
 void xevent_pointer(void);
 int x_event(int new_input);
+void CheckButtonUrl(XEvent* event);
+void OpenUrl(PCSTR s);
 
 #ifdef _WINDOWS
 int win_xevent(XEvent event);

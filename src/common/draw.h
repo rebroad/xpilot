@@ -1,4 +1,4 @@
-/* $Id: draw.h,v 5.6 2003/09/16 21:02:32 bertg Exp $
+/* $Id: draw.h,v 1.11 2004/06/03 06:05:36 dick Exp $
  *
  * XPilot, a multiplayer gravity war game.  Copyright (C) 1991-2001 by
  *
@@ -20,16 +20,46 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ *
+ *  $Log: draw.h,v $
+ *  Revision 1.11  2004/06/03 06:05:36  dick
+ *  shipobj becomes ShipObj
+ *
+ *  Revision 1.10  2004/01/08 18:10:50  dick
+ *  Update to XPilot 4.5.5beta
+ *
+ *  Revision 1.9  2002/08/01 14:57:07  dick
+ *  Remove reference to theWorld
+ *
+ *  Revision 1.8  2002/07/11 16:36:03  dick
+ *  Update to XPilot-4.5.4beta
+ *
+ *  Revision 1.7  2001/10/04 17:33:19  dick
+ *  Include file cleanup
+ *
+ *  Revision 1.6  2001/09/11 07:33:45  dick
+ *  Encapsulate all client resources into new class Ini.
+ *
+ *  Revision 1.5  2001/08/09 07:31:32  dick
+ *  shipobj becomes a basic class
+ *
+ *  Revision 1.4  2001/07/30 01:08:04  dick
+ *  Ship parsing uses const(s).
+ *
+ *  Revision 1.3  2001/07/23 21:08:36  dick
+ *  Encapsulate ShipMass, ShotsMax, ShotsLife, ShotsMass, FPS.
+ *
+ *  Revision 1.2  2001/07/07 12:00:41  dick
+ *  Rename classes to C++ "Style".  old World becomes theWorld.
+ *
  */
 
 #ifndef	DRAW_H
 #define	DRAW_H
 
-#ifndef TYPES_H
-/* need position */
 #include "types.h"
 #include "const.h"
-#endif
+#include "cstring.h"
 
 /*
  * Abstract (non-display system specific) drawing definitions.
@@ -41,7 +71,6 @@
  * The server supports only 4 colors, except for spark/debris, which
  * may have 8 different colors.
  */
-#define NUM_COLORS	    4
 
 #define BLACK		    0
 #define WHITE		    1
@@ -67,20 +96,13 @@
 #define MAX_VIEW_SIZE	    1024
 #define DEF_VIEW_SIZE	    768
 
-/*
- * Spark rand limits.
- */
-#define MIN_SPARK_RAND	    0		/* Not display spark */
-#define MAX_SPARK_RAND	    0x80	/* Always display spark */
-#define DEF_SPARK_RAND	    0x55	/* 66% */
-
 #define DSIZE		    4	    /* Size of diamond (on radar) */
 
 #define MSG_DURATION	    1024
 #define MSG_FLASH	    892
 
 #define TITLE_DELAY	    500
-#define	UPDATE_SCORE_DELAY  (FPS)
+#define	UPDATE_SCORE_DELAY  (GetFPS())
 #define CONTROL_DELAY	    100
 
 /*
@@ -93,7 +115,9 @@
 #define MAX_LIGHT_PTS	    3
 #define MAX_RACK_PTS	    4
 
-typedef struct {			/* Defines wire-obj, i.e. ship */
+class ShipObj {			/* Defines wire-obj, i.e. ship */
+public:
+	ShipObj();
     position	*pts[MAX_SHIP_PTS];	/* the shape rotated many ways */
     int		num_points;		/* total points in object */
     position	engine[RES];		/* Engine position */
@@ -114,21 +138,21 @@ typedef struct {			/* Defines wire-obj, i.e. ship */
     position	*m_rack[MAX_RACK_PTS];
     int		shield_radius;		/* Radius of shield used by client. */
 
-#ifdef	_NAMEDSHIPS
-    char*	name;
-    char*	author;
-#endif
-} shipobj;
+    String	name;
+    String	author;
+};
 
-extern shipobj *Default_ship(void);
-extern void Free_ship_shape(shipobj *w);
-extern shipobj *Parse_shape_str(char *str);
-extern shipobj *Convert_shape_str(char *str);
-extern void Calculate_shield_radius(shipobj *w);
-extern int Validate_shape_str(char *str);
-extern void Convert_ship_2_string(shipobj *w, char *buf, char *ext,
+extern ShipObj*	Default_ship(void);
+extern void		Free_ship_shape(ShipObj* w);
+extern ShipObj*	Parse_shape_str(PCSTR str);
+extern ShipObj*	Convert_shape_str(PCSTR str);
+extern void		Calculate_shield_radius(ShipObj* w);
+extern int		Validate_shape_str(PCSTR str);
+extern void		Convert_ship_2_string(ShipObj* w, char* buf, char *ext,
 				  unsigned shape_version);
 void Rotate_point(position pt[RES]);
+
+extern double rfrac(void);
 
 extern int mod(int x, int y);
 

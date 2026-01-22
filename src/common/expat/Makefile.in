@@ -1,0 +1,94 @@
+# $Id: Makefile.in,v 1.2 2002/07/26 04:51:39 dick Exp $
+# @configure_input@
+#
+# Makefile.in for xpilot++'s expat
+# ./src/common/expat/Makefile.in
+#
+# This module contains run-time files needed by xpilot++
+#
+# Copyright 2002 by XPilot Team "xpilot@xpilot.org"
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU Library General Public
+# License as published by the Free Software Foundation; either
+# version 2 of the License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# Library General Public License for more details.
+#
+# You should have received a copy of the GNU Library General Public
+# License along with this library; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
+# USA.
+#
+# Please report all bugs and problems to "xpilot++@buckosoft.com".
+#
+# $Log: Makefile.in,v $
+# Revision 1.2  2002/07/26 04:51:39  dick
+# Our private expat library never does any install.
+#
+# Revision 1.1  2002/06/26 02:46:42  dick
+# Unix expat makefiles.
+#
+
+LIBNAME =
+
+SUBDIRS = lib
+
+INSTALLFILES =
+
+CPPFILES =
+
+CLEAN =
+
+################################################################
+TOP=@top_srcdir@
+
+include @top_srcdir@/makeinclude
+
+XPCXXFLAGS =
+
+OBJECTS = $(CPPFILES:.cpp=.o) $(CFILES:.c=.o)
+
+all:	$(LIBNAME) $(SUBDIRS)
+	@for dir in $(SUBDIRS); do\
+		echo "=== making $$dir ===";\
+		(cd $$dir; $(MAKE) $(MFLAGS)) || exit 1;\
+	done
+
+$(LIBNAME): $(OBJECTS)
+	echo $(LIBCOMMAND) $@ ...
+	$(LIBCOMMAND) $@ $(OBJECTS)
+	$(RANLIB) $@
+
+
+clean:
+	-@ rm -f *.o *.do $(CLEAN) core *~ .depend cmap
+	@for dir in $(SUBDIRS); do\
+		echo "=== cleaning $$dir ===";\
+		(cd $$dir; $(MAKE) $(MFLAGS) clean) || exit 1;\
+	done
+
+distclean: clean
+	-@ rm -f Makefile
+	@for dir in $(SUBDIRS); do\
+		echo "=== distcleaning $$dir ===";\
+		(cd $$dir; $(MAKE) $(MFLAGS) distclean) || exit 1;\
+	done
+
+depend:
+	@for dir in $(SUBDIRS); do\
+		echo "=== makdepending $$dir ===";\
+		(cd $$dir; $(MAKE) $(MFLAGS) depend) || exit 1;\
+	done
+
+install:
+
+################################################################
+
+
+#
+# End of "$Id: Makefile.in,v 1.2 2002/07/26 04:51:39 dick Exp $".
+#

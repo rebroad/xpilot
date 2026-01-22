@@ -1,0 +1,140 @@
+# $Id: Makefile.in,v 1.10 2004/05/13 16:21:19 dick Exp $
+# @configure_input@
+#
+# Makefile.in for xpilot++'s lib
+# ./lib/Makefile.in
+#
+# This module contains run-time files needed by xpilot++
+#
+# Copyright 2001 by XPilot Team "xpilot@xpilot.org"
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU Library General Public
+# License as published by the Free Software Foundation; either
+# version 2 of the License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# Library General Public License for more details.
+#
+# You should have received a copy of the GNU Library General Public
+# License along with this library; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
+# USA.
+#
+# Please report all bugs and problems to "xpilot++@buckosoft.com".
+#
+# $Log: Makefile.in,v $
+# Revision 1.10  2004/05/13 16:21:19  dick
+# Linux needs to have a shipfile too.
+# Note on Windows, XPilot.shp moves to $/lib .
+#
+# Revision 1.9  2004/05/05 18:19:22  dick
+# Try to remove any old, never used, sounds file; cause we have a directory that name.
+#
+# Revision 1.8  2004/05/04 00:23:30  dick
+# Linux needs to install client sound.conf and sounds/*.wav
+#
+# Revision 1.7  2004/02/03 07:03:14  dick
+# Install the scoreserver web pages on unix.
+#
+# Revision 1.6  2004/01/20 20:25:26  dick
+# Fix overwrite check when installing lib files
+#
+# Revision 1.5  2004/01/20 06:13:53  dick
+# Add support for `make install` to a non-priv'd directory, like /home/dick/xpilot.
+# If we are doing a default installation (/usr/local/xpilot) then the VARDIR
+# becomes /var/xpilot .  If we are not default then use $prefix/var.
+#
+# Revision 1.4  2002/07/30 07:01:06  dick
+# Move install helper directories to ./inst
+#
+# Revision 1.3  2002/07/26 06:28:56  dick
+# Install XPilot++ into the kde games menu
+#
+# Revision 1.2  2002/02/17 22:28:21  dick
+# During install, make $/lib if needed
+#
+# Revision 1.1  2001/10/24 16:40:19  dick
+# Add support for "make install"
+#
+
+LIBNAME =
+
+SUBDIRS = maps scoreserver textures @CLIENTSOUNDDIR@
+
+INSTALLFILES = defaults robots XPilot.shp @CLIENTSOUNDCONF@
+
+CPPFILES =
+
+CLEAN =
+
+################################################################
+TOP=@top_srcdir@
+
+include @top_srcdir@/makeinclude
+
+XPCXXFLAGS =
+
+OBJECTS = $(CPPFILES:.cpp=.o) $(CFILES:.c=.o)
+
+all:	$(LIBNAME) $(SUBDIRS)
+	@for dir in $(SUBDIRS); do\
+		echo "=== making $$dir ===";\
+		(cd $$dir; $(MAKE) $(MFLAGS)) || exit 1;\
+	done
+
+$(LIBNAME): $(OBJECTS)
+	echo $(LIBCOMMAND) $@ ...
+	$(LIBCOMMAND) $@ $(OBJECTS)
+	$(RANLIB) $@
+
+
+clean:
+	-@ rm -f *.o *.do $(CLEAN) core *~ .depend cmap
+	@for dir in $(SUBDIRS); do\
+		echo "=== cleaning $$dir ===";\
+		(cd $$dir; $(MAKE) $(MFLAGS) clean) || exit 1;\
+	done
+
+distclean: clean
+	-@ rm -f Makefile
+	@for dir in $(SUBDIRS); do\
+		echo "=== distcleaning $$dir ===";\
+		(cd $$dir; $(MAKE) $(MFLAGS) distclean) || exit 1;\
+	done
+
+depend:
+	@for dir in $(SUBDIRS); do\
+		echo "=== makdepending $$dir ===";\
+		(cd $$dir; $(MAKE) $(MFLAGS) depend) || exit 1;\
+	done
+
+
+################################################################
+
+install:
+	@if [ ! -d $(XPLIBDIR) ]; then \
+		mkdir $(XPLIBDIR) ;\
+	fi
+	@if [ -f sounds ]; then \
+		rm -f sounds ;\
+	fi
+	for file in $(INSTALLFILES); do\
+		if [ ! -f $(XPLIBDIR)/$$file ] ; then \
+			echo "installing lib file \"$(XPLIBDIR)/$$file\" ";\
+			cp -p $$file $(XPLIBDIR);\
+			chmod 444 $(XPLIBDIR)/$$file;\
+		else\
+			echo "not overwriting existing $$file file ";\
+		fi\
+	done
+	@for dir in $(SUBDIRS); do\
+		echo "=== installing $$dir ===";\
+		(cd $$dir; $(MAKE) $(MFLAGS) install) || exit 1;\
+	done
+
+#
+# End of "$Id: Makefile.in,v 1.10 2004/05/13 16:21:19 dick Exp $".
+#

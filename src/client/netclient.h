@@ -1,4 +1,8 @@
-/* $Id: netclient.h,v 5.5 2002/01/18 22:34:25 kimiko Exp $
+/* $Id: netclient.h,v 1.7 2004/05/28 18:02:29 dick Exp $
+ *
+ * netclient - receive stuff from the server and decode it.
+ *
+ * client - the user interface to the game.
  *
  * XPilot, a multiplayer gravity war game.  Copyright (C) 1991-2001 by
  *
@@ -21,6 +25,12 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
+/*
+ * $Log: netclient.h,v $
+ * Revision 1.7  2004/05/28 18:02:29  dick
+ * Send_shape() takes a PCSTR, not a char*.
+ *
+ */
 
 #ifndef	NETCLIENT_H
 #define	NETCLIENT_H
@@ -30,16 +40,16 @@
 #include "types.h"
 #endif
 
-#define MIN_RECEIVE_WINDOW_SIZE		1
-#define MAX_RECEIVE_WINDOW_SIZE		4
+class Connectparam;
 
 extern int	simulating;
-extern int	receive_window_size;
+//extern int	receive_window_size;
 extern long	last_loops;
 
 int Net_setup(void);
-int Net_verify(char *real, char *nick, char *dpy, int my_team);
-int Net_init(char *server, int port);
+//int Net_verify(char *real, char *nick, char *dpy, int my_team);
+int Net_verify(Connectparam* conpar);
+int Net_init(PCSTR server, int port);
 void Net_cleanup(void);
 void Net_key_change(void);
 int Net_flush(void);
@@ -85,6 +95,7 @@ int Receive_war(void);
 int Receive_seek(void);
 int Receive_player(void);
 int Receive_score(void);
+int	ReceiveScoreTable();
 int Receive_score_object(void);
 int Receive_team_score(void);
 int Receive_timing(void);
@@ -98,7 +109,7 @@ int Receive_string(void);
 int Receive_reply(int *replyto, int *result);
 int Send_ack(long rel_loops);
 int Send_keyboard(u_byte *);
-int Send_shape(char *);
+int Send_shape(PCSTR);
 int Send_power(DFLOAT power);
 int Send_power_s(DFLOAT power_s);
 int Send_turnspeed(DFLOAT turnspeed);
@@ -108,6 +119,7 @@ int Send_turnresistance_s(DFLOAT turnresistance_s);
 int Send_pointer_move(int movement);
 int Receive_audio(void);
 int Receive_talk_ack(void);
+int Receive_cookie(void);
 int Send_talk(void);
 int Send_display(void);
 int Send_modifier_bank(int);

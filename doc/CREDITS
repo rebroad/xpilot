@@ -3,7 +3,7 @@ the people who have been involved in XPilot, especially since we have no such
 list at hand. :)  If you find someone (yourself!?) missing from this list
 then please don't hesitate to complain to the authors at xpilot@xpilot.org.
 
-xpilot.org is:
+xpilot.org:
 
     Bert Gijsbers           xpilot@xpilot.org
     Dick Balaska
@@ -13,6 +13,14 @@ xpilot.org is:
     Dick Balaska            mail services
     uni-Tromso, Norway      meta services
 
+Release 5.0 credits:
+
+    Dick Balaska            Port to C++, Server control guts, Server list,
+                            Keyboard config tool, Score Server
+    Jarrod Miller           Map editor, ship editor,
+                            Server Control gui.
+    Christopher Caserio     'It'.
+
 Release 4.5 credits:
 
     Jarno van der Kolk      Bugfix, Windows recording,
@@ -20,14 +28,13 @@ Release 4.5 credits:
     Paul Alexander Drees    Asteroid Concentrators.
     Kimiko Koopman          Ball racing, kinetic energy in
                             shot hits, scores as floats,
-                            alliances, cannon defense,
-                            Esound support.
+                            alliances, cannon defense.
     Austin Donnelly         Auto-kick of paused players.
     Paul Alexander Drees    Bugfixes, sensitive mines,
                             asteroid concentrators, lag meter.
     Thorsten Kroeger        Messages to standard output,
                             server security fix.
-    Kristian Sï¿½derblom      Several bugfixes.
+    Kristian Söderblom      Several bugfixes.
 
 Release 4.4 credits:
 
@@ -42,7 +49,9 @@ Release 4.4 credits:
     Jarno van der Kolk      More server tuning, Windows XPreplay.
                             Windows NSIS Install script.
     Bob Glickstein          Flak.
-    Juha Lindstrï¿½m          radar on HUD.Release 4.3 credits:
+    Juha Lindström          radar on HUD.
+
+Release 4.3 credits:
 
     Claus Leth Gregersen    Several patches, graphics look.
     Marcus Sundberg         Radar color fix + localnet fix.
@@ -50,16 +59,16 @@ Release 4.4 credits:
     Peder Herborg           Fixes for sliding radar under Windows.
     Ben Jackson             Several fixes + ping button.
     Jarno van der Kolk      Windows sliding radar performance fix.
-    Juha Lindstrï¿½m          Windows fixes for new socklib.
+    Juha Lindström          Windows fixes for new socklib.
     Ben Armstrong           UDP port range + ideas + documentation.
 
 Release 4.2 credits:
 
     Ben Jackson             Numerous patches.
     Uoti Urpala             Numerous patches.
-    Jonny Svï¿½rling,         Talk macros.
+    Jonny Svärling,         Talk macros.
     Adam Lorentzon
-    Teemu Elias Hirsimï¿½ki   xp-replay fix.
+    Teemu Elias Hirsimäki   xp-replay fix.
     Guido Koopman           Armor item.
     Sven Mascheck           Joined the maintenance team.
 
@@ -95,7 +104,7 @@ Release 3.6 credits:
 
     Tim Auckland            Gravity currents
     Mark Boyns              Several patches and comments
-    Scott Manley
+    Scott Manley            
     Ben Jackson
     Andrew Mobbs            itemConcentratorProb
     Ian Jackson             itemConcentratorProb
@@ -135,7 +144,7 @@ Release 3.2 credits:
     Joshua Yelon            Better explosion system, shove patch.
     Eckard Kopatzki         Joystick support for Linux.
     Tom De Pauw &           AF audio support.
-    Lance Berc
+    Lance Berc  
     Ben Jackson             Bug fixes.
     Steve Marsden           User controllable mine detonation.
 
@@ -144,7 +153,7 @@ Release 3.1 credits:
     Harvey Thompson         Lots of first class wonderful new
                             features, ideas and cleanups.  Thanks!
     Mark Boyns              Sound.
-    Stig Sï¿½ther Bakken      Imakefile, testing & feedback.
+    Stig Sæther Bakken      Imakefile, testing & feedback.
     Scott W. Adkins         Ship shapes.
     Tony Plate              Missile length and names.
     Steven Singer           Sun tester & knowledge provider. :-)
@@ -153,7 +162,7 @@ Release 3.0 credits:
 
     Maurice Abraham         Robots, more flexible bouncing etc.
     Mark Boyns &            RPlay - original sound support.
-    David J. Bianco
+    David J. Bianco 
     Greg Renda              Sound scheme client/serverized
                             and added NCD sound support.
     Dave Lemke
@@ -165,10 +174,10 @@ Release 3.0 credits:
     David Chatterton &      Ultrix and SGI.
     Johan Danielsson
     Fred Hucht &            Several (big) patches
-    Michael Staats
+    Michael Staats  
     Maurice Abraham
     Makoto Matsushita
-    Stig Sï¿½ther Bakken      patches & feedback.
+    Stig Sæther Bakken      patches & feedback.
     & all the beta testers
 
 Version 2.0 credits:    (Never released)
@@ -183,7 +192,7 @@ Version 2.0 credits:    (Never released)
     Evan Miller
     Eric Flink
     Karthik P. Sheka
-    Stig Sï¿½ther Bakken
+    Stig Sæther Bakken
     Jim Hickey
     Harvey Thompson
     Ted Lemon
@@ -206,5 +215,5 @@ Pre version 1.2 credits:
     Arne Helme              Socklib
     Tom Grydeland           Maps, fonts and ideas
 
-    Lots of, LOTS OF beta
+    Lots of, LOTS OF beta 
     testers at our site.

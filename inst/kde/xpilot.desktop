@@ -1,0 +1,9 @@
+[Desktop Entry]
+Name=XPilot
+
+Type=Application
+Exec=[XPILOT]
+;DocPath=kjezz/index.html
+Icon=xpilot
+
+Comment=XPilot control center

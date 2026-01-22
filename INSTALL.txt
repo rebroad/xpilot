@@ -1,14 +1,16 @@
-$Id: INSTALL.txt,v 5.1 2001/04/16 15:41:38 bertg Exp $
+$Id: INSTALL.txt,v 1.6 2004/01/20 06:13:53 dick Exp $
 
 Following are the installation instructions for the
 UNIX version of XPilot.  For the Windows version
-see contrib/NT/README.txt for instructions.
+see INSTALL_NT.txt for instructions.
 
 To compile XPilot, you'll need at least:
 
-    An ANSI C compiler
+    A C++ compiler
 
     X11     (any revision from R4 up to R6 is fine)
+
+    fltk - The Fast Lite Tool Kit.
 
 Also note that XPilot isn't gentle with the X server,
 so a fast machine (with a graphics accelerator that
@@ -20,53 +22,73 @@ NEW STYLE INSTALLATION
 The doc subdirectory contains an RPM spec file which you can use
 to build an XPilot RPM file.  The doc subdirectory also contains
 a patch with preferred settings for Local.config under Linux.
+!!!!!! Not supported/tested for XPilot++ !!!!!!
 
 OLD STYLE INSTALLATION
 
-The complete installation just requires three steps -- geez, how easy
+The complete installation requires just four steps -- geez, how easy
 can it be? :)
 
-1. Edit configuration files:
+================================================================================
+1. Install fltk.
 
-   Two possibilities:
+       See INSTALL_FLTK.txt for details
 
-   A.) If you do have Imake:
+================================================================================
+2. Edit configuration files:
 
-       You must first edit Local.config to suit your environment.
-       Then issue the following command
+    A) Run ./config.password
+        This sets the server password that will be installed when you do
+        `make install`.  Note that an installed password file will not be
+        overwritten.
 
-	    xmkmf -a
+    B) Run ./configure
 
-       or, if that fails,
+        Useful options to ./configure ...
 
-	    xmkmf ; make Makefiles ; make includes ; make depend
+        --prefix=DIR
+            Default: /usr/local/xpilot
+            This is the directory that xpilot++ will get installed to when you
+            type "make install".  Maybe you don't have root privileges and
+            want to say --prefix="/home/dick/xpilot"
 
-   B.) If you don't have Imake:
+        --enable-chroot=DIR
+            ***feature not finished***
+            Default: [PREFIX] (/usr/local/xpilot)
+            The server programs can run in a chroot jail.
 
-       You will have to manage with src/Makefile.std.
-       Therefore cd to the src subdirectory.
-       Copy Makefile.std to Makefile and
-       edit common/config.h to suit your environment.
-       The build process will also have to be initiated
-       from the src subdirectory with make.
+        --enable-vardir=DIR
+            ***feature not finished***
+            Default: /var/xpilot
+            XPilot++ wants a writable directory for the servers to keep their
+            output files.  These include:
+            - ScoreServer's XML data and configuration
+            - Server's "tune" files.  If you use xpilotcontrol to tune the
+              options in a running map, then the tuned options are saved in this
+              directory.  When a map is loaded, a tune file is looked for.
+            If you do not want to use these features, set this value to /dev/null
+            If you are running xpilot in a chroot jail, then this directory
+            must be below your [PREFIX]
 
-2. Compile:
+        --enable-debug=yes/no
+            Default: no
+            Causes the -g option and debugging statements to compiled in.
+
+        --disable-silent=yes/no
+            Default: no
+            This causes the compiler to echo it's command line.  If you are
+            having problems building, then turning this on may help you find
+            out what's going wrong.
+
+================================================================================
+3. Compile:
 
    Just run
 
         make
 
-   If you get lots of errors, verify that you're using an ANSI C compiler.
-
-   If you're compiling with gcc and get conflicting types for `abort'
-   and `exit', check that your include files has prototypes and if not,
-   that you have installed gcc-includes.  You should always install
-   gcc-includes if your system include files doesn't have prototypes.
-   (As a temporary hack, you may remove #include <stdlib.h> from all
-   the files.)
-
-
-3. Install:
+================================================================================
+4. Install:
 
    To install the executables, maps, and textures, run
 
@@ -76,23 +98,14 @@ can it be? :)
 
         make install.man
 
-   If you have logging enabled you will have to touch a file called
-   log in the INSTLIBDIR and give other users write permission to it.
-   This is necessary since xpilot isn't, and shouldn't be, set[ug]id.
 
+================================================================================
+5. Play:
 
-4. Play:
+    Start xpilotcontol
 
-    Start a server first:
-
-        xpilots -map globe.map
-
-    Then start a client in another window:
-
-        xpilot
-
-    It should find the server automatically.
-    Or you can "telnet meta.xpilot.org 4400" to
-    find other servers to connect to.
+    You must pick a server first.  Either start a server locally by clicking
+    on the Local Server button, or connect to a server on your lan or connect
+    to a server on the Internet.
 
 If everything fails, see the FAQ, which you can find in the doc subdirectory.

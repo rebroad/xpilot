@@ -1,4 +1,4 @@
-/* $Id: bit.h,v 5.0 2001/04/07 20:00:59 dik Exp $
+/* $Id: bit.h,v 1.1.1.1 2001/07/04 07:13:41 dick Exp $
  *
  * XPilot, a multiplayer gravity war game.  Copyright (C) 1991-2001 by
  *

@@ -1,4 +1,4 @@
-/* $Id: click.h,v 5.0 2001/04/07 20:01:00 dik Exp $
+/* $Id: click.h,v 1.3 2002/09/11 16:42:04 dick Exp $
  *
  * XPilot, a multiplayer gravity war game.  Copyright (C) 1991-2001 by
  *
@@ -20,6 +20,15 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ *
+ *  $Log: click.h,v $
+ *  Revision 1.3  2002/09/11 16:42:04  dick
+ *  Here endeth the server encapsulation task.
+ *  theWorld is now an array of World(s) and get loaded dynamically.
+ *
+ *  Revision 1.2  2001/07/07 12:00:42  dick
+ *  Rename classes to C++ "Style".  old World becomes theWorld.
+ *
  */
 
 #ifndef CLICK_H
@@ -45,11 +54,11 @@
 #define FLOAT_TO_CLICK(F)	((int)((F) * CLICK))
 
 /*
- * Two acros for edge wrap of x and y coordinates measured in clicks.
+ * Two macros for edge wrap of x and y coordinates measured in clicks.
  * Note that the correction needed should never be bigger than the size of the map.
  */
-#define WRAP_XCLICK(x_)	\
-	(BIT(World.rules->mode, WRAP_PLAY) \
+#define WRAP_XCLICK(_w, x_)	\
+	(BIT(_w->rules->mode, WRAP_PLAY) \
 	    ? ((x_) < 0 \
 		? (x_) + mp.click_width \
 		: ((x_) >= mp.click_width \
@@ -57,8 +66,8 @@
 		    : (x_))) \
 	    : (x_))
 
-#define WRAP_YCLICK(y_)	\
-	(BIT(World.rules->mode, WRAP_PLAY) \
+#define WRAP_YCLICK(_w, y_)	\
+	(BIT(_w->rules->mode, WRAP_PLAY) \
 	    ? ((y_) < 0 \
 		? (y_) + mp.click_height \
 		: ((y_) >= mp.click_height \

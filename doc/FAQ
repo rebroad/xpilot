@@ -172,8 +172,8 @@ a new release is announced.  See:
 6) Where can I get it as soon as possible?
 
 Anonymous ftp to ftp.xpilot.org.  Use as login name anonymous or ftp and
-supply your email address as password.  Go to the directory /pub/xpilot
-and look for the file named xpilot-4.5.4.tar.gz.
+supply your email address as password.
+Go to the directory /pub and look for the file named xpilot-4.5.4.tar.gz.
 Some patches for older versions are also available.
 
 Debian carries the latest version of the official XPilot source here:
@@ -194,7 +194,7 @@ We encourage new users to stick with the latest stable version, but if
 you would like to play with the latest development source, it is
 available at <URL:http://xpilotgame.sf.net>.
 
-Note: this is not the same as <URL:http://xpilot.sf.net> which was so named
+Note: this is not the same as <URL://xpilot.sf.net> which was so named
 simply because it was the first XPilot-based project hosted on
 SourceForge.  See question 28.  Only later did the official XPilot
 project move to sf.net, and thus it had to be named xpilotgame.
@@ -433,7 +433,7 @@ frame rate (try values like: 14, 12 or 10).
 There is a collection of older maps at ftp.xpilot.org available
 via anonymous ftp:
 
-    <URL:ftp://ftp.xpilot.org/pub/xpilot/maps>
+    <URL:ftp://ftp.xpilot.org/pub/maps>
 
 In the FAQ editor's opinion, designing a really good XPilot map is a
 rather difficult endeavour.  As a result, many of these old maps fall

@@ -1,4 +1,4 @@
-/* $Id: wreckshape.h,v 5.1 2001/05/19 10:11:58 bertg Exp $
+/* $Id: wreckshape.h,v 1.1.1.1 2001/07/04 07:13:42 dick Exp $
  *
  * XPilot, a multiplayer gravity war game.  Copyright (C) 1991-2001 by
  *

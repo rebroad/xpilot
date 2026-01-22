@@ -1,8 +1,8 @@
-/* $Id: winXXPilot.h,v 5.0 2001/04/07 20:00:59 dik Exp $
+/* $Id: winXXPilot.h,v 1.3 2001/09/11 07:33:45 dick Exp $
  *
  * XPilot, a multiplayer gravity war game.  Copyright (C) 1991-2001 by
  *
- *      Bjï¿½rn Stabell        <bjoern@xpilot.org>
+ *      Bjørn Stabell        <bjoern@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
  *      Dick Balaska         <dick@xpilot.org>
@@ -27,7 +27,7 @@
 *																			*
 *  This file contains the private winX definitions for the XPilot client	*
 *																			*
-*  $Id: winXXPilot.h,v 5.0 2001/04/07 20:00:59 dik Exp $							*
+*  $Id: winXXPilot.h,v 1.3 2001/09/11 07:33:45 dick Exp $							*
 \***************************************************************************/
 #ifndef	_WINXPILOT_H_
 #define	_WINXPILOT_H_
@@ -39,11 +39,6 @@
 #endif
 
 #include "../../common/NT/winX.h"
-
-#ifdef	__cplusplus
-extern "C" {
-#endif
-
 
 extern	int	WinXGetWindowRectangle(Window window, XRectangle* rect);
 
@@ -75,7 +70,7 @@ extern	Pixmap WinXGetRadarBitmap(int width, int height);
 extern	void WinXPaintPlayers(); */
 
 /* used for creating item bitmaps */
-extern	Pixmap WinXCreateBitmapFromData(Display* dpy, Drawable d, char* data,
+extern	Pixmap WinXCreateBitmapFromData(Display* dpy, Drawable d, char* data, 
 							  unsigned int width, unsigned int height, int color);
 
 extern	Window WinXGetParent(Window w);
@@ -93,17 +88,12 @@ extern BOOL drawPending;	// try to throttle the deadly frame backup syndrome
 
 // Windows config options
 /* extern int iScaleFactor; */
-extern int RadarDivisor;
-extern int ThreadedDraw;
+//extern int	RadarDivisor;
+//extern bool	ThreadedDraw;
 
 
-// temp until the new WinMotd (using the motd api) comes along
+// temp until the new WinMotd (using the motd api) comes along 
 extern int Startup_server_motd(void);
-
-#ifdef	__cplusplus
-};
-#endif
-
 
 #endif	/* _WINDOWS */
 #endif	/* _WINXPILOT_H_ */

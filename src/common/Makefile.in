@@ -1,0 +1,204 @@
+# $Id: Makefile.in,v 1.23 2004/05/10 13:01:18 dick Exp $
+# @configure_input@
+#
+# Makefile.in for xpilot++'s library common and subdirectories of common
+# ./src/common/Makefile.in
+#
+# This library may be used by any xpilot++ program.
+#
+# Copyright 2001 by XPilot Team "xpilot@xpilot.org"
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU Library General Public
+# License as published by the Free Software Foundation; either
+# version 2 of the License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# Library General Public License for more details.
+#
+# You should have received a copy of the GNU Library General Public
+# License along with this library; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
+# USA.
+#
+# Please report all bugs and problems to "xpilot++@buckosoft.com".
+#
+# $Log: Makefile.in,v $
+# Revision 1.23  2004/05/10 13:01:18  dick
+# Remove InetServerList
+#
+# Revision 1.22  2004/02/24 05:25:50  dick
+# Only the special config.cpp needs all the sys defines
+#
+# Revision 1.21  2004/01/28 05:53:13  dick
+# Force the make to die on failure by using "exit 1" instead of "break" in the loops.
+# Tidy up the make install output.
+#
+# Revision 1.20  2004/01/26 17:21:47  dick
+# Add Conf_browser which is the user's preferred browser
+#
+# Revision 1.19  2004/01/20 06:13:53  dick
+# Add support for `make install` to a non-priv'd directory, like /home/dick/xpilot.
+# If we are doing a default installation (/usr/local/xpilot) then the VARDIR
+# becomes /var/xpilot .  If we are not default then use $prefix/var.
+#
+# Revision 1.18  2004/01/17 19:37:16  dick
+# WildMap is now in the common library. Control and server use this,
+# instead of each having it's own copy.
+#
+# Revision 1.17  2004/01/07 18:38:46  dick
+# Pass OSFLAG to make depend so it won't look for w32 includes.
+#
+# Revision 1.16  2002/09/12 19:51:44  dick
+# IniServer handles the XPilotServer.ini file for XPilot (control).
+# We can't use this in the server because Ini uses X11 stuff.
+#
+# Revision 1.15  2002/09/02 16:56:23  dick
+# Add IniClient.cpp and IniClient.Defaults.cpp.  Remove Ini.Defaults.cpp
+#
+# Revision 1.14  2002/08/02 23:56:23  jlmiller
+#
+# Add InetServerList.cpp
+#
+# Revision 1.13  2002/07/23 18:02:14  dick
+# Add password to the library
+#
+# Revision 1.12  2002/06/27 12:53:27  dick
+# distclean removes Makefile
+#
+# Revision 1.11  2002/06/26 04:50:35  dick
+# Add expat and web directories, Archive and XMLArchive classes.
+#
+# Revision 1.10  2002/06/25 23:46:13  jlmiller
+#
+# Linux cleanups.
+#
+# Revision 1.9  2002/06/23 06:59:06  dick
+# Add ServerOptionsNetClientFl to the common library
+#
+# Revision 1.8  2002/06/09 20:59:35  dick
+# Add FlEventNames to common lib.
+#
+# Revision 1.7  2002/06/01 20:53:19  dick
+# ./configure works again.  Add header comment info to Imakefiles.
+#
+# Revision 1.6  2002/05/30 03:33:40  jlmiller
+#
+# Linux cleanups for compilation after reorg of ServerList
+#
+# Revision 1.5  2001/10/10 13:30:42  dick
+# Support versioning with ./configure by breaking the xpilot version info
+# into his own file in the root directory.
+#
+# Revision 1.4  2001/10/09 15:43:03  dick
+# Break options out to it's own file Ini.Defaults.cpp.
+# Fix a bug reading resources on Linux.
+#
+# Revision 1.3  2001/09/27 17:53:39  dick
+# Add UndoMan to the makefiles.
+#
+# Revision 1.2  2001/09/23 08:50:43  dick
+# Add support for msub'ing version.h
+#
+# Revision 1.1  2001/09/23 06:25:27  dick
+# Added support for autoconf.
+# Right now, "make install" is not supported.  And config.h is rather empty.
+#
+
+LIBNAME = libxpcommon.a
+
+SUBDIRS = expat fltk-widgets web xp-flwidgets
+
+CPPFILES = \
+	config.cpp \
+	Archive.cpp CfgBase.cpp checknames.cpp \
+	Connectparam.cpp ControlClient.cpp cstring.cpp \
+	error.cpp FirewallPortList.cpp FlEventNames.cpp \
+	Ini.cpp Ini.cpp Ini.Save.cpp \
+	IniClient.cpp IniClient.Defaults.cpp \
+	IniServer.cpp IniServer.Defaults.cpp \
+	keys.cpp list.cpp math.cpp microdelay.cpp \
+	Obj.cpp password.cpp portability.cpp randommt.cpp \
+	ServerList.cpp ServerOptionsNetClient.cpp ServerOptionsNetClientFl.cpp ServerSite.cpp \
+	ShipDocument.cpp ShipList.cpp shipshape.cpp showtime.cpp Sock.cpp Sockbuf.cpp sockerrs.cpp \
+	strcasecmp.cpp strdup.cpp strlcpy.cpp \
+	UndoableCommand.cpp UndoMan.cpp WildMap.cpp \
+	XMLArchive.cpp xpmemory.cpp XpPoint.cpp XpPointList.cpp xpprintf.cpp
+
+MSUBTARGETS = version.h
+
+CLEAN =
+
+################################################################
+TOP=@top_srcdir@
+
+include @top_srcdir@/makeinclude
+
+XPCXXFLAGS = $(OSFLAG) $(SERVERLIBINC) $(COMMONINC) $(FLTKWIDGETSINC) $(XPFLWIDGETSINC) $(EXPATLIBINC) $(WEBLIBINC)
+
+CONFIGFLAGS= -DVARDIR="\"$(VARDIR)/\"" -DLIBDIR="\"$(LIBDIR)/\"" -DBINDIR="\"$(BINDIR)/\"" -DBROWSER="\"$(BROWSER)\""
+
+OBJECTS = $(CPPFILES:.cpp=.o) $(CFILES:.c=.o)
+
+all:: version.h
+
+all::	$(LIBNAME) $(SUBDIRS)
+	@for dir in $(SUBDIRS); do\
+		echo "=== making $$dir ===";\
+		(cd $$dir; $(MAKE) $(MFLAGS)) || exit 1;\
+	done
+
+$(LIBNAME): version.h $(OBJECTS)
+	echo $(LIBCOMMAND) $@ ...
+	$(LIBCOMMAND) $@ $(OBJECTS)
+	$(RANLIB) $@
+
+config.o:
+	$(CXX) $(XPCXXFLAGS) $(CONFIGFLAGS) -c config.cpp
+$(CPPFILES): version.h
+
+#$(MSUBTARGETS): $(MSUB) $<.msub
+version.h: $(MSUB) version.h.msub $(TOP)/xpilot.version
+	@echo "msub'ing version.h"
+	$(MSUB) $(MSUBFLAGS) -f $(TOP)/xpilot.version version.h.msub >$@
+
+$(MSUB): $(MSUB).o $(MSUB).c
+	@echo "Checking $@ over in $(MSUBSRC) first.."; \
+	cd $(MSUBSRC) || exit 1; $(MAKE) || exit 1; \
+	echo "Okay, continuing in $(CURRENT_DIR)"
+
+clean :
+	-@ rm -f *.o *.do *.bak $(LIBNAME) $(CLEAN) $(MSUBTARGETS) core *~ .depend cmap
+	-@ touch .depend
+	@for dir in $(SUBDIRS); do\
+		echo "=== cleaning $$dir ===";\
+		(cd $$dir; $(MAKE) $(MFLAGS) clean) || exit 1;\
+	done
+
+distclean: clean
+	-@ rm -f Makefile .depend
+	@for dir in $(SUBDIRS); do\
+		echo "=== distcleaning $$dir ===";\
+		(cd $$dir; $(MAKE) $(MFLAGS) distclean) || exit 1;\
+	done
+
+depend: version.h
+	-@ makedepend $(XPCXXFLAGS) $(FLTKINC) -f .depend $(CPPFILES) $(CFILES)
+	@for dir in $(SUBDIRS); do\
+		echo "=== making dependencies in $$dir ===";\
+		(cd $$dir; $(MAKE) $(MFLAGS) depend) || exit 1;\
+	done
+
+include .depend
+
+# declarations for msub
+AUTHORS=@AUTHORS@
+################################################################
+
+install:
+
+#
+# End of "$Id: Makefile.in,v 1.23 2004/05/10 13:01:18 dick Exp $".
+#

@@ -361,7 +361,7 @@ your HUD.
 .RS -5
 .RS -5
 Between the \fBradar\fP and the \fBRating list\fP there are three
-push buttons:
+push buttons: 
 .RS 5
 .TP 12
 .B Quit
@@ -548,7 +548,7 @@ Extra rear cannon.
 2 extra front cannons.
 .TP 12
 .B Afterburner
-Your main engine becomes more powerful and uses your fuel more
+Your main engine becomes more powerful and uses your fuel more 
 efficiently.
 .TP 12
 .B Rockets
@@ -605,7 +605,7 @@ re-target smart missiles within a certain range of your ship.
 When missiles are zapped by ECM, they will become confused for a
 while and then have a high probability of going after the player
 who you were locked onto when you used the ECM.  The ECM will also
-cause within a certain range to either explode or be more likely
+cause within a certain range to either explode or be more likely 
 be temporarily be blinded such that they do not explode if you go
 near them.  The closest mine within ECM range may be reprogrammed
 to be safe for you and your team members. If another ship
@@ -626,7 +626,7 @@ increases the range and the repeat rate of the laser subsystem.
 Gives you a limited amount of super thrusters, equivalent to a full
 complement of afterburners.  With a light ship this is equivalent
 to hitting hyperspace or warp factor 9.99.  Useful for stopping quickly
-or running away fast from a deadly encounter.  The extra thrust
+or running away fast from a deadly encounter.  The extra thrust 
 capability is toggled on and off by a seperate key and can thus be
 saved, the amount of time remaining is shown by a status bar below the
 HUD.
@@ -647,7 +647,7 @@ annoying players into walls.
 .TP 12
 .B Emergency Shield
 Gives you a limited amount of extra shield power, which prevents any
-fuel loss from shots, debris, player and wall collisions, missiles,
+fuel loss from shots, debris, player and wall collisions, missiles, 
 mines, etc.  While in use, the ship can smash into walls at any speed
 and angle without fear of being killed.  The extra shield capability
 is toggled on and off by a separate key and can thus be saved, with
@@ -797,7 +797,7 @@ Pressing the key again clears the nuclear weapons mode.
 You must have eight or more missiles, or four or more mines to launch
 a nuclear missile or mine, and perhaps enough fuel as well.  If you do
 not a message will be displayed at the bottom of the game area explaining
-why and the weapon will not be fired.
+why and the weapon will not be fired.  
 
 Firing a full (or fusion) nuclear weapon completely depletes your stock
 of that weapon, limited nuclear weapons will deplete your stock by eight
@@ -910,7 +910,7 @@ give the equivalent of emergency brakes.
 .B keyToggleEmergencyShield {g}
 This toggles the emergency shield item.  You need at least one emergency
 shield item.  When first turning on, this item is used up and ten seconds
-or so of emergency shield power is placed at your disposal.  The time is
+or so of emergency shield power is placed at your disposal.  The time is 
 only used up as you use your regular shields, and hitting this key again
 will return you back to normal shield power while conserving the remaining
 emergency shield power.
@@ -1550,7 +1550,7 @@ If
 is set then its value is used instead of $HOME/.xpilotrc
 to find the file containing the xpilot resources.
 .B XPILOTUSER
-and
+and 
 .B XPILOTHOST
 set the loginname and hostname as reported to the xpilots server.
 
@@ -1558,8 +1558,8 @@ set the loginname and hostname as reported to the xpilots server.
 .SH AUTHORS
 
 \fBXPilot\fP was developed by
-Bjï¿½rn Stabell <bjoern@xpilot.org> and
-Ken Ronny Schouten <ken@xpilot.org> from the University of Tromsï¿½,
+Bjørn Stabell <bjoern@xpilot.org> and
+Ken Ronny Schouten <ken@xpilot.org> from the University of Tromsø, 
 Bert Gijsbers <bert@xpilot.org> from the University of Amsterdam,
 and Dick Balaska <dick@xpilot.org> from BuckoSoft.COM.
 

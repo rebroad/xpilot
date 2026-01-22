@@ -31,20 +31,19 @@ RSC=rc.exe
 
 !IF  "$(CFG)" == "XPilotServer - Win32 Release"
 
-# PROP BASE Use_MFC 6
+# PROP BASE Use_MFC 0
 # PROP BASE Use_Debug_Libraries 0
 # PROP BASE Output_Dir ".\Release"
 # PROP BASE Intermediate_Dir ".\Release"
 # PROP BASE Target_Dir ""
-# PROP Use_MFC 6
+# PROP Use_MFC 0
 # PROP Use_Debug_Libraries 0
 # PROP Output_Dir ".\Release"
 # PROP Intermediate_Dir ".\Release"
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /MD /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_AFXDLL" /D "_MBCS" /Yu"stdafx.h" /c
-# ADD CPP /nologo /MD /W3 /GX /I "..\..\common" /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_XPILOTNTSERVER_" /D "_AFXDLL" /D "_MBCS" /Fr /FD /c
-# SUBTRACT CPP /YX /Yc /Yu
+# ADD CPP /nologo /MD /W3 /GX /I "..\..\common" /I "..\..\serverlib" /D "NDEBUG" /D "WIN32" /D "_WINDOWS" /D "_MBCS" /D "_SOCKWINDOWS" /D "SOUND" /Fr /Yu"StdAfx.h" /FD /c
 # ADD BASE MTL /nologo /D "NDEBUG" /win32
 # ADD MTL /nologo /D "NDEBUG" /mktyplib203 /win32
 # ADD BASE RSC /l 0x409 /d "NDEBUG" /d "_AFXDLL"
@@ -54,29 +53,24 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 /nologo /subsystem:windows /machine:I386
-# ADD LINK32 /nologo /subsystem:windows /machine:I386 /out:".\Release\XPilotServer.exe"
+# ADD LINK32 Ws2_32.lib kernel32.lib user32.lib gdi32.lib advapi32.lib shell32.lib /nologo /subsystem:windows /machine:I386 /out:".\Release\XPilotServer.exe"
 # SUBTRACT LINK32 /debug /nodefaultlib
-# Begin Special Build Tool
-SOURCE="$(InputPath)"
-PostBuild_Cmds=copy Release\XPilotServer.exe C:\XPilot
-# End Special Build Tool
 
 !ELSEIF  "$(CFG)" == "XPilotServer - Win32 Debug"
 
-# PROP BASE Use_MFC 6
+# PROP BASE Use_MFC 0
 # PROP BASE Use_Debug_Libraries 1
 # PROP BASE Output_Dir ".\Debug"
 # PROP BASE Intermediate_Dir ".\Debug"
 # PROP BASE Target_Dir ""
-# PROP Use_MFC 6
+# PROP Use_MFC 0
 # PROP Use_Debug_Libraries 1
 # PROP Output_Dir ".\Debug"
 # PROP Intermediate_Dir ".\Debug"
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /MDd /W3 /Gm /GX /Zi /Od /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_AFXDLL" /D "_MBCS" /Yu"stdafx.h" /c
-# ADD CPP /nologo /MDd /W3 /Gm /GX /ZI /Od /I "..\..\common" /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_XPILOTNTSERVER_" /D "_AFXDLL" /D "_MBCS" /FR /FD /c
-# SUBTRACT CPP /YX /Yc /Yu
+# ADD CPP /nologo /MTd /W3 /Gm /GX /ZI /Od /I "..\..\common" /I "..\..\serverlib" /D "_DEBUG" /D "NOTRANDOM" /D "WIN32" /D "_WINDOWS" /D "_MBCS" /D "_SOCKWINDOWS" /D "SOUND" /FR /Yu"StdAfx.h" /FD /c
 # ADD BASE MTL /nologo /D "_DEBUG" /win32
 # ADD MTL /nologo /D "_DEBUG" /mktyplib203 /win32
 # ADD BASE RSC /l 0x409 /d "_DEBUG" /d "_AFXDLL"
@@ -86,7 +80,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 /nologo /subsystem:windows /debug /machine:I386
-# ADD LINK32 /nologo /subsystem:windows /debug /machine:I386 /out:".\Debug\XPilotServer.exe"
+# ADD LINK32 Ws2_32.lib kernel32.lib user32.lib gdi32.lib advapi32.lib shell32.lib /nologo /subsystem:windows /debug /machine:I386 /out:".\Debug\XPilotServer.exe"
 
 !ENDIF
 
@@ -94,19 +88,20 @@ LINK32=link.exe
 
 # Name "XPilotServer - Win32 Release"
 # Name "XPilotServer - Win32 Debug"
-# Begin Group "Source Files"
-
-# PROP Default_Filter "cpp;c;cxx;rc;def;r;odl;idl;hpj;bat;for;f90"
 # Begin Group "server"
 
 # PROP Default_Filter ""
 # Begin Source File
 
-SOURCE=..\alliance.c
+SOURCE=..\.cvsignore
 # End Source File
 # Begin Source File
 
-SOURCE=..\asteroid.c
+SOURCE=..\Alliance.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=..\asteroid.cpp
 # End Source File
 # Begin Source File
 
@@ -114,15 +109,11 @@ SOURCE=..\asteroid.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\cannon.c
+SOURCE=..\Cannon.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=..\cannon.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\cell.c
+SOURCE=..\Cannon.h
 # End Source File
 # Begin Source File
 
@@ -130,19 +121,39 @@ SOURCE=..\click.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\cmdline.c
+SOURCE=..\command.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=..\collision.c
+SOURCE=..\ConnectionControl.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=..\command.c
+SOURCE=..\ConnectionControl.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\contact.c
+SOURCE=..\ConnectionControlLocalCtl.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=..\ConnectionControlLocalCtl.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\ConnectionControlScoreServer.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=..\ConnectionControlScoreServer.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\ConnectionPlayer.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=..\ConnectionPlayer.h
 # End Source File
 # Begin Source File
 
@@ -150,15 +161,19 @@ SOURCE=..\defaults.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\event.c
+SOURCE=..\event.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=..\fileparser.c
+SOURCE=..\fileparser.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=..\frame.c
+SOURCE=..\Frame.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=..\Frame.h
 # End Source File
 # Begin Source File
 
@@ -166,27 +181,23 @@ SOURCE=..\global.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\id.c
+SOURCE=..\id.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=..\item.c
+SOURCE=..\item.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=..\laser.c
+SOURCE=..\laser.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=..\map.c
+SOURCE=..\Makefile.in
 # End Source File
 # Begin Source File
 
-SOURCE=..\map.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\metaserver.c
+SOURCE=..\metaserver.cpp
 # End Source File
 # Begin Source File
 
@@ -194,23 +205,19 @@ SOURCE=..\metaserver.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\netserver.c
+SOURCE=..\NetServerServer.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\netserver.h
+SOURCE=..\Object.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=..\object.c
+SOURCE=..\Object.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\object.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\objpos.c
+SOURCE=..\objpos.cpp
 # End Source File
 # Begin Source File
 
@@ -218,19 +225,15 @@ SOURCE=..\objpos.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\option.c
+SOURCE=..\option.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=..\parser.c
+SOURCE=..\Player.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=..\play.c
-# End Source File
-# Begin Source File
-
-SOURCE=..\player.c
+SOURCE=..\Player.h
 # End Source File
 # Begin Source File
 
@@ -238,23 +241,19 @@ SOURCE=..\proto.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\robot.c
+SOURCE=..\Robot.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=..\robot.h
+SOURCE=..\Robot.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\robotdef.c
+SOURCE=..\robotdef.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=..\rules.c
-# End Source File
-# Begin Source File
-
-SOURCE=..\saudio.c
+SOURCE=..\saudio.cpp
 # End Source File
 # Begin Source File
 
@@ -262,15 +261,7 @@ SOURCE=..\saudio.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\sched.c
-# End Source File
-# Begin Source File
-
-SOURCE=..\sched.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\score.c
+SOURCE=..\score.cpp
 # End Source File
 # Begin Source File
 
@@ -278,39 +269,27 @@ SOURCE=..\score.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\server.c
-# End Source File
-# Begin Source File
-
 SOURCE=..\server.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\ship.c
+SOURCE=..\ServerOptionWorld.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=..\shot.c
+SOURCE=..\ServerOptionWorld.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\showtime.c
+SOURCE=..\ship.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=..\tuner.c
+SOURCE=..\shot.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=..\tuner.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\update.c
-# End Source File
-# Begin Source File
-
-SOURCE=..\walls.c
+SOURCE=..\update.cpp
 # End Source File
 # Begin Source File
 
@@ -318,7 +297,55 @@ SOURCE=..\walls.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\wildmap.c
+SOURCE=..\World.cell.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=..\World.collision.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=..\World.contact.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=..\World.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=..\World.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\World.main.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=..\World.netserver.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=..\World.parser.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=..\World.play.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=..\World.rules.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=..\World.ScoreServer.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=..\World.tag.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=..\World.walls.cpp
 # End Source File
 # End Group
 # Begin Group "serverNT"
@@ -326,63 +353,42 @@ SOURCE=..\wildmap.c
 # PROP Default_Filter ""
 # Begin Source File
 
-SOURCE=.\ConfigDlg.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=.\ConfigDlg.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\ExitXpilots.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=.\ExitXpilots.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\ReallyShutdown.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=.\ReallyShutdown.h
-# End Source File
-# Begin Source File
-
 SOURCE=.\resource.h
+
+!IF  "$(CFG)" == "XPilotServer - Win32 Release"
+
+!ELSEIF  "$(CFG)" == "XPilotServer - Win32 Debug"
+
+# PROP Exclude_From_Build 1
+
+!ENDIF
+
+# End Source File
+# Begin Source File
+
+SOURCE=.\ServerThreadW32.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\ServerThreadW32.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\StdAfx.cpp
+# ADD CPP /Yc"StdAfx.h"
 # End Source File
 # Begin Source File
 
 SOURCE=.\StdAfx.h
-# End Source File
-# Begin Source File
 
-SOURCE=.\UrlWidget.cpp
-# End Source File
-# Begin Source File
+!IF  "$(CFG)" == "XPilotServer - Win32 Release"
 
-SOURCE=.\UrlWidget.h
-# End Source File
-# Begin Source File
+!ELSEIF  "$(CFG)" == "XPilotServer - Win32 Debug"
 
-SOURCE=.\winServer.h
-# End Source File
-# Begin Source File
+# PROP Exclude_From_Build 1
 
-SOURCE=.\winSvrThread.c
-# End Source File
-# Begin Source File
+!ENDIF
 
-SOURCE=.\WinSvrThread.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\xpilots.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=.\xpilots.h
 # End Source File
 # Begin Source File
 
@@ -390,11 +396,75 @@ SOURCE=.\xpilots.rc
 # End Source File
 # Begin Source File
 
-SOURCE=.\xpilotsDlg.cpp
+SOURCE=.\XPilotServerW32.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=.\xpilotsDlg.h
+SOURCE=.\XPilotServerW32.h
+# End Source File
+# End Group
+# Begin Group "serverlib"
+
+# PROP Default_Filter ""
+# Begin Source File
+
+SOURCE=..\..\serverlib\.cvsignore
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\serverlib\Connection.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\serverlib\Connection.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\serverlib\File.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\serverlib\File.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\serverlib\Makefile.in
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\serverlib\NetServer.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\serverlib\NetServer.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\serverlib\NetServer.sched.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\serverlib\serverconst.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\serverlib\ServerOption.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\serverlib\ServerOption.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\serverlib\ServerOptions.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\serverlib\ServerOptions.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\serverlib\ServerOptions.init.cpp.h
 # End Source File
 # End Group
 # Begin Group "common"
@@ -402,11 +472,19 @@ SOURCE=.\xpilotsDlg.h
 # PROP Default_Filter ""
 # Begin Source File
 
+SOURCE=..\..\common\.cvsignore
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\common\audioDefs.h
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\common\bit.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\common\checknames.c
+SOURCE=..\..\common\checknames.cpp
 # End Source File
 # Begin Source File
 
@@ -418,7 +496,7 @@ SOURCE=..\..\common\commonproto.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\common\config.c
+SOURCE=..\..\common\config.cpp
 # End Source File
 # Begin Source File
 
@@ -430,15 +508,51 @@ SOURCE=..\..\common\const.h
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\common\cstring.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\common\cstring.h
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\common\draw.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\common\error.c
+SOURCE=..\..\common\error.cpp
 # End Source File
 # Begin Source File
 
 SOURCE=..\..\common\error.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\common\FirewallPortList.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\common\FirewallPortList.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\common\Ini.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\common\Ini.Save.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\common\Ini.Win.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\common\IniServer.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\common\IniServer.Defaults.cpp
 # End Source File
 # Begin Source File
 
@@ -450,19 +564,27 @@ SOURCE=..\..\common\keys.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\common\list.c
+SOURCE=..\..\common\list.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\common\math.c
+SOURCE=..\..\common\Makefile.in
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\common\net.c
+SOURCE=..\..\common\map.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\common\net.h
+SOURCE=..\..\common\math.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\common\Obj.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\common\Obj.h
 # End Source File
 # Begin Source File
 
@@ -470,7 +592,15 @@ SOURCE=..\..\common\pack.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\common\portability.c
+SOURCE=..\..\common\packet.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\common\PacketCtl.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\common\portability.cpp
 # End Source File
 # Begin Source File
 
@@ -478,7 +608,7 @@ SOURCE=..\..\common\portability.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\common\randommt.c
+SOURCE=..\..\common\randommt.cpp
 # End Source File
 # Begin Source File
 
@@ -486,27 +616,59 @@ SOURCE=..\..\common\rules.h
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\common\ScoreTable.h
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\common\setup.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\common\shipshape.c
+SOURCE=..\..\common\shipshape.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\common\socklib.c
+SOURCE=..\..\common\showtime.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\common\socklib.h
+SOURCE=..\..\common\showtime.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\common\strdup.c
+SOURCE=..\..\common\Sock.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\common\strlcpy.c
+SOURCE=..\..\common\Sock.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\common\Sockbuf.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\common\Sockbuf.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\common\sockerrs.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\common\sockerrs.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\common\soundNames.cpp.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\common\strdup.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\common\strlcpy.cpp
 # End Source File
 # Begin Source File
 
@@ -514,7 +676,23 @@ SOURCE=..\..\common\version.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\common\xpmemory.c
+SOURCE=..\..\common\WildMap.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\common\WildMap.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\common\xpmemory.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\common\xpprintf.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\common\xpprintf.h
 # End Source File
 # End Group
 # Begin Group "commonNT"
@@ -522,7 +700,7 @@ SOURCE=..\..\common\xpmemory.c
 # PROP Default_Filter ""
 # Begin Source File
 
-SOURCE=..\..\common\NT\winNet.c
+SOURCE=..\..\common\NT\winNet.cpp
 # End Source File
 # Begin Source File
 
@@ -530,9 +708,8 @@ SOURCE=..\..\common\NT\winNet.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\common\NT\wsockerrs.c
+SOURCE=..\..\common\NT\winX.h
 # End Source File
-# End Group
 # End Group
 # Begin Group "Resource Files"
 

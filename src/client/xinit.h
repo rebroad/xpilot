@@ -1,4 +1,4 @@
-/* $Id: xinit.h,v 5.3 2001/07/08 09:07:28 bertg Exp $
+/* $Id: xinit.h,v 1.5 2004/04/26 07:00:52 dick Exp $
  *
  * XPilot, a multiplayer gravity war game.  Copyright (C) 1991-2001 by
  *
@@ -25,7 +25,7 @@
 #ifndef	XINIT_H
 #define	XINIT_H
 
-#define MAX_VISUAL_NAME	12
+#include "IniClient.h"
 
 #define MIN_TOP_WIDTH	(640 + 2)
 #define MAX_TOP_WIDTH	(1280 + 2)
@@ -34,32 +34,28 @@
 #define MAX_TOP_HEIGHT	1024
 #define DEF_TOP_HEIGHT	768
 
-#define MAX_POINTER_BUTTONS	5
-#define MAX_BUTTON_DEFS		3
-#define NUM_BUTTON_DEFS(i)	(buttonDefs[(i)][MAX_BUTTON_DEFS])
-
 extern Atom		ProtocolAtom, KillAtom;
 extern int		buttonColor, windowColor, borderColor;
 extern int		ButtonHeight;
-extern char		visualName[MAX_VISUAL_NAME];
+//extern char		visualName[MAX_VISUAL_NAME];
 extern Visual		*visual;
 extern int		dispDepth;
-extern bool		mono;
-extern bool		useErase;
-extern bool		blockBitmaps;
-extern bool		colorSwitch;
-extern bool		multibuffer;
-extern char		color_names[MAX_COLORS][MAX_COLOR_LEN];
+//extern bool		mono;
+//extern bool		useErase;
+//extern bool		blockBitmaps;
+//extern bool		colorSwitch;
+//extern bool		multibuffer;
+//extern char		color_names[MAX_COLORS][MAX_COLOR_LEN];
 extern int		top_width, top_height;
 extern int		draw_width, draw_height;
 extern int		players_width, players_height;
-extern char		*geometry;
-extern bool		autoServerMotdPopup;
-extern bool		refreshMotd;
-extern char		sparkColors[MSG_LEN];
+//extern char		*geometry;
+//extern bool		autoServerMotdPopup;
+//extern bool		refreshMotd;
+//extern char		sparkColors[MSG_LEN];
 extern int		spark_color[MAX_COLORS];
 extern int		num_spark_colors;
-extern int		ignoreWindowManager;
+//extern int		ignoreWindowManager;
 extern int		quitting;
 
 /*
@@ -86,6 +82,7 @@ extern void Print_messages_to_stdout(void);
 extern void Talk_reverse_cut(void);
 extern void Quit(void);
 extern int FatalError(Display *dpy);
+extern void CreateXPilotMenu();
 extern void Draw_score_table(void);
 extern void Resize(Window w, int width, int height);
 

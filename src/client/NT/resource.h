@@ -1,6 +1,6 @@
 //{{NO_DEPENDENCIES}}
 // Microsoft Developer Studio generated include file.
-// Used by XPilot.rc
+// Used by XPilotClient.rc
 //
 #define IDD_ABOUTBOX                    100
 #define IDB_SPLASH                      102

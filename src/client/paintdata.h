@@ -1,4 +1,4 @@
-/* $Id: paintdata.h,v 5.2 2002/01/18 22:34:25 kimiko Exp $
+/* $Id: paintdata.h,v 1.5 2002/09/02 21:06:06 dick Exp $
  *
  * XPilot, a multiplayer gravity war game.  Copyright (C) 1991-2001 by
  *
@@ -139,7 +139,7 @@ typedef struct {
 } asteroid_t;
 
 typedef struct {
-    short		x, y;
+	short		x, y;
 } wormhole_t;
 
 extern refuel_t		*refuel_ptr;
@@ -184,8 +184,8 @@ extern wreckage_t	*wreckage_ptr;
 extern int		 num_wreckage, max_wreckage;
 extern asteroid_t	*asteroid_ptr;
 extern int		 num_asteroids, max_asteroids;
-extern wormhole_t	*wormhole_ptr;
-extern int		 num_wormholes, max_wormholes;
+extern wormhole_t*	wormhole_ptr;
+extern int			num_wormholes, max_wormholes;
 
 extern long		start_loops, end_loops;
 extern long		time_left;
@@ -193,7 +193,7 @@ extern long		time_left;
 #define RESET_FG()	(current_foreground = -1)
 #define SET_FG(PIXEL)				\
     if ((PIXEL) == current_foreground) ;	\
-    else XSetForeground(dpy, gc, current_foreground = (PIXEL))
+    else XSetForeground(iniClient.dpy, gc, current_foreground = (PIXEL))
 
 extern unsigned long	current_foreground;
 
@@ -284,25 +284,25 @@ extern void Erase_do_points(int width, XPoint *pointp, int n);
 extern void Erase_do_4point(int x, int y, int width, int height);
 
 #define Erase_start() \
-	    ((useErase) ? Erase_do_start() : (void)0 )
+	    ((iniClient.useErase) ? Erase_do_start() : (void)0 )
 #define Erase_end() \
-	    ((useErase) ? Erase_do_end() : (void)0 )
+	    ((iniClient.useErase) ? Erase_do_end() : (void)0 )
 #define Erase_rectangle( _A, _B, _C, _D ) \
-	    ((useErase) ? Erase_do_rectangle((_A), (_B), (_C), (_D)) : (void)0 )
+	    ((iniClient.useErase) ? Erase_do_rectangle((_A), (_B), (_C), (_D)) : (void)0 )
 #define Erase_rectangles(_A, _B) \
-	    ((useErase) ? Erase_do_rectangles((_A), (_B)) : (void)0 )
+	    ((iniClient.useErase) ? Erase_do_rectangles((_A), (_B)) : (void)0 )
 #define Erase_arc(_A, _B, _C, _D, _E, _F) \
-	    ((useErase) ? Erase_do_arc((_A), (_B), (_C), (_D), (_E), (_F)):(void)0 )
+	    ((iniClient.useErase) ? Erase_do_arc((_A), (_B), (_C), (_D), (_E), (_F)):(void)0 )
 #define Erase_arcs(_A, _B) \
-	    ((useErase) ? Erase_do_arcs((_A), (_B)) : (void)0 )
+	    ((iniClient.useErase) ? Erase_do_arcs((_A), (_B)) : (void)0 )
 #define Erase_segment(_A, _B, _C, _D, _E) \
-	    ((useErase) ? Erase_do_segment((_A), (_B), (_C), (_D), (_E)) : (void)0 )
+	    ((iniClient.useErase) ? Erase_do_segment((_A), (_B), (_C), (_D), (_E)) : (void)0 )
 #define Erase_segments(_A, _B) \
-	    ((useErase) ? Erase_do_segments((_A), (_B)) : (void)0 )
+	    ((iniClient.useErase) ? Erase_do_segments((_A), (_B)) : (void)0 )
 #define Erase_points(_A, _B, _C) \
-	    ((useErase) ? Erase_do_points((_A), (_B), (_C)) : (void)0 )
+	    ((iniClient.useErase) ? Erase_do_points((_A), (_B), (_C)) : (void)0 )
 #define Erase_4point(_A, _B, _C, _D) \
-	    ((useErase) ? Erase_do_4point((_A), (_B), (_C), (_D)) : (void)0 )
+	    ((iniClient.useErase) ? Erase_do_4point((_A), (_B), (_C), (_D)) : (void)0 )
 
 extern void Rectangle_start(void);
 extern void Rectangle_end(void);

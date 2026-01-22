@@ -397,7 +397,7 @@ void CXPreplayDoc::ReadNextFrame(CArchive& ar)
 	}
 
 	try{ar >> c;}
-	catch(CArchiveException *e)
+	catch(CArchiveException* /* e */)
 	{
 		rc.eof = true;
 		return;
@@ -465,7 +465,7 @@ void CXPreplayDoc::ReadFrameData(CArchive &ar, struct frame *f)
 	{
 		prev_c = c;
 		try{ar >> c;}
-		catch(CArchiveException *e)
+		catch(CArchiveException* /* e */)
 		{
 			MessageBox(NULL, "Premature End-Of-File encountered. Truncating.", "Read error", MB_OK | MB_ICONWARNING);
 			done = true;

@@ -1,0 +1,270 @@
+# $Id: Makefile.in,v 1.46 2006/09/24 05:46:30 dick Exp $
+# @configure_input@
+#
+# Makefile.in for xpilot++'s program xpilotedit
+# ./src/xpilotedit/Makefile.in
+#
+# This program contains the map editor and server gui
+#
+# Copyright 2001 by XPilot Team "xpilot@xpilot.org"
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU Library General Public
+# License as published by the Free Software Foundation; either
+# version 2 of the License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# Library General Public License for more details.
+#
+# You should have received a copy of the GNU Library General Public
+# License along with this library; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
+# USA.
+#
+# Please report all bugs and problems to "xpilot++@buckosoft.com".
+#
+# $Log: Makefile.in,v $
+# Revision 1.46  2006/09/24 05:46:30  dick
+# Add /usr/local/include to make depend's list.  FLTK tends to get installed
+# there and for some reason makedepend doesn't include it in it's includes
+# while g++ does.
+#
+# Revision 1.45  2004/05/13 09:18:39  dick
+# XPWhereWindow becomes InetServerPanel
+#
+# Revision 1.44  2004/05/10 13:01:38  dick
+# Add PrivatePanel handling
+#
+# Revision 1.43  2004/04/22 05:53:01  dick
+# Add ScoreServerControlClient to Un*x Makefiles
+#
+# Revision 1.42  2004/02/28 08:02:23  dick
+# Install the control bitmap buttons from src/control/res to $/buttons
+#
+# Revision 1.41  2004/02/26 04:08:45  jlmiller
+#
+# Add XPVisual.cpp/h XPVisualList.cpp/h
+#
+# Revision 1.40  2004/01/28 05:53:13  dick
+# Force the make to die on failure by using "exit 1" instead of "break" in the loops.
+# Tidy up the make install output.
+#
+# Revision 1.39  2004/01/23 06:52:49  dick
+# Move libpng.a further down the link order
+#
+# Revision 1.38  2004/01/23 05:02:14  dick
+# Figure out if we built a private copy of libpng and link to it if need be.
+#
+# Revision 1.37  2004/01/22 05:08:16  dick
+# Uh-oh, another reorg.  The product is XPilot5.  The name of the control
+# program is also XPilot5.  No more shalt thou speak of XPilot++.
+#
+# Revision 1.36  2004/01/20 06:13:53  dick
+# Add support for `make install` to a non-priv'd directory, like /home/dick/xpilot.
+# If we are doing a default installation (/usr/local/xpilot) then the VARDIR
+# becomes /var/xpilot .  If we are not default then use $prefix/var.
+#
+# Revision 1.35  2004/01/19 07:37:07  dick
+# Linux fixes
+#
+# Revision 1.34  2004/01/19 06:53:19  dick
+# Add ServerOptionsToImage
+#
+# Revision 1.33  2004/01/17 19:37:17  dick
+# WildMap is now in the common library. Control and server use this,
+# instead of each having it's own copy.
+#
+# Revision 1.32  2003/12/23 01:19:06  dick
+# Linux needs libfltk_images.a and libpng.a .
+# XPCheckButton moved from src/control to src/common/xp-fltkwidgets .
+#
+# Revision 1.31  2002/09/18 14:50:59  jlmiller
+# Add MainButtonsPanel.cpp
+#
+# Revision 1.30  2002/09/10 19:11:35  jlmiller
+# Add XPPresetConfig.cpp
+#
+# Revision 1.29  2002/09/09 23:46:09  dick
+# New LocalServerControlClient handles the client side connection of a LocalCtl.
+#
+# Revision 1.28  2002/09/07 17:50:53  dick
+# Add LocalServerPanel*
+#
+# Revision 1.27  2002/09/02 21:06:58  dick
+# Add IniXPilot.*
+#
+# Revision 1.26  2002/08/28 15:31:28  jlmiller
+# Make EditorsPanel a separate class, similar to LocalServerPanel.
+#
+# Revision 1.25  2002/08/22 02:19:22  jlmiller
+#
+# Linux updated for renamed files.
+#
+# Revision 1.24  2002/08/19 02:15:31  jlmiller
+#
+# Add XPWhereConfig.cpp and XPCheckButton.cpp
+#
+# Revision 1.23  2002/08/01 20:27:22  dick
+# Better KDE detection.  Install man pages.
+#
+# Rename programs:
+# src/         Windows              Unix
+# control      XPilot.exe           xpilot
+# client       XPilotClient.exe     xpilotclient
+# server       XPilotServer.exe     xpilotserver
+# scoreserver  XPScoreServer.exe    xpscoreserver
+# replay       XPReplay.exe         xpreplay
+#
+# Revision 1.22  2002/07/30 21:59:36  jlmiller
+#
+# clipboard.cpp becomes Clipboard.cpp
+#
+# Revision 1.21  2002/07/28 20:18:39  dick
+# Add SplashPanel to the makefiles.
+#
+# Revision 1.20  2002/07/19 07:49:02  dick
+# Add LocalServerPanel to Linux makefiles
+#
+# Revision 1.19  2002/07/15 20:32:53  jlmiller
+#
+# Include XPClientConfig, and integrate KBConfig somewhat.
+#
+# Revision 1.18  2002/07/12 16:47:41  dick
+# Provide bindir to XPilotControl so he knows where to launch xpilot++ from
+#
+# Revision 1.17  2002/07/10 04:02:03  dick
+# Get rid of gui_main.cpp.  The remaining functions have become Factory()s
+# of their respective objects.
+#
+# Revision 1.16  2002/07/08 18:21:48  dick
+# xpilotcontrol has xpilot library dependencies
+#
+# Revision 1.15  2002/06/25 23:46:13  jlmiller
+#
+# Linux cleanups.
+#
+# Revision 1.14  2002/06/06 00:49:01  dick
+# Sync to Imakefile
+#
+# Revision 1.13  2002/06/01 20:53:20  dick
+# ./configure works again.  Add header comment info to Imakefiles.
+#
+# Revision 1.12  2002/05/30 03:33:40  jlmiller
+#
+# Linux cleanups for compilation after reorg of ServerList
+#
+# Revision 1.11  2002/05/27 21:20:51  jlmiller
+#
+# Build on Linux; Also dont force MainWindow to 0,0
+#
+# Revision 1.10  2002/02/18 05:48:21  dick
+# Add a dependency to COMMONLIB
+#
+# Revision 1.9  2002/02/17 22:33:58  dick
+# Install xpilotedit's buttons to $/lib/buttons ( /usr/local/games/lib/buttons )
+#
+# Revision 1.8  2002/02/17 18:11:51  dick
+# Add XPInput.cpp
+#
+# Revision 1.7  2001/11/09 03:41:36  dick
+# Add MapUndoableCommand
+#
+# Revision 1.6  2001/10/24 16:40:20  dick
+# Add support for "make install"
+#
+# Revision 1.5  2001/10/23 02:15:16  jlmiller
+#
+# Add XpPoint to linux. Clean up a few warnings.
+#
+# Revision 1.4  2001/10/20 03:14:57  jlmiller
+#
+# Add new ship files to linux.
+#
+# Revision 1.3  2001/10/16 22:55:12  jlmiller
+#
+# Add a Scrolling shiplist to the editor.
+# Move the commonly used button types to a common location.
+#
+# Revision 1.2  2001/10/16 01:59:40  jlmiller
+#
+# Give us an new gui for shipediting.
+#
+# Revision 1.1  2001/09/23 06:25:28  dick
+# Added support for autoconf.
+# Right now, "make install" is not supported.  And config.h is rather empty.
+#
+
+PROGNAME = xpilot5
+
+SUBDIRS = buttons res
+
+CPPFILES = \
+	Clipboard.cpp EditorsPanel.cpp errors.cpp gui_toolkit.cpp \
+	InetServerConfig.cpp InetServerList.cpp InetServerPanel.cpp \
+	IniXPilot.cpp IniXPilot.Defaults.cpp \
+	LocalServerControlClient.cpp \
+	LocalServerPanel.cpp LocalServerPanelAdvanced.cpp LocalServerPanelSimple.cpp \
+	LocalServerPanelWorld.cpp MainButtonsPanel.cpp \
+	MapDocument.cpp MapEditWindow.cpp MapUndoableCommand.cpp MapWindow.cpp \
+	PrivatePanelEditButton.cpp PrivatePanelEditor.cpp \
+	PrivateServerConfig.cpp PrivateServerList.cpp PrivateServerPanel.cpp \
+	ScoreServerControlClient.cpp ServerButtonsGroup.cpp ServerOptionsToImage.cpp \
+	ShipEditWindow.cpp ShipUndoableCommand.cpp ShipWindow.cpp \
+	SplashPanel.cpp \
+	tools.cpp\
+	XPClientConfig.cpp XPFileChooser.cpp XPFileChooser2.cpp XPilotControl.cpp XPInput.cpp \
+	XPilotControlWindow.cpp XPPresetConfig.cpp XPVisualList.cpp XPVisual.cpp
+
+
+LIBS = \
+	$(SERVERLIBLIB) $(XPFLWIDGETSLIB) $(FLTKWIDGETSLIB) $(FLTKIMAGESLIB) \
+	$(COMMONLIB) $(KBCONFIGLIB)
+
+CLEAN =
+
+################################################################
+TOP=@top_srcdir@
+
+include @top_srcdir@/makeinclude
+
+XPCXXFLAGS = $(SERVERLIBINC) $(KBCONFIGINC) $(XPFLWIDGETSINC) $(FLTKWIDGETSINC) $(COMMONINC)
+XPLDFLAGS =  $(SERVERLIBLIB) $(KBCONFIGLIB) $(XPFLWIDGETSLIB) $(FLTKWIDGETSLIB) $(COMMONLIB)
+
+OBJECTS = $(CPPFILES:.cpp=.o) $(CFILES:.c=.o)
+
+all:	$(PROGNAME)
+
+$(PROGNAME): $(OBJECTS) $(LIBS)
+	echo $(CXX) $@ ...
+	$(CXX) -o $@ $(OBJECTS) $(XPLDFLAGS) $(LDFLAGS) $(LDLIBS)
+
+
+clean :
+	-@ rm -f *.o *.do $(PROGNAME) $(CLEAN) core *~ *.bak .depend .*.bak cmap
+	-@ touch .depend
+
+distclean: clean
+	-@ rm -f Makefile
+
+depend:
+	-@ makedepend $(XPCXXFLAGS) $(FLTKINC) -I /usr/local/include -f .depend $(CPPFILES) $(GLCPPFILES) $(CFILES)
+
+include .depend
+
+################################################################
+
+install:
+	@echo Installing $(bindir)/$(PROGNAME)
+	cp -f -p $(PROGNAME) $(bindir)
+	chmod 555 $(bindir)/$(PROGNAME)
+	@for dir in $(SUBDIRS); do\
+		echo "=== installing $$dir ===";\
+		(cd $$dir; $(MAKE) $(MFLAGS) install) || exit 1;\
+	done
+
+
+#
+# End of "$Id: Makefile.in,v 1.46 2006/09/24 05:46:30 dick Exp $".
+#

@@ -1,8 +1,8 @@
-/* $Id: buttons.c,v 5.0 2001/04/07 20:01:00 dik Exp $
+/* $Id: buttons.c,v 1.1.1.1 2001/07/04 07:13:43 dick Exp $
  *
  * XP-Replay, playback an XPilot session.  Copyright (C) 1994-98 by
  *
- *      Bjï¿½rn Stabell        <bjoern@xpilot.org>
+ *      Bjørn Stabell        <bjoern@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
  *      Steven Singer        (S.Singer@ph.surrey.ac.uk)
@@ -117,7 +117,7 @@ Button CreateButton(Display *display, Window parent,
 	if (height == 0)
 	    height = buttonFont->ascent + buttonFont->descent + 10;
     }
-
+	
     window = XCreateSimpleWindow(display, parent,
 				 x, y,
 				 width, height,
@@ -268,7 +268,7 @@ void RedrawButton(Button b)
     else if (b->image.icon != None)
     {
 	int x, y, w, h;
-
+	
 	w = (b->imagewidth);
 	if (w > b->width)
 	    w = b->width;

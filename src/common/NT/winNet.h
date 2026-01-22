@@ -1,4 +1,4 @@
-/* $Id: winNet.h,v 5.0 2001/04/07 20:00:59 dik Exp $
+/* $Id: winNet.h,v 1.3 2001/08/12 11:03:34 dick Exp $
  *
  * XPilot, a multiplayer gravity war game.  Copyright (C) 1991-2001 by
  *
@@ -25,7 +25,7 @@
 /***************************************************************************\
 *  winNet.h - X11 to Windoze converter										*
 *																			*
-*  $Id: winNet.h,v 5.0 2001/04/07 20:00:59 dik Exp $					*
+*  $Id: winNet.h,v 1.3 2001/08/12 11:03:34 dick Exp $					*
 \***************************************************************************/
 
 #ifndef	_WINNET_H_
@@ -35,25 +35,17 @@
 
 #include <winsock.h>
 
-#ifdef	__cplusplus
-extern "C" {
-#endif
-
 #define	MAXHOSTNAMELEN	64
 
 #define	EWOULDBLOCK		WSAEWOULDBLOCK
 
 extern	long	alarm(long seconds, void(__cdecl*func)(int));
 
-extern	const char* _GetWSockErrText(int error);
 extern	HWND		notifyWnd;
 extern	BOOL*		hostnameFound;
 
 #define	WM_GETHOSTNAME	(WM_APP+100)
 
-#ifdef	__cplusplus
-};
-#endif
 //extern	long	alarm(long seconds, int);
 #endif	/* _WINDOWS */
 #endif	/* _WINNET_H_ */

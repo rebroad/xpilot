@@ -19,7 +19,7 @@
 
 #ifndef	lint
 static char sourceid[] =
-    "@(#)$Id: mapmapper.c,v 5.0 2001/04/07 20:00:57 dik Exp $";
+    "@(#)$Id: mapmapper.c,v 1.1.1.1 2001/07/04 07:13:33 dick Exp $";
 static char versionid[] =
     "@(#)Version 1.2";
 #endif

@@ -1,4 +1,4 @@
-/* $Id: winClient.h,v 5.0 2001/04/07 20:00:59 dik Exp $
+/* $Id: winClient.h,v 1.6 2002/09/02 16:12:18 dick Exp $
  *
  * XPilot, a multiplayer gravity war game.  Copyright (C) 1991-2001 by
  *
@@ -27,15 +27,11 @@
 *																			*
 *  interface from the MFC poo to the xpilot "C" source.						*
 *																			*
-*  $Id: winClient.h,v 5.0 2001/04/07 20:00:59 dik Exp $						*
+*  $Id: winClient.h,v 1.6 2002/09/02 16:12:18 dick Exp $						*
 \***************************************************************************/
 
 #ifndef	_INC_WINDOWS
 #include <windows.h>
-#endif
-
-#ifdef __cplusplus
-extern "C" {
 #endif
 
 extern	void		xpilotShutdown();
@@ -52,12 +48,10 @@ extern	void		WinXShutdown();
 
 extern	int			received_self;
 
-extern	const char*	winHelpFile;	/* used to determine .ini file locations */
-
 /* requests from the xpilot "real code" to mfc */
-extern	void	_Trace(char* lpszFormat, ...);
-extern	const char* mfcDoTalkWindow();
-extern	char*	Get_xpilotini_file(int level);
+extern	void	_Trace(const char* lpszFormat, ...);
+extern	const char* DoTalkWindow();
+//extern	char*	Get_xpilotini_file(int level);
 
 #ifdef	_DEBUG
 extern	void	xpmemShutdown();
@@ -65,6 +59,3 @@ extern	void	xpmemShutdown();
 
 extern	void	Progress(const char* s, ...);
 
-#ifdef __cplusplus
-};
-#endif

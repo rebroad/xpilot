@@ -1,4 +1,4 @@
-/* $Id: metaserver.h,v 5.2 2010/01/18 09:13:12 bertg Exp $
+/* $Id: metaserver.h,v 1.6 2004/01/12 05:18:21 dick Exp $
  *
  * XPilot, a multiplayer gravity war game.  Copyright (C) 1991-2001 by
  *
@@ -25,10 +25,10 @@
 #ifndef	METASERVER_H
 #define	METASERVER_H
 
-#define META_PORT	5500
-#define META_HOST	"meta.xpilot.org"
-#define META_HOST_TWO	"meta2.xpilot.org"
-#define META_IP		"64.235.48.198"
-#define META_IP_TWO	"64.235.48.198"
+void MetaSend(World* w, PCSTR mesg, int len);
+int  MetaFrom(World* w, PCSTR addr, int port);
+void MetaGone(World* w);
+void MetaInit(World* w);
+void MetaUpdate(World* w, bool change);
 
 #endif

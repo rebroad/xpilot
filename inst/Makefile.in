@@ -1,0 +1,104 @@
+# $Id: Makefile.in,v 1.4 2004/01/28 05:53:12 dick Exp $
+# @configure_input@
+#
+# Makefile.in for xpilot++'s directory install
+# ./inst/Makefile.in
+#
+# Don't do anything with the win32 directory from Linux
+# (configure will null it out)
+#
+# The DONONE macro will get set to none if none of the
+# other options are set. (shell freaks on 'for dir in ; ')
+#
+# Copyright 2002 by XPilot Team "xpilot@xpilot.org"
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU Library General Public
+# License as published by the Free Software Foundation; either
+# version 2 of the License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# Library General Public License for more details.
+#
+# You should have received a copy of the GNU Library General Public
+# License along with this library; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
+# USA.
+#
+# Please report all bugs and problems to "xpilot++@buckosoft.com".
+#
+# $Log: Makefile.in,v $
+# Revision 1.4  2004/01/28 05:53:12  dick
+# Force the make to die on failure by using "exit 1" instead of "break" in the loops.
+# Tidy up the make install output.
+#
+# Revision 1.3  2002/08/01 20:27:21  dick
+# Better KDE detection.  Install man pages.
+#
+# Rename programs:
+# src/         Windows              Unix
+# control      XPilot.exe           xpilot
+# client       XPilotClient.exe     xpilotclient
+# server       XPilotServer.exe     xpilotserver
+# scoreserver  XPScoreServer.exe    xpscoreserver
+# replay       XPReplay.exe         xpreplay
+#
+# Revision 1.2  2002/07/30 07:01:06  dick
+# Move install helper directories to ./inst
+#
+# Revision 1.1  2002/07/30 05:55:54  dick
+# Move lib/kde to install/kde
+#
+
+###############################################################################
+
+DIRS = @INST_KDE@ @INST_WIN32@ @INST_NONE@
+
+###############################################################################
+TOP=@top_srcdir@
+
+include @top_srcdir@/makeinclude
+
+all:
+	@if test "none" != "$(DIRS)"; then\
+		for dir in $(DIRS); do\
+			echo "=== making $$dir ===";\
+			(cd $$dir; $(MAKE) $(MFLAGS)) || exit 1;\
+		done\
+	fi
+
+install:
+	@if test "none" != "$(DIRS)"; then\
+		for dir in $(DIRS); do\
+			echo "=== installing $$dir ===";\
+			(cd $$dir; $(MAKE) $(MFLAGS) install) || exit 1;\
+		done\
+	fi
+
+depend:
+	@if test "none" != "$(DIRS)"; then\
+		for dir in $(DIRS); do\
+			echo "=== making dependencies in $$dir ===";\
+			(cd $$dir; $(MAKE) $(MFLAGS) depend) || exit 1;\
+		done\
+	fi
+
+clean:
+	-@ rm -f core config.cache *.o *.bck
+	@if test "none" != "$(DIRS)"; then\
+		for dir in $(DIRS); do\
+			echo "=== cleaning $$dir ===";\
+			(cd $$dir; $(MAKE) $(MFLAGS) clean) || exit 1;\
+		done\
+	fi
+
+distclean: clean
+	-@ rm -f Makefile
+	@if test "none" != "$(DIRS)"; then\
+		for dir in $(DIRS); do\
+			echo "=== distcleaning $$dir ===";\
+			(cd $$dir; $(MAKE) $(MFLAGS) distclean) || exit 1;\
+		done\
+	fi

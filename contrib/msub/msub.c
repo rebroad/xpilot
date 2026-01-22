@@ -27,10 +27,8 @@
 	04 Oct 1999	Bert Gijsbers   bert@xpilot.org
 			Also commented out other prototype declarations
 			for strcpy, strncpy, strcat and getenv.
-	19 May 2001	Bert Gijsbers   bert@xpilot.org
-			Protoized functions.
 
-	$Id: msub.c,v 5.1 2001/05/19 11:12:23 bertg Exp $
+	$Id: msub.c,v 1.2 2002/08/14 19:41:26 dick Exp $
 */
 
 #include	<unistd.h>
@@ -65,18 +63,18 @@ struct Var
 };
 
 
-static void	ReadMake (FILE *f);
-static int	CheckAssignment (char *s, int source);
-static Var	*AddVar (char *var, char *value, int source);
-static Var	*FindVar (char *var);
-static Var	*FindVarUsingEnv (char *var);
-static int	FindVarRef (char *s, int nRefSeqs, char **initRef, char **termRef);
-static int	FindEndVarRef (char *s, int idx, char *term);
-static void	Expand (Var *vp);
-static void	Substitute (FILE *f);
-static char	*Malloc(int size);
-static char	*NewString(char *s);
-static void	Panic (char *s);
+static void	ReadMake ();
+static int	CheckAssignment ();
+static Var	*AddVar ();
+static Var	*FindVar ();
+static Var	*FindVarUsingEnv ();
+static int	FindVarRef ();
+static int	FindEndVarRef ();
+static void	Expand ();
+static void	Substitute ();
+static char	*Malloc();
+static char	*NewString();
+static void	Panic ();
 
 
 static char	*usage = "Usage: msub [ +Rstr -Rstr] [ -f makefile ] file";
@@ -114,7 +112,9 @@ static int	precEnvVar = 1;
 
 
 int
-main (int argc, char **argv)
+main (argc, argv)
+int	argc;
+char	**argv;
 {
 FILE	*f;
 Var	*vp;
@@ -301,11 +301,13 @@ int	toggle = 0;
  */
 
 static void
-ReadMake (FILE *f)
+ReadMake (f)
+FILE	*f;
 {
 struct stat	st;
 size_t	mfSize;
 int	fd;
+int		count;
 char	*p, *s;
 char	*sNext;
 char	*mfBuf;		/* makefile buffer */
@@ -315,8 +317,16 @@ char	*mfBuf;		/* makefile buffer */
 		Panic ("cannot stat Makefile");
 	mfSize = st.st_size;
 	mfBuf = Malloc (mfSize + 1);
-	if (read (fd, mfBuf, mfSize) != mfSize)
-		Panic ("cannot read Makefile");
+	//fprintf(stderr, "reading %d bytes\n", mfSize);
+	count = read(fd, mfBuf, mfSize);
+	if (count != mfSize)
+	{
+		// Windows can't count correctly, because it converts CRLF to LF
+		// so just assume success
+		#ifndef	_WINDOWS
+			Panic ("cannot read Makefile");
+		#endif
+	}
 	mfBuf[mfSize] = '\0';	/* make sure it's null-terminated */
 
 	p = s = mfBuf;
@@ -366,7 +376,9 @@ char	*mfBuf;		/* makefile buffer */
  */
 
 static int
-CheckAssignment (char *s, int source)
+CheckAssignment (s, source)
+char	*s;
+int	source;
 {
 char	name[bufSiz], *np;
 int	len;
@@ -396,7 +408,8 @@ int	len;
 
 
 static Var *
-FindVar (char *var)
+FindVar (var)
+char	*var;
 {
 Var	*vp;
 
@@ -419,7 +432,8 @@ Var	*vp;
  */
 
 static Var *
-FindVarUsingEnv (char *var)
+FindVarUsingEnv (var)
+char	*var;
 {
 Var	*vp;
 char	*val;
@@ -439,7 +453,9 @@ char	*val;
 }
 
 static Var *
-AddVar (char *var, char *value, int source)
+AddVar (var, value, source)
+char	*var, *value;
+int	source;
 {
 Var	*vp;
 
@@ -475,7 +491,11 @@ Var	*vp;
 */
 
 static int
-FindVarRef (char *s, int nRefSeqs, char **initRef, char **termRef)
+FindVarRef (s, nRefSeqs, initRef, termRef)
+char	*s;
+int	nRefSeqs;
+char	*initRef[];
+char	*termRef[];
 {
 char	*p;
 int	len, i;
@@ -502,7 +522,10 @@ int	len, i;
 
 
 static int
-FindEndVarRef (char *s, int idx, char *term)
+FindEndVarRef (s, idx, term)
+char	*s;
+int	idx;
+char	*term;
 {
 char	*p = s + idx;	/* point to first char past reference initiator */
 int	len = strlen (term);
@@ -532,7 +555,8 @@ int	len = strlen (term);
 */
 
 static void
-Expand (Var *vp)
+Expand (vp)
+Var	*vp;
 {
 Var	*vp2;
 char	buf[bufSiz * 4], *p;
@@ -569,7 +593,8 @@ char	buf[bufSiz * 4], *p;
 */
 
 static void
-Substitute (FILE *f)
+Substitute (f)
+FILE	*f;
 {
 Var	*vp;
 char	buf[bufSiz * 4], name[bufSiz], *p;
@@ -596,7 +621,8 @@ char	buf[bufSiz * 4], name[bufSiz], *p;
 */
 
 static char
-*Malloc (int size)
+*Malloc (size)
+int	size;
 {
 char	*p;
 
@@ -612,14 +638,16 @@ char	*p;
 */
 
 static char
-*NewString (char *s)
+*NewString (s)
+char	*s;
 {
 	return (strcpy (Malloc (strlen (s) + 1), s));
 }
 
 
 static void
-Panic (char *s)
+Panic (s)
+char	*s;
 {
 	(void) fprintf (stderr, "msub: %s\n", s);
 	exit (1);

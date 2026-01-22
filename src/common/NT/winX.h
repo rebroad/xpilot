@@ -1,8 +1,8 @@
-/* $Id: winX.h,v 5.2 2001/10/19 17:52:56 bertg Exp $
+/* $Id: winX.h,v 1.9 2004/04/27 01:55:52 dick Exp $
  *
  * XPilot, a multiplayer gravity war game.  Copyright (C) 1991-2001 by
  *
- *      Bjï¿½rn Stabell        <bjoern@xpilot.org>
+ *      Bjørn Stabell        <bjoern@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
  *      Dick Balaska         <dick@xpilot.org>
@@ -28,7 +28,7 @@
 *  This file is the public interface to the Winodoze -> X11 translator.		*
 *  Any function that has a unix man page belongs in this file.				*
 *																			*
-*  $Id: winX.h,v 5.2 2001/10/19 17:52:56 bertg Exp $							*
+*  $Id: winX.h,v 1.9 2004/04/27 01:55:52 dick Exp $							*
 \***************************************************************************/
 #ifndef	_WINX_H_
 #define	_WINX_H_
@@ -39,8 +39,8 @@
 #include <windows.h>
 #endif
 
-#ifdef	__cplusplus
-extern "C" {
+#ifdef	FLTK
+#include "FL/x.H"
 #endif
 
 typedef	unsigned long	XID;
@@ -49,12 +49,15 @@ typedef	int		GC;
 
 typedef	XID		Drawable;
 typedef	XID		Pixmap;
-typedef	XID		Window;
 typedef	XID		Cursor;
-typedef	XID		KeySym;
 typedef	XID		GContext;
 typedef	XID		Font;
 typedef	XID		Colormap;
+typedef	XID		KeySym;
+
+#ifndef	FLTK
+typedef	XID		Window;
+#endif
 
 typedef	int		Bool;
 typedef	int		Status;
@@ -110,9 +113,10 @@ typedef	struct Visual Visual;
 
 #define NoEventMask				0L
 #define	KeyPressMask			(1L<<0)
+#define	KeyReleaseMask			(1L<<1)
 #define ButtonPressMask         (1L<<2)
-#define ButtonReleaseMask       (1L<<3)
-#define EnterWindowMask         (1L<<4)
+#define ButtonReleaseMask       (1L<<3) 
+#define EnterWindowMask         (1L<<4)  
 #define LeaveWindowMask         (1L<<5)
 #define	PointerMotionMask		(1L<<6)
 #define ButtonMotionMask        (1L<<13)
@@ -211,6 +215,7 @@ struct XSegment {
 };
 typedef	struct XSegment XSegment;
 
+#ifndef	FLTK
 struct XPoint {
 //    short x, y;
 	int	x, y;
@@ -224,6 +229,7 @@ struct XRectangle {
 //	short cx, cy;					// The Windoze way
 };
 typedef	struct XRectangle XRectangle;
+#endif
 
 struct XArc {
     short x, y;
@@ -278,20 +284,19 @@ typedef	struct XColor XColor;
 /*#define Nonconvex		1	/* no paths intersect, but not convex */
 #define Convex			2	/* wholly convex */
 
-
-#define GCFunction          (1L<<0)
-#define GCForeground        (1L<<2)
-#define GCBackground        (1L<<3)
+#define	GCFunction			(1L<<0)
+#define	GCForeground		(1L<<2)
+#define	GCBackground		(1L<<3)
 #define	GCLineWidth			(1L<<4)
 #define	GCLineStyle			(1L<<5)
 #define	GCCapStyle			(1L<<6)
 #define	GCJoinStyle			(1L<<7)
 #define GCFillStyle			(1L<<8)
-#define GCTile              (1L<<10)
+#define	GCTile				(1L<<10)
 #define GCStipple			(1L<<11)
 #define GCTileStipXOrigin	(1L<<12)
 #define GCTileStipYOrigin	(1L<<13)
-#define GCFont              (1L<<14)
+#define	GCFont				(1L<<14)
 #define	GCGraphicsExposures	(1L<<16)
 #define	GCDashOffset		(1L<<20)
 
@@ -308,10 +313,10 @@ typedef struct {
     unsigned long background;/* background pixel */
     int line_width;     /* line width */
     int line_style;     /* LineSolid, LineOnOffDash, LineDoubleDash */
-    int cap_style;      /* CapNotLast, CapButt,
+    int cap_style;      /* CapNotLast, CapButt, 
                    CapRound, CapProjecting */
     int join_style;     /* JoinMiter, JoinRound, JoinBevel */
-    int fill_style;     /* FillSolid, FillTiled,
+    int fill_style;     /* FillSolid, FillTiled, 
                    FillStippled, FillOpaeueStippled */
     int fill_rule;      /* EvenOddRule, WindingRule */
     int arc_mode;       /* ArcChord, ArcPieSlice */
@@ -406,7 +411,7 @@ typedef struct {
 
 #if 0
 /*
- * new structure for manipulating TEXT properties; used with WM_NAME,
+ * new structure for manipulating TEXT properties; used with WM_NAME, 
  * WM_ICON_NAME, WM_CLIENT_MACHINE, and WM_COMMAND.
  */
 typedef struct {
@@ -475,90 +480,92 @@ extern	Window XCreateWindow_(Display* dpy, Window parent, int x, int y,
 							 unsigned int border_width, int depth, unsigned int c_class,
 							 Visual* visual, unsigned long valuemask,
 							 XSetWindowAttributes* attributes);
-extern	WinXCreateWinDC_(Window w);
+extern	GC WinXCreateWinDC_(Window w);
 #endif
-extern	XDestroyWindow(Display* dpy, Window w);
-extern	XUnmapWindow(Display* dpy, Window w);
-extern	XMapWindow(Display* dpy, Window w);
-extern	XMapSubwindows(Display* dpy, Window w);
-extern	XMoveWindow(Display* dpy, Window w, int x, int y);
+
+#ifndef	FLTK
+extern	int XDestroyWindow(Display* dpy, Window w);
+extern	int XUnmapWindow(Display* dpy, Window w);
+extern	int XMapWindow(Display* dpy, Window w);
+#endif
+
+extern	int XMapSubwindows(Display* dpy, Window w);
+extern	int XMoveWindow(Display* dpy, Window w, int x, int y);
 extern	Window DefaultRootWindow(Display* dpy);
 extern	int	DisplayWidth(Display* dpy, int screen_number);
 extern	int	DisplayHeight(Display* dpy, int screen_number);
 extern	Bool XCheckIfEvent(Display* dpy, XEvent* event_return,
-						   Bool (*predicate)(), XPointer arg);
-extern	XNextEvent(Display* dpy, XEvent* event_return);
-extern	XTextWidth(XFontStruct* font, const char* string, int lenght);
-extern	XSetForeground(Display* dpy, GC gc, unsigned long foreground);
-extern	XMapRaised(Display* dpy, Window w);
-extern	XDrawRectangle(Display* dpy, Drawable d, GC gc, int x, int y,
-					   unsigned int w, unsigned int h);
-extern	XFillRectangle(Display* dpy, Drawable d, GC gc, int x, int y,
-					   unsigned int w, unsigned int h);
-extern	XFillRectangles(Display* dpy, Drawable d, GC gc,
-						XRectangle* rects, int nrectangles);
-extern	XChangeGC(Display* dpy, GC gc, unsigned long valuemask, XGCValues* values);
-extern	int XGetGCValues(Display *display, GC gc, unsigned long valuemask, XGCValues *values_return);
-extern	XSetLineAttributes(Display* dpy, GC gc, unsigned int line_width,
-						   int line_style, int cap_style, int join_style);
-extern	XCopyArea(Display* dpy, Drawable src, Drawable dest, GC gc,
-				  int src_x, int src_y, unsigned int width, unsigned int height,
-				  int dest_x, int dest_y);
-extern	XDrawLine(Display* dpy, Drawable d, GC gc, int x1, int x2, int y1, int y2);
-extern	XDrawLines(Display* dpy, Drawable d, GC gc, XPoint* points,
-				   int npoints, int mode);
-extern	XSetTile(Display* dpy, GC gc, Pixmap tile);
-extern	XSetTSOrigin(Display* dpy, GC gc, int ts_x_origin, int ts_y_origin);
-extern	XSetFillStyle(Display* dpy, GC gc, int fill_style);
-extern	XSetFunction(Display* dpy, GC gc, int function);
-extern	XBell(Display* dpy, int percent);
-extern	XFlush(Display* dpy);
-extern	XCreatePixmap(Display* dpy, Drawable d,
-					  unsigned int width, unsigned int height, unsigned int depth);
-extern	XFreePixmap(Display* dpy, Pixmap pixmap);
-extern	XSetPlaneMask(Display* dpy, GC gc, unsigned long plane_mask);
-extern	XClearWindow(Display* dpy, Window w);
-extern	XDrawSegments(Display* dpy, Drawable d, GC gc,
-					  XSegment* segments, int nsegments);
-extern	XDrawPoint(Display* dpy, Drawable d, GC gc, int x, int y);
-extern	XDrawPoints(Display* dpy, Drawable d, GC gc,
-					XPoint* points, int npoints, int mode);
-extern	XDrawString(Display* dpy, Drawable d, GC gc, int x, int y,
-					const char* string, int length);
-extern	XStoreName(Display* dpy, Window w, const char* window_name);
-extern	XSetIconName(Display* dpy, Window w, const char* icon_name);
-extern	XSetTransientForHint(Display* dpy, Window w, Window prop_window);
-extern	XDrawArc(Display* dpy, Drawable d, GC gc, int x, int y,
-				 unsigned int width, unsigned int height,
-				 int angle1, int angle2);
-extern	XFillArc(Display* dpy, Drawable d, GC gc, int x, int y,
-				 unsigned int width, unsigned int height,
-				 int angle1, int angle2);
-extern	XDrawArcs(Display* dpy, Drawable d, GC gc, XArc* arcs, int narcs);
+						   Bool (*predicate)(Display *d, XEvent *e, char *p), XPointer arg);
+extern	int XNextEvent(Display* dpy, XEvent* event_return);
+extern	int XTextWidth(XFontStruct* font, const char* string, int lenght);
+extern	int XSetForeground(Display* dpy, GC gc, unsigned long foreground);
+extern	int XMapRaised(Display* dpy, Window w);
+extern	int XDrawRectangle(Display* dpy, Drawable d, GC gc, int x, int y,
+						   unsigned int w, unsigned int h);
+extern	int XFillRectangle(Display* dpy, Drawable d, GC gc, int x, int y, 
+						   unsigned int w, unsigned int h);
+extern	int XFillRectangles(Display* dpy, Drawable d, GC gc, 
+							XRectangle* rects, int nrectangles);
+extern	int XChangeGC(Display* dpy, GC gc, unsigned long valuemask, XGCValues* values);
+extern	Status	XGetGCValues(Display* dpy, GC gc, unsigned long valuemask, XGCValues* values_return);
+extern	int XSetLineAttributes(Display* dpy, GC gc, unsigned int line_width,
+							   int line_style, int cap_style, int join_style);
+extern	int XCopyArea(Display* dpy, Drawable src, Drawable dest, GC gc,
+					  int src_x, int src_y, unsigned int width, unsigned int height,
+					  int dest_x, int dest_y);
+extern	int XDrawLine(Display* dpy, Drawable d, GC gc, int x1, int x2, int y1, int y2);
+extern	int XDrawLines(Display* dpy, Drawable d, GC gc, XPoint* points,
+					   int npoints, int mode);
+extern	int XSetTile(Display* dpy, GC gc, Pixmap tile);
+extern	int XSetTSOrigin(Display* dpy, GC gc, int ts_x_origin, int ts_y_origin);
+extern	int XSetFillStyle(Display* dpy, GC gc, int fill_style);
+extern	int XSetFunction(Display* dpy, GC gc, int function);
+extern	int XBell(Display* dpy, int percent);
+extern	int XFlush(Display* dpy);
+extern	int XCreatePixmap(Display* dpy, Drawable d, 
+						  unsigned int width, unsigned int height, unsigned int depth);
+extern	int XFreePixmap(Display* dpy, Pixmap pixmap);
+extern	int XSetPlaneMask(Display* dpy, GC gc, unsigned long plane_mask);
+extern	int XClearWindow(Display* dpy, Window w);
+extern	int XDrawSegments(Display* dpy, Drawable d, GC gc, 
+						  XSegment* segments, int nsegments);
+extern	int XDrawPoint(Display* dpy, Drawable d, GC gc, int x, int y);
+extern	int XDrawPoints(Display* dpy, Drawable d, GC gc, 
+						XPoint* points, int npoints, int mode);
+extern	int XDrawString(Display* dpy, Drawable d, GC gc, int x, int y, 
+						const char* string, int length);
+extern	int XStoreName(Display* dpy, Window w, const char* window_name);
+extern	int XSetIconName(Display* dpy, Window w, const char* icon_name);
+extern	int XSetTransientForHint(Display* dpy, Window w, Window prop_window);
+extern	int XDrawArc(Display* dpy, Drawable d, GC gc, int x, int y,
+					 unsigned int width, unsigned int height,
+					 int angle1, int angle2);
+extern	int XFillArc(Display* dpy, Drawable d, GC gc, int x, int y,
+					 unsigned int width, unsigned int height,
+					 int angle1, int angle2);
+extern	int XDrawArcs(Display* dpy, Drawable d, GC gc, XArc* arcs, int narcs);
 
-extern	XFillPolygon(Display* dpy, Drawable d, GC gc, XPoint* points,
-					int npoints, int shape, int mode);
-extern	XSetDashes(Display* dpy, GC gc, int dash_offset,
-				   const char dash_list[], int n);
-extern	XChangeWindowAttributes(Display* dpy, Window w, unsigned long valuemask,
-								XSetWindowAttributes* attributes);
-extern	XGetWindowAttributes(Display* dpy, Window w, XWindowAttributes* attributes);
+extern	int XFillPolygon(Display* dpy, Drawable d, GC gc, XPoint* points,
+						int npoints, int shape, int mode);
+extern	int XSetDashes(Display* dpy, GC gc, int dash_offset, 
+					   const char dash_list[], int n);
+extern	int XChangeWindowAttributes(Display* dpy, Window w, unsigned long valuemask,
+									XSetWindowAttributes* attributes);
+extern	int XGetWindowAttributes(Display* dpy, Window w, XWindowAttributes* attributes);
 #define	NoSymbol	0L
 extern	XFontStruct* XQueryFont(Display* dpy, XID font_ID);
 extern	XFontStruct* WinXLoadFont(const char* name);
-extern	XSetFont(Display* dpy, GC gc, Font font);
+extern	int XSetFont(Display* dpy, GC gc, Font font);
 extern	GContext XGContextFromGC(GC gc);
 
-extern	XParseColor(Display* display, Colormap colormap, char* spec,
-					XColor* exact_def_return);
-extern	XCreateBitmapFromData(Display* dpy, Drawable d, char* data,
-							  unsigned int width, unsigned int height);
-extern	XResizeWindow(Display* dpy, Window w, unsigned int width, unsigned int height);
-extern	XMoveResizeWindow(Display* dpy, Window w, int x, int y,
+extern	int XParseColor(Display* display, Colormap colormap, char* spec, 
+						XColor* exact_def_return);
+extern	int XCreateBitmapFromData(Display* dpy, Drawable d, char* data, 
+								  unsigned int width, unsigned int height);
+extern	int XResizeWindow(Display* dpy, Window w, unsigned int width, unsigned int height);
+extern	int XMoveResizeWindow(Display* dpy, Window w, int x, int y,
 						  unsigned int width, unsigned int height);
-extern	XSelectInput(Display* dpy, Window w, long event_mask);
-extern	KeySym	XStringToKeysym(char* s);
-extern	char*	XKeysymToString(KeySym keysym);
+extern	int XSelectInput(Display* dpy, Window w, long event_mask);
 
 typedef	int	Time;
 #define	CurrentTime		0L		/* special Time (ignored in Windows) */
@@ -566,16 +573,16 @@ typedef	int	Time;
 extern	int XGrabPointer(Display *display, Window w, Bool owner_events,
 						 unsigned int event_mask, int pointer_mode, int keyboard_mode,
 						 Window confine_to, Cursor cursor, Time time);
-extern	XUngrabPointer(Display* display, Time time);
-extern	XWarpPointer(Display *display, Window src_w, Window dest_w,
-					 int src_x, int src_y,
-					 unsigned int src_width, unsigned int src_height,
-					 int dest_x, int dest_y);
-extern	XDefineCursor(Display* d, Window w, Cursor c);
+extern	int XUngrabPointer(Display* display, Time time);
+extern	int XWarpPointer(Display *display, Window src_w, Window dest_w,
+						 int src_x, int src_y,
+						 unsigned int src_width, unsigned int src_height,
+						 int dest_x, int dest_y);
+extern	int XDefineCursor(Display* d, Window w, Cursor c);
 
-extern	XClearArea(Display* d, Window w, int x, int y,
-				   unsigned int width, unsigned int height, Bool exposures);
-extern	XCheckMaskEvent(Display* d, long event_mask, XEvent* event_return);
+extern	int XClearArea(Display* d, Window w, int x, int y, 
+					   unsigned int width, unsigned int height, Bool exposures);
+extern	int XCheckMaskEvent(Display* d, long event_mask, XEvent* event_return);
 
 #define	DefaultScreen(_dpy)		(0)
 
@@ -583,12 +590,10 @@ int		DefaultDepth(Display* d, int screen);
 
 #define ConnectionNumber(_dpy)		(0)
 
-extern XFlush(Display *display);
-extern XSync(Display *display, Bool discard);
+extern int XFlush(Display *display);
+extern int XSync(Display *display, Bool discard);
 
-#ifdef	__cplusplus
-};
-#endif
+extern	void WinXFlush(Window w);
 
 
 #endif	/* _WINDOWS */

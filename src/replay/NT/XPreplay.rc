@@ -66,7 +66,7 @@ END
 // Menu
 //
 
-IDR_MAINFRAME MENUEX PRELOAD DISCARDABLE
+IDR_MAINFRAME MENUEX PRELOAD DISCARDABLE 
 BEGIN
     POPUP "&File",                          65535,MFT_STRING,MFS_ENABLED
     BEGIN
@@ -102,7 +102,7 @@ END
 // Accelerator
 //
 
-IDR_MAINFRAME ACCELERATORS PRELOAD MOVEABLE PURE
+IDR_MAINFRAME ACCELERATORS PRELOAD MOVEABLE PURE 
 BEGIN
     ",",            IDT_TOEND,              ASCII,  NOINVERT
     ".",            IDT_STOP,               ASCII,  NOINVERT
@@ -142,7 +142,7 @@ BEGIN
     ICON            IDR_MAINFRAME,IDC_STATIC,7,7,20,20
     LTEXT           "XPreplay Version 0.4",IDC_STATIC,37,10,119,8,
                     SS_NOPREFIX
-    LTEXT           "Copyright ï¿½ 2001",IDC_STATIC,37,20,119,8
+    LTEXT           "Copyright © 2001",IDC_STATIC,37,20,119,8
     LTEXT           "This is the Windowsport of the original xp-replay for Unix.",
                     IDC_STATIC,14,48,178,8
     GROUPBOX        "Info",IDC_STATIC,7,35,203,84
@@ -211,7 +211,7 @@ END
 //
 
 #ifdef APSTUDIO_INVOKED
-GUIDELINES DESIGNINFO DISCARDABLE
+GUIDELINES DESIGNINFO DISCARDABLE 
 BEGIN
     IDD_ABOUTBOX, DIALOG
     BEGIN
@@ -235,18 +235,18 @@ END
 // String Table
 //
 
-STRINGTABLE PRELOAD DISCARDABLE
+STRINGTABLE PRELOAD DISCARDABLE 
 BEGIN
     IDR_MAINFRAME           "XPreplay\n\nXPreplay\nXPilot recordings (*.xpr)\n.xpr\nXPreplay.Document\nXPilot recording"
 END
 
-STRINGTABLE PRELOAD DISCARDABLE
+STRINGTABLE PRELOAD DISCARDABLE 
 BEGIN
     AFX_IDS_APP_TITLE       "XPreplay"
     AFX_IDS_IDLEMESSAGE     "Ready"
 END
 
-STRINGTABLE DISCARDABLE
+STRINGTABLE DISCARDABLE 
 BEGIN
     ID_INDICATOR_EXT        "EXT"
     ID_INDICATOR_CAPS       "CAP"
@@ -257,7 +257,7 @@ BEGIN
     ID_INDICATOR_FRAMECOUNTER "frame 0 of 0"
 END
 
-STRINGTABLE DISCARDABLE
+STRINGTABLE DISCARDABLE 
 BEGIN
     ID_FILE_NEW             "Create a new document\nNew"
     ID_FILE_OPEN            "Open an existing document\nOpen"
@@ -266,13 +266,13 @@ BEGIN
     ID_FILE_SAVE_AS         "Save the active document with a new name\nSave As"
 END
 
-STRINGTABLE DISCARDABLE
+STRINGTABLE DISCARDABLE 
 BEGIN
     ID_APP_ABOUT            "Display program information, version number and copyright\nAbout"
     ID_APP_EXIT             "Quit the application; prompts to save documents\nExit"
 END
 
-STRINGTABLE DISCARDABLE
+STRINGTABLE DISCARDABLE 
 BEGIN
     ID_FILE_MRU_FILE1       "Open this document"
     ID_FILE_MRU_FILE2       "Open this document"
@@ -292,18 +292,18 @@ BEGIN
     ID_FILE_MRU_FILE16      "Open this document"
 END
 
-STRINGTABLE DISCARDABLE
+STRINGTABLE DISCARDABLE 
 BEGIN
     ID_NEXT_PANE            "Switch to the next window pane\nNext Pane"
     ID_PREV_PANE            "Switch back to the previous window pane\nPrevious Pane"
 END
 
-STRINGTABLE DISCARDABLE
+STRINGTABLE DISCARDABLE 
 BEGIN
     ID_WINDOW_SPLIT         "Split the active window into panes\nSplit"
 END
 
-STRINGTABLE DISCARDABLE
+STRINGTABLE DISCARDABLE 
 BEGIN
     ID_EDIT_CLEAR           "Erase the selection\nErase"
     ID_EDIT_CLEAR_ALL       "Erase everything\nErase All"
@@ -318,13 +318,13 @@ BEGIN
     ID_EDIT_REDO            "Redo the previously undone action\nRedo"
 END
 
-STRINGTABLE DISCARDABLE
+STRINGTABLE DISCARDABLE 
 BEGIN
     ID_VIEW_TOOLBAR         "Show or hide the toolbar\nToggle ToolBar"
     ID_VIEW_STATUS_BAR      "Show or hide the status bar\nToggle StatusBar"
 END
 
-STRINGTABLE DISCARDABLE
+STRINGTABLE DISCARDABLE 
 BEGIN
     AFX_IDS_SCSIZE          "Change the window size"
     AFX_IDS_SCMOVE          "Change the window position"
@@ -335,13 +335,13 @@ BEGIN
     AFX_IDS_SCCLOSE         "Close the active window and prompts to save the documents"
 END
 
-STRINGTABLE DISCARDABLE
+STRINGTABLE DISCARDABLE 
 BEGIN
     AFX_IDS_SCRESTORE       "Restore the window to normal size"
     AFX_IDS_SCTASKLIST      "Activate Task List"
 END
 
-STRINGTABLE DISCARDABLE
+STRINGTABLE DISCARDABLE 
 BEGIN
     IDT_STOP                "Stop playing\nStop"
     IDT_PLAY                "Play\nPlay"
@@ -354,13 +354,13 @@ BEGIN
     IDT_STARTFRAME          "Set the startframe of the selection\nSet startmarker"
     IDT_ENDFRAME            "Set the endframe of the selection\nSet endmarker"
     ID_FILE_PROPERTIES      "More info about the recording"
-    ID_OPTIONS_TRUSTHEADERFORSIZE
+    ID_OPTIONS_TRUSTHEADERFORSIZE 
                             "XPilotrecordings from older version of XPilot contain invalid screensizes"
-    ID_OPTIONS_USEDEFAULTCOLORS
+    ID_OPTIONS_USEDEFAULTCOLORS 
                             "Uses the default colorpalette instead of the one in the xpr-file"
 END
 
-STRINGTABLE DISCARDABLE
+STRINGTABLE DISCARDABLE 
 BEGIN
     ID_OPTIONS_TRUSTHEADER  "Older versions of XPilot recorded the wrong windowsize."
     ID_SLOWPLAY             "Play the recording in slowmotion\nSlow play"
@@ -409,7 +409,7 @@ END
 //
 
 #ifdef APSTUDIO_INVOKED
-GUIDELINES DESIGNINFO DISCARDABLE
+GUIDELINES DESIGNINFO DISCARDABLE 
 BEGIN
     IDD_PROPERTIES, DIALOG
     BEGIN
@@ -428,18 +428,18 @@ END
 // TEXTINCLUDE
 //
 
-1 TEXTINCLUDE DISCARDABLE
+1 TEXTINCLUDE DISCARDABLE 
 BEGIN
     "resource.h\0"
 END
 
-2 TEXTINCLUDE DISCARDABLE
+2 TEXTINCLUDE DISCARDABLE 
 BEGIN
     "#include ""afxres.h""\r\n"
     "\0"
 END
 
-3 TEXTINCLUDE DISCARDABLE
+3 TEXTINCLUDE DISCARDABLE 
 BEGIN
     "#define _AFX_NO_SPLITTER_RESOURCES\r\n"
     "#define _AFX_NO_OLE_RESOURCES\r\n"

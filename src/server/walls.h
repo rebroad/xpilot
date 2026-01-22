@@ -1,4 +1,4 @@
-/* $Id: walls.h,v 5.3 2001/05/27 16:37:06 bertg Exp $
+/* $Id: walls.h,v 1.3 2002/06/01 06:06:48 dick Exp $
  *
  * XPilot, a multiplayer gravity war game.  Copyright (C) 1991-2001 by
  *
@@ -20,6 +20,14 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ *
+ *  $Log: walls.h,v $
+ *  Revision 1.3  2002/06/01 06:06:48  dick
+ *  Encapsulate (almost) everything.  Get rid of (almost) all refs to theWorld.
+ *
+ *  Revision 1.2  2001/07/07 12:00:43  dick
+ *  Rename classes to C++ "Style".  old World becomes theWorld.
+ *
  */
 
 #ifndef WALLS_H
@@ -82,11 +90,12 @@ typedef struct {
     int			treasure_crashes;
     int			wormhole_warps;
     int			phased;
-    object		*obj;
-    player		*pl;
+    Object		*obj;
+    Player		*pl;
 } move_info_t;
 
-typedef struct {
+class move_state_t {
+public:
     const move_info_t	*mip;
     move_crash_t	crash;
     move_bounce_t	bounce;
@@ -99,7 +108,7 @@ typedef struct {
     int			wormhole;
     int			target;
     int			treasure;
-} move_state_t;
+};
 
 struct move_parameters {
     click_t		click_width;		/* Map width in clicks */
@@ -113,7 +122,5 @@ struct move_parameters {
     unsigned long	obj_target_mask;	/* object target hit? */
     unsigned long	obj_treasure_mask;	/* objects treasure crash? */
 };
-
-void Move_segment(move_state_t *ms);
 
 #endif

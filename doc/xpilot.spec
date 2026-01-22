@@ -1,13 +1,13 @@
 #
 # XPilot RPM spec file.
 #
-# $Id: xpilot.spec,v 5.19 2003/12/13 21:13:33 bertg Exp $
+# $Id: xpilot.spec,v 1.4 2005/06/24 03:08:26 dick Exp $
 #
 
 Summary:      A multiplayer Internet client/server 2D space game
-Name:         xpilot
-Version:      4.5.5beta
-Release:      17
+Name:         xpilot5
+Version:      5.0.0b1
+Release:      1
 Group:        X11/Games/Video
 Copyright:    GPL
 Packager:     xpilot@xpilot.org
@@ -89,8 +89,8 @@ rm -rf $RPM_BUILD_ROOT
 %doc /usr/X11R6/man/man6/xpilots.6*
 %doc /usr/X11R6/man/man6/xp-replay.6*
 %doc /usr/X11R6/man/man6/xp-mapedit.6*
-/usr/X11R6/bin/xpilot
-/usr/X11R6/bin/xpilots
-/usr/X11R6/bin/xp-replay
-/usr/X11R6/bin/xp-mapedit
-/usr/X11R6/lib/xpilot/
+/usr/local/xpilot/bin/xpilot5
+/usr/local/xpilot/bin/xpilotclient
+/usr/local/xpilot/bin/xpilotserver
+/usr/local/xpilot/bin/xpscoreserver
+/usr/local/xpilot/lib/XPilot.shp

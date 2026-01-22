@@ -1,4 +1,4 @@
-/* $Id: saudio.h,v 5.0 2001/04/07 20:01:00 dik Exp $
+/* $Id: saudio.h,v 1.4 2004/05/01 19:21:29 dick Exp $
  *
  * XPilot, a multiplayer gravity war game.  Copyright (C) 1991-2001 by
  *
@@ -26,7 +26,7 @@
 #ifndef _saudio_h
 #define _saudio_h
 
-#if defined(SERVER_SOUND) && defined(SERVER) && !defined(SOUND)
+#if defined(SERVER_SOUND) && !defined(SOUND)
 /* Enable only sound support in the server, not in the client. */
 #define SOUND	1
 #endif
@@ -38,25 +38,25 @@
 /*
  * Define like this to avoid having to put #ifdef SOUND all over the place.
  */
-#define sound_player_init(player)		((player)->audio = NULL)
-#define sound_player_onoff(player, onoff)
-#define sound_play_player(player, index)
-#define sound_play_all(index)
-#define sound_play_sensors(x, y, index)
-#define sound_play_queued(player)
-#define sound_close(player)
+#define SoundPlayerInit(player)		((player)->audio = NULL)
+#define SoundPlayerOnOff(player, onoff)
+#define SoundPlayPlayer(player, index)
+#define SoundPlayAll(w, index)
+#define SoundPlaySensors(w, x, y, index)
+#define SoundPlayQueued(player)
+#define SoundClose(player)
 
 #else						/* SOUND */
 
-#include "audio.h"
+#include "audioDefs.h"
 
-int		sound_player_init(player *);
-void		sound_player_onoff(player *pl, int onoff);
-void		sound_play_player(player *, int);
-void		sound_play_all(int);
-void		sound_play_sensors(DFLOAT, DFLOAT, int);
-void		sound_play_queued(player * pl);
-void		sound_close(player * pl);
+int			SoundPlayerInit(Player *);
+void		SoundPlayerOnOff(Player* pl, int onoff);
+void		SoundPlayPlayer(Player*, int);
+void		SoundPlayAll(World* w, int);
+void		SoundPlaySensors(World* w, DFLOAT, DFLOAT, int);
+void		SoundPlayQueued(Player* pl);
+void		SoundClose(Player* pl);
 
 #endif						/* SOUND */
 

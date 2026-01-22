@@ -1,4 +1,4 @@
-/* $Id: widget.h,v 5.1 2001/05/13 12:14:48 bertg Exp $
+/* $Id: widget.h,v 1.1.1.1 2001/07/04 07:13:40 dick Exp $
  *
  * XPilot, a multiplayer gravity war game.  Copyright (C) 1991-2001 by
  *

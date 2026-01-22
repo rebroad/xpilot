@@ -5,9 +5,6 @@
 
 This is a summary of changes of release 4.5.5 compared to release 4.5.4.
 
-Both meta servers' IP adresses changed and in the client this is hardcoded.
-Both IP addresses have been changed to the new meta server.
-
 When more than one instance of a sound was generated in a frame, all those
 instances would be sent to the client, causing unnecessary network load and
 deafening playback. This has been fixed by eliminating duplicate sounds in
@@ -31,12 +28,7 @@ a high score.
 When the server option cloakedShield was on then deflectors could
 not be turned on while being cloaked.  Fixed.  Thanks go to Paul Forman.
 
-Kristian Sï¿½derblom contributed several important bugfixes.
-
-Ben Armstrong submitted a patch which fixes a problem with a client passing
-the wrong version to a server when multiple servers are displayed.
-
-Cliff Johnson found and fixed a problem with the talk window and certain fonts.
+Kristian Söderblom contributed several important bugfixes.
 
 ===============================================================================
 
@@ -70,9 +62,6 @@ Windows installation, at the end of a successful installation, offers
 to launch XPwho (for Internet games) and/or XPilotServer (for local games).
 Hopefully, this will help with newbie installations who start XPilot.exe
 and can't figure out why nothing happens.
-
-Winni submitted a patch to fix the hardcoded IP address of both meta servers.
-
 
 ===============================================================================
 
@@ -337,8 +326,8 @@ Jarno van der Kolk submitted a patch:
     Only file-options, like scorefiletable, defautsfile, etc. still can't be
     changed at runtime.  And the options, timing and teamplay.
 
-Bob Glickstein submitted "flak hack."  It changes the shots fired by cannons
-to be AAA ("anti-aircraft artillery") rounds.  These work like normal shots
+Bob Glickstein submitted "flak hack."  It changes the shots fired by cannons 
+to be AAA ("anti-aircraft artillery") rounds.  These work like normal shots 
 but explode into small flak bursts after a short while.
 
 Austin Donnelly submitted a patch:
@@ -393,7 +382,7 @@ Paul Alexander Drees submitted a patch for the server:
     I also streamlined some code in frame.c using a function I
     created for the asteroid item determination.
 
-Juha Lindstrï¿½m submitted a patch for the client:
+Juha Lindström submitted a patch for the client:
     The attached patch draws the object information of the radar to the
     map on an area three times the size of the radar. The information
     is drawn in the sliding radar way so that you sit in the center
@@ -412,6 +401,10 @@ Jarno van der Kolk submitted a version of xp-replay for Windows:
     it doesn't really like the 80 Mb recordings from the summercamp. It CAN
     handle the ballrunrecordings from the various ballrunsites just fine
     though.
+
+Paul Alexander Drees submitted a bugfix for the Windows version of XPilot.
+    It used to be that, if you typed a message, the score window would go 
+    blank until a new set of scores came in.
 
 ===============================================================================
 
@@ -591,7 +584,7 @@ could be started which would cause the client login process to fail.
 This has now been fixed.
 
 Guido submitted a new patch to let asteroids collide with many objects:
-    Improved asteroid - object collisions. Asteroids now collide
+    Improved asteroid - object collisions. Asteroids now collide  
     with wreckage, debris and sparks from players or cannons; no
     longer collide twice with other asteroids; trigger mines and
     torpedoes instead of hitting them. Also, different objects
@@ -709,7 +702,7 @@ Ben Jackson submitted partially finished code to measure the speed
 of different graphics features.  He didn't commit yet to any
 further work on this.
 
-Juha Lindstrï¿½m submitted code to fix the new socklib library
+Juha Lindström submitted code to fix the new socklib library
 for Windows peculiarities.  He adds the following remark:
 
 	It seems that the current 4.3.1alpha doesn't compile on windows due to a few
@@ -918,7 +911,7 @@ This is a summary of changes of release 4.2.0 compared to release 4.1.0.
 Sven Mascheck submitted two bugfixes.  One is a problem with locking on
 players during teammode.  The other with lock banks.
 
-Teemu Elias Hirsim$ki fixed a bug in xp-replay related to the recent
+Teemu Elias Hirsim$ki fixed a bug in xp-replay related to the recent 
 addition of the mirror item.
 
 Some changes were derived from the XPilot summercamp patches webpage:
@@ -1086,7 +1079,7 @@ New client option `selectionAndHistory' for the unix version:
 	(except when new messages come in).
       - Cutting doesn't include the last character - like in
 	a terminalemulator.
-    * A blinking cursor being over an unemphasized underscore is drawn
+    * A blinking cursor being over an unemphasized underscore is drawn 
       emphasized to be able to still see that underscore.
     * About finishing a cut (releasing 1st button) outside the talk window:
       if you do it right from where you started, it's considered as
@@ -1095,97 +1088,97 @@ New client option `selectionAndHistory' for the unix version:
 
 Fixed auto-idle-pause bug
 (client auto shield when restarting from the base was interpreted as keystroke)
-
+ 
 Lasers disappear less frequently when wrapping (from Uoti Urpala).
-
+ 
 Fixed turnspeed bug (from Uoti Urpala).
-
+ 
 Team locking fixed again.
-
+ 
 If FPS is odd, the client might have gotten no frames
 at all (from Uoti Urpala).
-
+ 
 Wreckage color was changed to red (pointed out by Espen Skoglund).
 But deadly wreckages are still painted in white.
 
 When the client has set the sparkProb option to 0 then the
 server will not send wreckages when they are not deadly.
 
-Ben Jackson submitted fixes for better (in-client) handling of
+Ben Jackson submitted fixes for better (in-client) handling of 
 changing power/turnspeed and the Config Window (reflecting them):
 
     src/client/configure.c
-
+ 
 	Add Config_redraw() and associated support, for updating the
 	config display when parameters change.  Used below.
-
+ 
 	Change constraints on maxFPS from 0..30 to FPS/2..FPS.  The
 	code was always keeping the variable maxFPS in that range, but
 	the display could go one past, which was annoying.
-
+ 
     src/client/client.h
     src/client/client.c
     src/client/paintdata.c
     src/client/painthud.c
-
+ 
 	Client always ignores PACKET_SELF power/turnspeed for purposes
 	of configuration.  Now it just displays it in the meter, but
 	maybe even that is misleading?  Maybe it should only do that
 	if snooping, and otherwise display the correct values, assuming
 	autopilot is messing with them.
-
+ 
     src/client/paintdata.h
     src/client/paintdata.c
-
+ 
 	New global `snooping' which is true whenever we're watching
 	another player instead of ourselves.
-
+ 
 	Since server never calls Send_eyes() (?!?!?!) the client now
 	makes a best guess -- it assumes that the player at the center
 	of the display is the player we're watching, especially if it's
 	the player himself!
-
+ 
     src/client/xevent.c
-
+ 
 	KEY_SWAP_SETTINGS uses a heuristic to guess if the server will
 	accept this keystroke, and if it thinks so it sends the keystroke
 	and ALSO swaps the settings locally, and updates the config
 	display.
-
+ 
 	KEY_INCREASE_POWER, KEY_DECREASE_POWER, KEY_INCREASE_TURNSPEED
 	and KEY_DECREASE_TURNSPEED are all done in-client now.  The client
 	sends the new absolute value.  This is probably the Right Thing
 	anyway, and it's necessary since we now ignore the PACKET_SELF
 	power/turnspeed values.
-
+ 
     src/common/pack.h
     src/server/netserver.c
-
+ 
 	New magic version 0x4200.
-
+ 
 	old clients->new server: power/turnspeed while autopiloting are ignored
 				 by server to avoid having people set values
 				 relative to the autopilot values
-
+ 
 	new clients->old server: power/turnspeed are not corrupted by autopilot
 				 but the old server will lose the value.  I
 				 tried having the new client send the values
 				 whenever it sees the autopilot light go off,
 				 but due to a combination of bugs in the
 				 OLD server this is disasterous.
-
+ 
 	new clients->new server: power/turnspeed sent while autopiloting set
 				 the saved values and are used as soon as
 				 autopilot is off
-
+ 
 	The disasterous bug mentioned above is caused by being able to
 	set pl->turnspeed while autopiloting in older servers.  That
 	can't happen anymore because it's either ignored (old clients)
 	or put into the save values (new clients).
-
+ 
     src/server/object.h
     src/server/update.c
-
+ 
 	Autopilot no longer saves/restores turnacc -- was irrelevant anyway,
 	since it is immediately recomputed.
 
@@ -1197,7 +1190,7 @@ maximum speed is increased.
 Ignore client maxFPS request if it is 20 (the client default setting)
 and if serveroption `ignore20MaxFPS' is true (default), by Uoti Urpala.
 
-The client knows about talk macros now (Jonny Svï¿½rling, Adam Lorentzon)
+The client knows about talk macros now (Jonny Svärling, Adam Lorentzon)
 modified: macros work also properly in teammode when one is dead.
 See doc/README.talkmacros.
 
@@ -1221,7 +1214,7 @@ most rand implementations is that the low order bits are not very
 random at all.  Therefore almost all uses of rand have been replaced
 with rfrac.
 
-Now larger map areas can be viewed when using larger scaleFactors on
+Now larger map areas can be viewed when using larger scaleFactors on 
 big screens.  Try "xpilot -scaleFactor 2.5 -geometry 1280x1024".
 
 When using pointercontrol, configuring turning settings is easier now:
@@ -1463,7 +1456,7 @@ Guido Koopman contributed a patch for a new item called deflector:
     - a new server option: maxDeflectors
       Default is "10".
     - a new client option: keyDeflector
-      Press to turn deflectors on. Press again to turn off.
+      Press to turn deflectors on. Press again to turn off. 
       The default key is 'o'.
     - incompatibility with older (i.e. plain 3.7.1 and earlier) versions
       This comes from a different packet for item counts and affects both the
@@ -1572,8 +1565,8 @@ Sven Mascheck contributed improvements for drawing the screen scaled
 while the ERASE hack is active, including a bugfix for the WINSCALE macro.
 
 Lewis W. Beard has released XPShipEditor, a Win32 ship shape editor written
-    in Visual Basic.  As of XPilot-12, XPShipEditor will be included with the
-    Windows binaries distribution.  XPShipEditor itself included the GPLed source
+    in Visual Basic.  As of XPilot-12, XPShipEditor will be included with the 
+    Windows binaries distribution.  XPShipEditor itself included the GPLed source 
     can be found at http://lwb.org/xpilot/
 
 Guido Koopman contributed several more bugfixes and improvements:
@@ -1829,6 +1822,6 @@ Guido Koopman contributed more bug fixes:
     - man pages are outdated
 
 ===============================================================================
-==== $Id: ChangeLog,v 5.91 2010/02/21 15:55:17 bertg Exp $
+==== $Id: ChangeLog,v 1.7 2004/01/08 18:10:50 dick Exp $
 ===============================================================================
 

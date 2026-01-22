@@ -1,11 +1,8 @@
-/* $Id: winAbout.cpp,v 5.2 2002/06/15 21:35:22 dik Exp $
- * winAbout.cpp - XPilot.exe credits box
- *
- * This file contains the Windows about dialog and scrolling credits box.
+/* $Id: winAbout.cpp,v 1.3 2002/06/26 06:48:10 dick Exp $
  *
  * XPilot, a multiplayer gravity war game.  Copyright (C) 1991-2001 by
  *
- *      Bjï¿½rn Stabell        <bjoern@xpilot.org>
+ *      Bjørn Stabell        <bjoern@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
  *      Dick Balaska         <dick@xpilot.org>
@@ -25,24 +22,14 @@
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 /*
- * $Log: winAbout.cpp,v $
- * Revision 5.2  2002/06/15 21:35:22  dik
- * Don't include includes if the symbols were already defined
- * (winAbout may be included from XPwho).
- *
+ * $ Log: $
  */
 
 #include "StdAfx.h"
-#ifndef	DRAW_H
-	#include "draw.h"
-#endif
-#ifndef	_WINX__H_
-	#include "winX_.h"
-	#include "resource.h"
-#endif
+#include "draw.h"
 #include "winAbout.h"
 #include "../../common/version.h"
-
+#include "winX_.h"
 /////////////////////////////////////////////////////////////////////////////
 
 #define	CR_WIDTH	crRect.Width()
@@ -103,7 +90,7 @@ END_MESSAGE_MAP()
 
 ///////////////////////////////////////////////////////////////////////////////
 // CCredits message handlers
-void CCredits::OnTimer(UINT nIDEvent)
+void CCredits::OnTimer(UINT nIDEvent) 
 {
 	// TODO: Add your message handler code here and/or call default
 	if (scrollofs++ > creditsHeight)
@@ -116,7 +103,7 @@ void CCredits::OnTimer(UINT nIDEvent)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void CCredits::OnPaint()
+void CCredits::OnPaint() 
 {
 	CPaintDC dc(this); // device context for painting
 	CString	out;
@@ -161,7 +148,7 @@ void CCredits::OnPaint()
 
 
 ///////////////////////////////////////////////////////////////////////////////
-BOOL CCredits::Create(LPCTSTR lpszClassName, LPCTSTR lpszWindowName, DWORD dwStyle, const RECT& rect, CWnd* pParentWnd, UINT nID, CCreateContext* pContext)
+BOOL CCredits::Create(LPCTSTR lpszClassName, LPCTSTR lpszWindowName, DWORD dwStyle, const RECT& rect, CWnd* pParentWnd, UINT nID, CCreateContext* pContext) 
 {
 	// TODO: Add your specialized code here and/or call the base class
 	BOOL ret;
@@ -170,13 +157,13 @@ BOOL CCredits::Create(LPCTSTR lpszClassName, LPCTSTR lpszWindowName, DWORD dwSty
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-BOOL CCredits::DestroyWindow()
+BOOL CCredits::DestroyWindow() 
 {
 	// TODO: Add your specialized code here and/or call the base class
 	KillTimer(32);
 	bm.DeleteObject();
 
-
+	
 	return CStatic::DestroyWindow();
 }
 
@@ -211,10 +198,8 @@ void CCredits::BuildBitmap(CDC *dc)
 	COLORREF	myColor;
 
 	CRect	rect(0,0,CR_WIDTH, creditsHeight);
-//	dc->FillSolidRect(&rect, objs[RED].color);
+	dc->FillSolidRect(&rect, objs[RED].color);
 	COLORREF oldColor = dc->GetTextColor();
-	dc->SetBkColor(RGB(0,0,0));
-	myColor = RGB(255,255,255);
 
 	LOGFONT	lf;
 	memset(&lf, 0, sizeof(LOGFONT));
@@ -228,7 +213,7 @@ void CCredits::BuildBitmap(CDC *dc)
 #endif
 	haveFont = font.CreateFontIndirect(&lf);
 	CFont*	oldfont = dc->SelectObject(&font);
-//	myColor = objs[RED].color;
+	myColor = objs[RED].color;
 
 	for (i=0; i<credits.GetLength();)
 	{
@@ -246,12 +231,12 @@ void CCredits::BuildBitmap(CDC *dc)
 			case 'r':
 				row = row + GetAnInt(&i);
 				col = 0;
-//				myColor = objs[RED].color;
+				myColor = objs[RED].color;
 				myColor = RGB(255,0,0);
 				break;
 			case 'c':
 				col = GetAnInt(&i);
-//				myColor = objs[WHITE].color;
+				myColor = objs[WHITE].color;
 				break;
 			default:
 				AfxMessageBox("Unknown command in credits");
@@ -268,12 +253,12 @@ void CCredits::BuildBitmap(CDC *dc)
 	font.DeleteObject();
 }
 
-BOOL CAboutDlg::OnInitDialog()
+BOOL CAboutDlg::OnInitDialog() 
 {
 	CDialog::OnInitDialog();
-
+	
 	SendDlgItemMessage(IDC_VERSION, WM_SETTEXT, 0, (LPARAM)("XPilot " TITLE));
-
+	
 #include "credits.inc.h"
 
 	return TRUE;  // return TRUE unless you set the focus to a control

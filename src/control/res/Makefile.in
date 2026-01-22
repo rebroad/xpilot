@@ -1,0 +1,75 @@
+# $Id: Makefile.in,v 1.1 2004/02/28 08:02:23 dick Exp $
+# @configure_input@
+#
+# Makefile.in for xpilot5s library of installed buttons for xpilotedit
+# ./src/control/res/Makefile.in
+#
+# This module contains the button pixmaps used by the xpilotedit component
+# of xpilot5
+#
+# Copyright 2002 by XPilot Team "xpilot@xpilot.org"
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU Library General Public
+# License as published by the Free Software Foundation; either
+# version 2 of the License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# Library General Public License for more details.
+#
+# You should have received a copy of the GNU Library General Public
+# License along with this library; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
+# USA.
+#
+# Please report all bugs and problems to "xpilot++@buckosoft.com".
+#
+# $Log: Makefile.in,v $
+# Revision 1.1  2004/02/28 08:02:23  dick
+# Install the control bitmap buttons from src/control/res to $/buttons
+#
+
+LIBNAME =
+
+SUBDIRS =
+
+CPPFILES =
+
+CLEAN =
+
+################################################################
+TOP=@top_srcdir@
+
+include @top_srcdir@/makeinclude
+
+XPCXXFLAGS =
+
+OBJECTS = $(CPPFILES:.cpp=.o) $(CFILES:.c=.o)
+
+all:
+
+clean:
+
+distclean: clean
+
+depend:
+
+################################################################
+
+install:
+	@echo "=== installing control buttons to $(BUTTONDIR)"
+	@if [ ! -d $(BUTTONDIR) ]; then \
+		mkdir $(BUTTONDIR) ;\
+	fi
+	@for butt in *.png; do\
+		cp -f -p $$butt $(BUTTONDIR);\
+		echo $(ECHO_N) ".";\
+		chmod 444 $(BUTTONDIR)/$$butt;\
+	done
+	@echo ""
+
+#
+# End of "$Id: Makefile.in,v 1.1 2004/02/28 08:02:23 dick Exp $".
+#

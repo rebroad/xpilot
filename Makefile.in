@@ -1,0 +1,197 @@
+#
+# $Id: Makefile.in,v 1.15 2007/01/07 02:46:10 dick Exp $
+# @configure_input@
+#
+# Makefile.in for xpilot5
+# ./Makefile.in
+#
+# Copyright 2001 by XPilot Team "xpilot@xpilot.org"
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU Library General Public
+# License as published by the Free Software Foundation; either
+# version 2 of the License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# Library General Public License for more details.
+#
+# You should have received a copy of the GNU Library General Public
+# License along with this library; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
+# USA.
+#
+# Please report all bugs and problems to "xpilot5@buckosoft.com".
+#
+# $Log: Makefile.in,v $
+# Revision 1.15  2007/01/07 02:46:10  dick
+# tell user to run make install
+#
+# Revision 1.14  2004/02/06 15:48:08  dick
+# Replace some old ++ references with 5
+#
+# Revision 1.13  2004/01/28 05:53:12  dick
+# Force the make to die on failure by using "exit 1" instead of "break" in the loops.
+# Tidy up the make install output.
+#
+# Revision 1.12  2004/01/22 05:08:16  dick
+# Uh-oh, another reorg.  The product is XPilot5.  The name of the control
+# program is also XPilot5.  No more shalt thou speak of XPilot++.
+#
+# Revision 1.11  2004/01/20 06:13:53  dick
+# Add support for `make install` to a non-priv'd directory, like /home/dick/xpilot.
+# If we are doing a default installation (/usr/local/xpilot) then the VARDIR
+# becomes /var/xpilot .  If we are not default then use $prefix/var.
+#
+# Revision 1.10  2002/08/01 20:27:21  dick
+# Better KDE detection.  Install man pages.
+#
+# Rename programs:
+# src/         Windows              Unix
+# control      XPilot.exe           xpilot
+# client       XPilotClient.exe     xpilotclient
+# server       XPilotServer.exe     xpilotserver
+# scoreserver  XPScoreServer.exe    xpscoreserver
+# replay       XPReplay.exe         xpreplay
+#
+# Revision 1.9  2002/07/30 07:01:06  dick
+# Move install helper directories to ./inst
+#
+# Revision 1.8  2002/07/30 05:53:03  dick
+# Move lib/kde to install/kde and src/common/NT/bindist to install/win32
+#
+# Revision 1.7  2002/07/21 19:27:06  dick
+# Configure and install the server password.
+#
+# Revision 1.6  2002/07/20 16:08:57  dick
+# Configure and install the server's password into the server's password file.
+#
+# Revision 1.5  2002/07/12 16:58:55  dick
+# Use an == line instead of a -- line
+#
+# Revision 1.4  2002/07/08 19:32:59  dick
+# Better install directory handling.
+#
+# Revision 1.3  2002/02/17 22:29:59  dick
+# During install, mkdir $/bin and $/lib if needed
+#
+# Revision 1.2  2001/10/24 16:40:19  dick
+# Add support for "make install"
+#
+# Revision 1.1  2001/09/23 06:25:26  dick
+# Added support for autoconf.
+# Right now, "make install" is not supported.  And config.h is rather empty.
+#
+#
+
+#SHELL	=	/bin/sh
+DIRS	=	contrib lib src inst
+
+all: makeinclude
+	@for dir in $(DIRS); do\
+		echo "=== making $$dir ===";\
+		(cd $$dir; $(MAKE) $(MFLAGS)) || exit 1;\
+	done
+	-@ echo "========================================================"
+	-@echo "make all completed..."
+	-@echo "now you should run make install"
+	-@ echo "========================================================"
+
+install: all
+	@echo "================================================================="
+	@echo "================================================================="
+	@echo "===installing to @prefix@ ==="
+	@if [ ! -d @prefix@ ]; then \
+		mkdir -p @prefix@ ;\
+	fi
+	@if [ ! -d @prefix@@bindir@ ]; then \
+		mkdir @prefix@@bindir@ ;\
+	fi
+	@if [ ! -d @prefix@@libdir@ ]; then \
+		mkdir @prefix@@libdir@ ;\
+	fi
+	@if [ ! -d @prefix@@mandir@ ]; then \
+		mkdir @prefix@@mandir@ ;\
+	fi
+	@if [ ! -d @VARDIR@ ]; then \
+		mkdir @VARDIR@ ;\
+		chmod 777 @VARDIR@ ;\
+	fi
+	@for dir in $(DIRS); do\
+		echo "=== installing $$dir ===";\
+		(cd $$dir; $(MAKE) $(MFLAGS) install) || exit 1;\
+	done
+	@(cd doc; $(MAKE) $(MFLAGS) install)
+	@if test -f @prefix@@libdir@/password; then \
+		echo "Not overwriting existing password file"; \
+	else \
+		echo "Installing @prefix@@libdir@/password"; \
+		cp -p .serverpassword @prefix@@libdir@/password; \
+		chmod 600 @prefix@@libdir@/password; \
+	fi
+	@echo "================================================================="
+	@echo "XPilot5 has been installed to @prefix@"
+	@echo "You may or may not add @prefix@@bindir@ to your PATH"
+	@echo "To get started, try @prefix@@bindir@/xpilot5"
+
+depend: makeinclude
+	@for dir in $(DIRS); do\
+		echo "=== making dependencies in $$dir ===";\
+		(cd $$dir; $(MAKE) $(MFLAGS) depend) || exit 1;\
+	done
+
+clean:
+	-@ rm -f core config.cache *.o *.bck .serverpasswd
+	@for dir in $(DIRS); do\
+		echo "=== cleaning $$dir ===";\
+		(cd $$dir; $(MAKE) $(MFLAGS) clean) || exit 1;\
+	done
+
+# distclean the subdirectories first
+distclean: clean
+	@for dir in $(DIRS); do\
+		echo "=== distcleaning $$dir ===";\
+		(cd $$dir; $(MAKE) $(MFLAGS) distclean) || exit 1;\
+	done
+	rm -f config.log config.h config.status makeinclude .serverpassword
+	-@ echo "========================================================"
+	-@ echo "= Note you will need to run ./configure before you can ="
+	-@ echo "= build again                                          ="
+	-@ echo "========================================================"
+
+makeinclude: configure config.h.in makeinclude.in
+	if test -f config.status; then \
+		./config.status --recheck; \
+		./config.status; \
+	else \
+		./configure; \
+	fi
+
+configure: configure.ac
+	autoconf
+
+# DIK We don't need this
+# $(srcdir)/configure: configure.ac aclocal.m4
+# 	cd $(srcdir) && autoconf
+
+# DIK We don't need this
+# autoheader might not change config.h.in, so touch a stamp file.
+#$(srcdir)/config.h.in: stamp-h.in
+#$(srcdir)/stamp-h.in: configure.ac aclocal.m4
+#	cd $(srcdir) && autoheader
+#	echo timestamp > $(srcdir)/stamp-h.in
+
+config.h: stamp-h
+stamp-h: config.h.in config.status
+	./config.status
+
+Makefile: Makefile.in config.status
+	./config.status
+
+config.status: configure
+	./config.status --recheck
+
+#
+# End of "$Id: Makefile.in,v 1.15 2007/01/07 02:46:10 dick Exp $".
+#

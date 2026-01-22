@@ -1,0 +1,574 @@
+#!/bin/bash
+# $Id: makeDistribution,v 1.44 2007/01/06 18:38:11 dick Exp $
+# makeDistribution - a script to move things to a directory to make the build script
+#                    and then call makensis to build a Windows binary distribution for
+#                    XPilot, a multiplayer gravity war game.
+#                    Copyright (C) 2001 by XPilot Team <xpilot@xpilot.org>
+#                    Released under GNU General Public License Version 2
+#
+# If you're wondering what the heck this file is...
+# Here's a nickel, kid, buy yourself a real shell.  http://www.cygwin.com/
+# The NullSoft Install System can be found here http://www.nullsoft.com/free/nsis/
+#set -x
+
+# directory to stage the distribution.
+# You probably shouldn't make this C:\XPilot5 (The default installation dir)
+XDIR=/c/staged/XPilot5
+
+# point to your fltk installation
+# not really needed anymore because you pointed VC++ at your fltk.
+#FLTKDIR="E:/fltk"
+
+# point to your NSIS installation
+NSIS='/c/Program Files/NSIS'
+
+
+# copy and install the XPilot bitmaps
+COPYBITMAPS=Y
+
+BUILDTYPE=Release
+
+#!#!#!#!#!#!#!#!#!#!#!#!#!# END OF USER CONFIGURATION #!#!#!#!#!#!#!#!#!#!#!#!#!#
+
+PRODUCT="XPilot5"
+
+ECHO_ON="set -x"
+ECHO_OFF="set +x"
+
+#
+function doHELP ()
+{
+	echo "makeDistribution [-aqQdcsh]"
+	echo "  -a = All - does clean before builds."
+	echo "  -q = Quick - doesn't do the builds (they'd better be built)."
+	echo "  -Q = Very Quick - doesn't copy the bitmaps either (just run nsis)."
+	echo "  -d = Debug builds"
+	echo "  -c = Clean - Just clean and exit, saves disk space."
+	echo "  -s = Silent - output less noise."
+	echo "  -h = Help - this text"
+}
+
+#####################################################################
+#
+# Preset all default variables
+#
+ALL=N
+QUICK=N
+REALQUICK=N
+SILENT=N
+CLEANONLY=N
+
+#####################################################################
+#
+# parse the command line options
+#
+while getopts "acdhsHqQ" OPT
+do
+	case $OPT in
+		a) ALL=Y ;;
+		q) QUICK=Y ;;
+		Q) REALQUICK=Y ;;
+		s) SILENT=Y ;;
+		d) BUILDTYPE=Debug ; echo "Debug build" ;;
+		c) CLEANONLY=Y ;;
+		h) doHELP ; exit 1 ;;
+		*) doHELP ; exit 1 ;;
+	esac
+done
+
+if [ $REALQUICK = Y ]
+then
+	QUICK=Y
+	COPYBITMAPS=N
+fi
+
+#####################################################################
+#
+# sanity check are we building from the right place?
+#
+cd ../..
+BASE=`pwd`
+echo "Building from $BASE"
+echo "Building to $XDIR"
+X=`echo * | grep XPilot5.dsw`
+if [ "x$X" = "x" ]
+then
+	echo "?? $BASE"
+	echo "This does not appear to be an XPilot5 source tree"
+	exit 1
+fi
+
+#####################################################################
+#
+# set up for for fltk
+#
+if [ "x$FLTKDIR" != "x" ]
+then
+	X=`echo $INCLUDE | grep $FLTKDIR`
+	if [ "x$X" = "x" ]
+	then
+		echo "Appending fltk to your include path"
+		export "INCLUDE=$INCLUDE;$FLTKDIR"
+	fi
+	X=`echo $LIB | grep $FLTKDIR`
+	if [ "x$X" = "x" ]
+	then
+		echo "Appending fltk to your library path"
+		export "LIB=$LIB;$FLTKDIR/lib"
+	fi
+fi
+
+#####################################################################
+#####################################################################
+#
+# Just cleanup our workspace
+#
+if [ $CLEANONLY = Y ]
+then
+	for BUILDTYPE in Release Debug
+	do
+		cd $BASE/src/client/NT
+		cmd /c msdev XPilotClient.dsp /MAKE "XPilotClient - Win32 $BUILDTYPE" /CLEAN
+		cd $BASE/src/server/NT
+		cmd /c msdev xpilots.dsp /MAKE "XPilotServer - Win32 $BUILDTYPE" /CLEAN
+		cd $BASE/src/scoreserver
+		cmd /c msdev XPScoreServer.dsp /MAKE "XPScoreServer - Win32 $BUILDTYPE" /CLEAN
+		cd $BASE/src/replay/NT
+		cmd /c msdev XPreplay.dsp /MAKE "XPreplay - Win32 $BUILDTYPE" /CLEAN
+		cd $BASE/src/control
+		cmd /c msdev XPilot5.dsp /MAKE "XPilot5 - Win32 $BUILDTYPE" /CLEAN
+	done
+	exit 0
+fi
+
+#####################################################################
+#####################################################################
+#
+# go make XPilotClient.exe
+#
+if [ $QUICK = N ]
+then
+	echo go make XPilotClient.exe
+
+#	if [ $BASE/doc/CREDITS -nt $BASE/src/client/NT/credits.inc.h ]
+#	then
+#		echo "Updating credits.inc.h based on CREDITS"
+#		cd $BASE/inst/win32		# first make the credits include file
+#		./creditsUpdate.pl
+#	fi
+
+	cd $BASE/src/client/NT
+	if [ $ALL = Y ]
+	then
+		cmd /c msdev XPilotClient.dsp /MAKE "XPilotClient - Win32 $BUILDTYPE" /CLEAN
+	fi
+	cmd /c msdev XPilotClient.dsp /MAKE "XPilotClient - Win32 $BUILDTYPE"
+	if [ $? != 0 ]
+	then
+		echo "makeDistribution: failed to build XPilotClient.exe"
+		exit 1
+	fi
+fi
+
+#####################################################################
+#
+# go make XPilotServer.exe
+#
+if [ $QUICK = N ]
+then
+	echo go make XPilotServer.exe
+	cd $BASE/src/server/NT
+	if [ $ALL = Y ]
+	then
+		echo "CLEAN `pwd`"
+		cmd /c msdev xpilots.dsp /MAKE "XPilotServer - Win32 $BUILDTYPE" /CLEAN
+	fi
+	cmd /c msdev xpilots.dsp /MAKE "XPilotServer - Win32 $BUILDTYPE"
+	if [ $? != 0 ]
+	then
+		echo "makeDistribution: failed to build XPilotServer.exe"
+		exit 1
+	fi
+fi
+
+#####################################################################
+#
+# go make XPScoreServer.exe
+#
+if [ $QUICK = N ]
+then
+	echo go make XPScoreServer.exe
+	cd $BASE/src/scoreserver
+	if [ $ALL = Y ]
+	then
+		echo "CLEAN `pwd`"
+		cmd /c msdev XPScoreServer.dsp /MAKE "XPScoreServer - Win32 $BUILDTYPE" /CLEAN
+	fi
+	cmd /c msdev XPScoreServer.dsp /MAKE "XPScoreServer - Win32 $BUILDTYPE"
+	if [ $? != 0 ]
+	then
+		echo "makeDistribution: failed to build XPScoreServer.exe"
+		exit 1
+	fi
+fi
+
+#####################################################################
+#
+# go make XPreplay.exe
+#
+if [ $QUICK = N ]
+then
+	echo go make XPreplay.exe
+	cd $BASE/src/replay/NT
+	if [ $ALL = Y ]
+	then
+		echo "CLEAN `pwd`"
+		cmd /c msdev XPreplay.dsp /MAKE "XPreplay - Win32 $BUILDTYPE" /CLEAN
+	fi
+	cmd /c msdev XPreplay.dsp /MAKE "XPreplay - Win32 $BUILDTYPE"
+	if [ $? != 0 ]
+	then
+		echo "makeDistribution: failed to build XPreplay.exe"
+		exit 1
+	fi
+fi
+
+#####################################################################
+#
+# go make XPilot5.exe
+#
+if [ $QUICK = N ]
+then
+	echo go make XPilot5.exe
+	cd $BASE/src/control
+	if [ $ALL = Y ]
+	then
+		echo "CLEAN `pwd`"
+		cmd /c msdev XPilot5.dsp /MAKE "XPilot5 - Win32 $BUILDTYPE" /CLEAN
+	fi
+	cmd /c msdev XPilot5.dsp /MAKE "XPilot5 - Win32 $BUILDTYPE"
+	if [ $? != 0 ]
+	then
+		echo "makeDistribution: failed to build XPilot5.exe"
+		exit 1
+	fi
+fi
+
+#####################################################################
+#
+# see if the output directory exists
+#
+if [ ! -d "$XDIR" ]
+then
+	echo -n "Stage directory $XDIR doesn't exist. Create? [y] "
+	read K
+	if [ "x$K" = "x" ]
+	then
+		K=y
+	fi
+	if [ $K = y -o $K = Y ]
+	then
+		mkdir -p $XDIR
+	else
+		exit 1
+	fi
+fi
+if [ ! -d "$XDIR" ] ; then
+	echo "Can't build to non-existant directory"
+	exit 1
+fi
+
+#####################################################################
+#
+# make all of our output subdirectories
+#
+if [ ! -d $XDIR/doc ]
+then
+	mkdir $XDIR/doc
+fi
+if [ ! -d $XDIR/lib ]
+then
+	mkdir $XDIR/lib
+fi
+if [ ! -d $XDIR/lib/maps ]
+then
+	mkdir $XDIR/lib/maps
+fi
+if [ ! -d $XDIR/lib/sounds ]
+then
+	mkdir $XDIR/lib/sounds
+fi
+if [ ! -d $XDIR/lib/textures ]
+then
+	mkdir $XDIR/lib/textures
+fi
+if [ ! -d $XDIR/lib/scoreserver ]; then
+	mkdir $XDIR/lib/scoreserver
+fi
+if [ ! -d $XDIR/lib/scoreserver/html ]; then
+	mkdir $XDIR/lib/scoreserver/html
+fi
+if [ ! -d $XDIR/lib/scoreserver/html/g ]; then
+	mkdir $XDIR/lib/scoreserver/html/g
+fi
+if [ $COPYBITMAPS = Y ]; then
+	if [ ! -d $XDIR/lib/buttons ]; then
+		mkdir $XDIR/lib/buttons
+	fi
+fi
+
+#####################################################################
+#
+# Pre-write the buttons install-include file
+#
+echo "#xpebuttons-nsi.txt - define buttons needed by XPilot5" >$XDIR/xpebuttons-nsi.txt
+echo "# file generated by ./makeDistribution" >>$XDIR/xpebuttons-nsi.txt
+
+#####################################################################
+#
+# Make sure we have InstallOptions.dll staged, which is needed
+# by the password chooser dialog.
+#
+INSFILE="$NSIS/Plugins/InstallOptions.dll"
+if [ ! -f "$XDIR/InstallOptions.dll" ]; then
+	if [ -f "$INSFILE" ]; then
+		echo "Copying InstallOptions.dll to staged"
+		cp "$INSFILE" $XDIR
+	else
+		echo "Can't find InstallOptions.dll"
+		echo "Did you set your \$NSIS variable correctly?"
+		echo "And do you need to build InstallOptions.dll?"
+		ls -l "$INSFILE"
+		exit 1
+	fi
+fi
+
+# Are we supplying bitmaps for XPilot?
+if [ $COPYBITMAPS = Y ]		# well we'd better, bad things happen if we don't.
+then
+	cd $BASE/src/control/buttons
+	BMPS=`echo *.xpm *.png`
+	echo "Copying bitmaps: $BMPS"
+	#echo "SetOutPath \"\$INSTDIR\\lib\\buttons\"" >>$XDIR/xpebuttons-nsi.txt
+	for i in $BMPS
+	do
+		cp -p $i $XDIR/lib/buttons
+		echo "File \"lib\buttons\\$i\"" >>$XDIR/xpebuttons-nsi.txt
+	done
+	cd $BASE/src/control/res
+	BMPS=`echo *.png`
+	for i in $BMPS
+	do
+		cp -p $i $XDIR/lib/buttons
+		echo "File \"lib\buttons\\$i\"" >>$XDIR/xpebuttons-nsi.txt
+	done
+fi
+
+#####################################################################
+#
+# build our output title string to use as the filename of the installer .exe
+#
+cd $BASE
+#TITLE=`grep TITLE src/common/version.h | grep -v XPilot | cut -f2 -d'"'`
+TITLE=`grep VERSION src/common/version.h | grep define | grep -v _H | cut -f2 -d'"'`
+EXE="XPilot-$TITLE.exe"
+echo "Building $EXE"
+echo "OutFile $EXE" >$XDIR/outfilename.txt
+
+ZIP="xpilot-$TITLE.zip"
+echo $ZIP >$XDIR/outsrcfilename.txt
+
+#####################################################################
+#
+# copy all files over to the staged dir
+#
+if [ $REALQUICK = Y ]
+then
+	$ECHO_ON	# thanks for looking.
+	cd $BASE/inst/win32
+	sed "s/\[PRODUCT\]/$PRODUCT/g" <XPilot.nsi >$XDIR/temp.nsi
+	sed "s/\[RELEASE\]/XPilot$TITLE/g" <$XDIR/temp.nsi >$XDIR/XPilot.nsi
+	$ECHO_OFF
+else
+
+	$ECHO_ON	# thanks for looking.
+
+	cd $BASE
+	cp -p LICENSE $XDIR/License.txt
+
+	cd $BASE/src/client/NT
+	cp -p XPilotClient.ini	$XDIR	# this file needs to be tweaked by hand from linux `xpilot -help`
+	cp -p $BUILDTYPE/XPilotClient.exe $XDIR
+
+	cd $BASE/src/server/NT
+	cp -p $BUILDTYPE/XPilotServer.exe $XDIR
+
+	cd $BASE/inst/win32
+	sed "s/\[PRODUCT\]/$PRODUCT/g" <XPilot.nsi >$XDIR/temp.nsi
+	sed "s/\[RELEASE\]/XPilot$TITLE/g" <$XDIR/temp.nsi >$XDIR/XPilot.nsi
+
+	cp -p getpw.ini			$XDIR		# get password script
+	cp -p xp_off.bmp 		$XDIR		# nsi helper bitmap
+	cp -p xp_on.bmp 		$XDIR		# nsi helper bitmap
+	cp -p READMEbin.txt		$XDIR/README.txt
+
+	cd $BASE/src/control
+	cp -p $BUILDTYPE/XPilot5.exe	$XDIR
+	cp -p res/XPilot5.ico	$XDIR
+
+	cd $BASE/src/scoreserver
+	cp -p $BUILDTYPE/XPScoreServer.exe	$XDIR
+
+	cd $BASE/src/replay/NT
+	cp -p $BUILDTYPE/XPreplay.exe		$XDIR
+	cp -p XPreplay.reg				$XDIR
+
+	#cd $BASE/../$XPSHIPEDITORDIR
+	#cp -p XPShipEditor.exe	$XDIR/XPShipEditor
+	#cp -p XPShipEditor.txt	$XDIR/XPShipEditor
+
+	cd $BASE/doc
+	#cp -p BUGS 				$XDIR/doc/Bugs.txt
+	cp -p ChangeLog			$XDIR/doc/ChangeLog.txt
+	cp -p CREDITS			$XDIR/doc/Credits.txt
+	cp -p FAQ				$XDIR/doc/FAQ.txt
+	#cp -p FIXED				$XDIR/doc/Fixed.txt
+	cp -p README.MAPS		$XDIR/doc/README.MAPS.txt
+	cp -p README.MAPS2		$XDIR/doc/README.MAPS2.txt
+	cp -p README.SHIPS		$XDIR/doc/README.SHIPS.txt
+	cp -p README.talkmacros	$XDIR/doc/README.talkmacros.txt
+	cp -p TODO				$XDIR/doc/Todo.txt
+	echo "[InternetShortCut]"			>$XDIR/doc/The\ XPilot\ Page.url
+	echo "URL=http://www.xpilot.org/"  >>$XDIR/doc/The\ XPilot\ Page.url
+	echo "[InternetShortCut]"					  >$XDIR/doc/XPilot\ @\ BuckoSoft.url
+	echo "URL=http://www.buckosoft.com/xpilot/"  >>$XDIR/doc/XPilot\ @\ BuckoSoft.url
+	echo "[InternetShortCut]"	>$XDIR/doc/Newbie\ Guide.url
+	echo "URL=http://www.j-a-r-n-o.nl/newbie" >>$XDIR/doc/Newbie\ Guide.url
+
+	cd $BASE/lib
+	cp -p defaults			$XDIR/lib/defaults.txt
+	cp -p robots			$XDIR/lib/robots.txt
+	cp -p sounds.conf		$XDIR/lib
+	cp -p XPilot.shp		$XDIR/lib
+
+	cd $BASE/lib/maps
+	cp -p blood-music2.xp	$XDIR/lib/maps
+	cp -p CAMD.xp			$XDIR/lib/maps
+	cp -p cloudscape.xp		$XDIR/lib/maps
+	cp -p default.xp		$XDIR/lib/maps
+	cp -p doggy.xp			$XDIR/lib/maps
+	cp -p fireball.xp		$XDIR/lib/maps
+	cp -p fishfight.xp		$XDIR/lib/maps
+	cp -p fuzz.xp			$XDIR/lib/maps
+	cp -p fuzz2.xp			$XDIR/lib/maps
+	cp -p globe.xp			$XDIR/lib/maps
+	cp -p grandprix.xp		$XDIR/lib/maps
+	cp -p newdarkhell.xp	$XDIR/lib/maps
+	cp -p newdarkhell2.xp	$XDIR/lib/maps
+	cp -p pad.xp			$XDIR/lib/maps
+	cp -p pit.xp			$XDIR/lib/maps
+	cp -p planetx.xp		$XDIR/lib/maps
+	cp -p teamball.xp		$XDIR/lib/maps
+	cp -p tourmination.xp	$XDIR/lib/maps
+	cp -p tournament.xp		$XDIR/lib/maps
+	cp -p war.xp			$XDIR/lib/maps
+
+	cd $BASE/lib/scoreserver/html
+	cp -p index.html		$XDIR/lib/scoreserver/html
+	cp -p playerline.html	$XDIR/lib/scoreserver/html
+	cp -p scorelist.html	$XDIR/lib/scoreserver/html
+
+	cd $BASE/lib/scoreserver/html/g
+	cp -p xpback.png		$XDIR/lib/scoreserver/html/g
+	cp -p styles.css		$XDIR/lib/scoreserver/html/g
+
+	cd $BASE/lib/sounds
+	cp -p bfire.wav			$XDIR/lib/sounds
+	cp -p bloop.wav			$XDIR/lib/sounds
+	cp -p buzzer.wav		$XDIR/lib/sounds
+	cp -p confirm.wav		$XDIR/lib/sounds
+	cp -p corkpop.wav		$XDIR/lib/sounds
+	cp -p done.wav			$XDIR/lib/sounds
+	cp -p doorchimes.wav	$XDIR/lib/sounds
+	cp -p Drop01.wav		$XDIR/lib/sounds
+	cp -p explo2.wav		$XDIR/lib/sounds
+	cp -p failure.wav		$XDIR/lib/sounds
+	cp -p finished.wav		$XDIR/lib/sounds
+	cp -p flare.wav			$XDIR/lib/sounds
+	cp -p gundead.wav		$XDIR/lib/sounds
+	cp -p launch1.18.wav	$XDIR/lib/sounds
+	cp -p lboom.wav			$XDIR/lib/sounds
+	cp -p magic.wav			$XDIR/lib/sounds
+	cp -p MusicaDefault.wav	$XDIR/lib/sounds
+	cp -p popclick.wav		$XDIR/lib/sounds
+	cp -p RobotzDefault.wav	$XDIR/lib/sounds
+	cp -p RobotzQuestion.wav $XDIR/lib/sounds
+	cp -p sboom.wav			$XDIR/lib/sounds
+	cp -p sbounce.wav		$XDIR/lib/sounds
+	cp -p sstart.wav		$XDIR/lib/sounds
+	cp -p success.wav		$XDIR/lib/sounds
+	cp -p UtopiaClose.wav	$XDIR/lib/sounds
+	cp -p waiting.wav		$XDIR/lib/sounds
+	cp -p zap.wav			$XDIR/lib/sounds
+
+	cd $BASE/lib/textures
+	cp -p allitems.ppm		$XDIR/lib/textures
+	cp -p asteroidconcentrator.ppm $XDIR/lib/textures
+	cp -p ball.ppm			$XDIR/lib/textures
+	cp -p base_down.ppm		$XDIR/lib/textures
+	cp -p base_left.ppm		$XDIR/lib/textures
+	cp -p base_right.ppm	$XDIR/lib/textures
+	cp -p base_up.ppm		$XDIR/lib/textures
+	cp -p bullet.ppm		$XDIR/lib/textures
+	cp -p bullet_blue.ppm	$XDIR/lib/textures
+	cp -p bullet_green.ppm	$XDIR/lib/textures
+	cp -p bullet2.ppm		$XDIR/lib/textures
+	cp -p cannon_down.ppm	$XDIR/lib/textures
+	cp -p cannon_left.ppm	$XDIR/lib/textures
+	cp -p cannon_right.ppm	$XDIR/lib/textures
+	cp -p cannon_up.ppm		$XDIR/lib/textures
+	cp -p checkpoint.ppm	$XDIR/lib/textures
+	cp -p clouds.ppm		$XDIR/lib/textures
+	cp -p concentrator.ppm	$XDIR/lib/textures
+	cp -p fuel2.ppm			$XDIR/lib/textures
+	cp -p fuelcell.ppm		$XDIR/lib/textures
+	cp -p holder1.ppm		$XDIR/lib/textures
+	cp -p holder2.ppm		$XDIR/lib/textures
+	cp -p logo.ppm			$XDIR/lib/textures
+	cp -p meter.ppm			$XDIR/lib/textures
+	cp -p mine_other.ppm	$XDIR/lib/textures
+	cp -p mine_team.ppm		$XDIR/lib/textures
+	cp -p minus.ppm			$XDIR/lib/textures
+	cp -p paused.ppm		$XDIR/lib/textures
+	cp -p plus.ppm			$XDIR/lib/textures
+	cp -p radar.ppm			$XDIR/lib/textures
+	cp -p radar2.ppm		$XDIR/lib/textures
+	cp -p radar3.ppm		$XDIR/lib/textures
+	cp -p refuel.ppm		$XDIR/lib/textures
+	cp -p ship.ppm			$XDIR/lib/textures
+	cp -p ship_blue.ppm		$XDIR/lib/textures
+	cp -p ship_red.ppm		$XDIR/lib/textures
+	cp -p ship_red2.ppm		$XDIR/lib/textures
+	cp -p ship_red3.ppm		$XDIR/lib/textures
+	cp -p sparks.ppm		$XDIR/lib/textures
+	cp -p wall_bottom.ppm	$XDIR/lib/textures
+	cp -p wall_dl.ppm		$XDIR/lib/textures
+	cp -p wall_dr.ppm		$XDIR/lib/textures
+	cp -p wall_fi.ppm		$XDIR/lib/textures
+	cp -p wall_left.ppm		$XDIR/lib/textures
+	cp -p wall_right.ppm	$XDIR/lib/textures
+	cp -p wall_top.ppm		$XDIR/lib/textures
+	cp -p wall_ul.ppm		$XDIR/lib/textures
+	cp -p wall_ull.ppm		$XDIR/lib/textures
+	cp -p wall_ur.ppm		$XDIR/lib/textures
+	cp -p wall_url.ppm		$XDIR/lib/textures
+	cp -p wormhole.ppm		$XDIR/lib/textures
+
+	$ECHO_OFF
+fi
+#####################################################################
+#
+# Build the installer
+#
+cd $XDIR
+"$NSIS/makensis"  /DPRODUCT=$PRODUCT XPilot.nsi

@@ -1,4 +1,6 @@
-/* $Id: StdAfx.cpp,v 5.0 2001/04/07 20:00:59 dik Exp $
+/* $Id: StdAfx.cpp,v 1.2 2004/02/03 03:39:52 dick Exp $
+ *
+ * StdAfx.cpp - Visual C++ precompiled header support
  *
  * XPilot, a multiplayer gravity war game.  Copyright (C) 1991-2001 by
  *
@@ -21,10 +23,18 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
+/*
+ * $Log: StdAfx.cpp,v $
+ * Revision 1.2  2004/02/03 03:39:52  dick
+ * Add Windows precompiled header support.
+ *
+ */
 
-// stdafx.cpp : source file that includes just the standard includes
-//	xpilot.pch will be the pre-compiled header
-//	stdafx.obj will contain the pre-compiled type information
+// Drasticly reduce the Windows compile time by using precompiled headers.
+// On my (dual) Xeon 2Ghz, `time makedistribution -a` goes from
+// 3:16 (196 seconds) to 1:32 (92 seconds).
 
-#include "stdafx.h"
+#include "StdAfx.h"
+
+
 

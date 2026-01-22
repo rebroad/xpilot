@@ -1,8 +1,8 @@
-/* $Id: texture.h,v 5.0 2001/04/07 20:00:58 dik Exp $
+/* $Id: texture.h,v 1.1.1.1 2001/07/04 07:13:40 dick Exp $
  *
  * XPilot, a multiplayer gravity war game.  Copyright (C) 1991-2001 by
  *
- *      Bjï¿½rn Stabell        <bjoern@xpilot.org>
+ *      Bjørn Stabell        <bjoern@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
  *      Dick Balaska         <dick@xpilot.org>
@@ -24,7 +24,7 @@
 #ifndef TEXTURE_H
 #define TEXTURE_H
 
-/*
+/* 
  * Load a texture into a pixmap.
  */
 extern Pixmap Texture_wall(void);

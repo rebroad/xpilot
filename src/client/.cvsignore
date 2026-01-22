@@ -1,10 +1,9 @@
-xpilots
-xpilot
-xp-replay
+xpilotclient
 Makefile
 Makefile.my
 tags
 log
 .depend
+.makedepend
 nohup.out
-gmon.out
+.exrc

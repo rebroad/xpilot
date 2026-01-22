@@ -1,4 +1,4 @@
-/* $Id: winXKey.h,v 5.0 2001/04/07 20:00:59 dik Exp $
+/* $Id: winXKey.h,v 1.4 2002/07/15 06:50:01 dick Exp $
  *
  * XPilot, a multiplayer gravity war game.  Copyright (C) 1991-2001 by
  *
@@ -28,13 +28,16 @@
 *  This file contains X11 style kb definitions for Winodoze.				*
 *  These all come from Xutil.h												*
 *																			*
-*  $Id: winXKey.h,v 5.0 2001/04/07 20:00:59 dik Exp $							*
+*  $Id: winXKey.h,v 1.4 2002/07/15 06:50:01 dick Exp $							*
 \***************************************************************************/
 #ifndef	_WINXKEY_H_
 #define	_WINXKEY_H_
 
 #ifdef	_WINDOWS
 
+
+struct	XKeyEvent;
+struct	Display;
 
 /*
  * Compose sequence status structure, used in calling XLookupString.

@@ -1,0 +1,86 @@
+# $Id: Makefile.in,v 1.2 2002/07/04 04:38:31 dick Exp $
+# @configure_input@
+#
+# Makefile.in for xpilot++'s library common and subdirectories of common
+# ./src/common/expat/lib/Makefile.in
+#
+# This library may be used by any xpilot++ program.
+#
+# Copyright 2002 by XPilot Team "xpilot@xpilot.org"
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU Library General Public
+# License as published by the Free Software Foundation; either
+# version 2 of the License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# Library General Public License for more details.
+#
+# You should have received a copy of the GNU Library General Public
+# License along with this library; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
+# USA.
+#
+# Please report all bugs and problems to "xpilot++@buckosoft.com".
+#
+# $Log: Makefile.in,v $
+# Revision 1.2  2002/07/04 04:38:31  dick
+# This library does not contain subdirs
+#
+# Revision 1.1  2002/06/26 02:46:42  dick
+# Unix expat makefiles.
+#
+
+LIBNAME = xpexpat.a
+
+SUBDIRS =
+
+CFILES = \
+	xmlparse.c xmlrole.c xmltok.c
+
+MSUBTARGETS =
+
+CLEAN =
+
+################################################################
+TOP=@top_srcdir@
+
+include @top_srcdir@/makeinclude
+
+XPCXXFLAGS = $(SERVERLIBINC) $(COMMONINC) $(FLTKWIDGETSINC) $(XPFLWIDGETSINC)
+
+OBJECTS = $(CPPFILES:.cpp=.o) $(CFILES:.c=.o)
+
+all::	$(LIBNAME)
+
+
+$(LIBNAME): $(OBJECTS)
+	echo $(LIBCOMMAND) $@ ...
+	$(LIBCOMMAND) $@ $(OBJECTS)
+	$(RANLIB) $@
+
+$(CPPFILES):
+
+clean :
+	-@ rm -f *.o *.do *.bak $(LIBNAME) $(CLEAN) $(MSUBTARGETS) core *~ .depend cmap
+	-@ touch .depend
+
+distclean: clean
+	-@ rm -f Makefile
+
+depend:
+	-@ makedepend $(XPCXXFLAGS) $(FLTKINC) -f .depend $(CPPFILES) $(CFILES)
+
+include .depend
+
+# declarations for msub
+AUTHORS=@AUTHORS@
+################################################################
+
+install:
+
+#
+# End of "$Id: Makefile.in,v 1.2 2002/07/04 04:38:31 dick Exp $".
+#

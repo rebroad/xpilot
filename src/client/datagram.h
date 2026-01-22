@@ -1,4 +1,4 @@
-/* $Id: datagram.h,v 5.0 2001/04/07 20:00:58 dik Exp $
+/* $Id: datagram.h,v 1.4 2002/09/16 21:41:19 dick Exp $
  *
  * XPilot, a multiplayer gravity war game.  Copyright (C) 1991-2001 by
  *
@@ -25,16 +25,10 @@
 #ifndef	DATAGRAM_H
 #define	DATAGRAM_H
 
-#ifndef SOCKLIB_H
-/* need sock_t */
-#include "socklib.h"
-#endif
+class Sock;
 
-/*
- * datagram.c
- */
-int create_dgram_addr_socket(sock_t *sock, char *dotaddr, int port);
-int create_dgram_socket(sock_t *sock, int port);
-void close_dgram_socket(sock_t *sock);
+int create_dgram_addr_socket(Sock* sock, PCSTR dotaddr, int port);
+int create_dgram_socket(Sock* sock, int port);
+void close_dgram_socket(Sock* sock);
 
 #endif

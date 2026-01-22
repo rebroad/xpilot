@@ -1,0 +1,14 @@
+#!/bin/bash
+# The kbconfig and "fileconnect" (server) buttons are created from the Windows' icons.
+# ( There's got to be a better way).
+# I should at least switch the dependancy around so that the xpm is the master.
+# netpbm gets an assist with...
+winicontoppm ../../kbconfig/res/XPKbConfig.ico |ppmtoxpm >kbconfig.xpm
+winicontoppm ../../server/NT/res/xpilots.ico |ppmtoxpm >fileconnect.xpm
+winicontoppm ../res/XPilotControl.ico |ppmtoxpm >serveroptions.xpm
+winicontoppm ../../client/NT/res/xpilot.ico |ppmtoxpm >xpilot.xpm
+winicontoppm ../../scoreserver/res/XPScoreServer.ico |ppmtoxpm >scoreserver.xpm
+# A couple of steps to merge the gear and the score
+xpmtoppm scoreserver.xpm >scoreserver.ppm
+xpmtoppm serveroptions.xpm >serveroptions.ppm
+ppmmix 0.4 serveroptions.ppm scoreserver.ppm |ppmtoxpm >scoreadmin.xpm

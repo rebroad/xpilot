@@ -1,4 +1,4 @@
-/* $Id: guimap.h,v 5.1 2001/10/11 20:27:35 bertg Exp $
+/* $Id: guimap.h,v 1.2 2002/05/18 20:55:33 dick Exp $
  *
  * XPilot, a multiplayer gravity war game.  Copyright (C) 1991-2001 by
  *

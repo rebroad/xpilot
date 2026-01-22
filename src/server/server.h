@@ -1,4 +1,4 @@
-/* $Id: server.h,v 5.1 2001/05/07 11:42:17 dik Exp $
+/* $Id: server.h,v 1.2 2006/09/24 05:00:53 dick Exp $
  *
  * XPilot, a multiplayer gravity war game.  Copyright (C) 1991-2001 by
  *
@@ -31,7 +31,7 @@ enum TeamPickType {
 };
 
 #ifndef	_WINDOWS
-#define	APPNAME	"xpilots"
+#define	APPNAME	"xpilotserver"
 #else
 #define	APPNAME	"XPilotServer"
 #endif

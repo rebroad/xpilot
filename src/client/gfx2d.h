@@ -1,8 +1,8 @@
-/* $Id: gfx2d.h,v 5.0 2001/04/07 20:00:58 dik Exp $
+/* $Id: gfx2d.h,v 1.1.1.1 2001/07/04 07:13:39 dick Exp $
  *
  * XPilot, a multiplayer gravity war game.  Copyright (C) 1991-2001 by
  *
- *      Bjï¿½rn Stabell        <bjoern@xpilot.org>
+ *      Bjørn Stabell        <bjoern@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
  *      Dick Balaska         <dick@xpilot.org>
@@ -48,10 +48,10 @@ typedef struct {
 
 /*
     Purpose: A device/os independent structure to do keep 24bit images in.
-    an instance of xp_picture_t can contain more than 1 image,
-    This feature is  useful for structural identical bitmaps (example: items),
+    an instance of xp_picture_t can contain more than 1 image, 
+    This feature is  useful for structural identical bitmaps (example: items), 
     and rotated images. When dealing with rotated images, the first image
-    in the xp_picture_t structure is used as texture for the transformation of the
+    in the xp_picture_t structure is used as texture for the transformation of the 
     others.
 */
 
@@ -67,13 +67,13 @@ int Picture_init(xp_picture_t *picture, int height, int width, int images);
 int Picture_load( xp_picture_t *picture, const char *path);
 void Picture_rotate(xp_picture_t *picture);
 
-void Picture_set_pixel(xp_picture_t *picture, int image, int x, int y,
+void Picture_set_pixel(xp_picture_t *picture, int image, int x, int y, 
 		       RGB_COLOR color);
-RGB_COLOR Picture_get_rotated_pixel(const xp_picture_t *picture,
+RGB_COLOR Picture_get_rotated_pixel(const xp_picture_t *picture, 
 				    int x, int y, int image);
 RGB_COLOR Picture_get_pixel(const xp_picture_t *picture, int image,
 			    int x, int y);
-RGB_COLOR Picture_get_pixel_area(const xp_picture_t *picture, int image,
+RGB_COLOR Picture_get_pixel_area(const xp_picture_t *picture, int image, 
 				 double x1, double y1, double dx, double dy);
 void Picture_get_bounding_box(xp_picture_t *picture);
 

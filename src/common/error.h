@@ -1,4 +1,4 @@
-/* $Id: error.h,v 5.3 2001/05/30 18:34:15 dik Exp $
+/* $Id: error.h,v 1.8 2005/03/17 22:12:13 kps Exp $
  *
  * XPilot, a multiplayer gravity war game.  Copyright (C) 1991-2001 by
  *
@@ -49,13 +49,27 @@
 # endif
 
 #ifdef _WINDOWS
-# ifdef	_DEBUG
-#  define	Trace _Trace
-# else
-#  define	Trace
-# endif
+    extern void WinTrace(const char *fmt, ...);
+#	 ifdef	_DEBUG
+		//#  define	Trace _Trace
+#		ifndef	Trace
+			//typedef const char* LPCTSTR;
+			//void AfxTrace(LPCTSTR lpszFormat, ...);
+#			define	Trace WinTrace
+#		endif
+#	else
+#		define	Trace
+#	endif
+#else
+#	ifdef	_DEBUG
+#		define	Trace	xpprintf
+#	else
+#		define	Trace()
+#	endif
 #endif
 
 extern void init_error(const char *prog);
+
+//extern const char* showtime();
 
 #endif	/* ERROR_H */

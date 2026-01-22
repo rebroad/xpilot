@@ -1,8 +1,8 @@
-/* $Id: blockbitmaps.h,v 5.1 2002/02/10 19:29:39 bertg Exp $
+/* $Id: blockbitmaps.h,v 1.2 2002/05/18 20:55:33 dick Exp $
  *
  * XPilot, a multiplayer gravity war game.  Copyright (C) 1991-2001 by
  *
- *      Bjï¿½rn Stabell        <bjoern@xpilot.org>
+ *      Bjørn Stabell        <bjoern@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
  *      Dick Balaska         <dick@xpilot.org>
@@ -72,11 +72,11 @@
 #define BM_MINUSGRAVITY 40
 #define BM_CHECKPOINT	41
 #define BM_METER	42
-#define BM_ASTEROIDCONC	43
+#define	BM_ASTEROIDCONC	43
 
 #define NUM_BITMAPS 44
 
-#define BG_IMAGE_HEIGHT 442
+#define BG_IMAGE_HEIGHT 442  
 #define LOGO_HEIGHT     223
 
 #define RADAR_TEXTURE_SIZE 32
@@ -84,7 +84,7 @@
 
 typedef struct {
     Pixmap		bitmap;
-    int			scale_width, scale_height;
+    int			scale_width, scale_height;    
 
     Pixmap		mask;
     bbox_t		bbox;
@@ -104,38 +104,38 @@ extern xp_pixmap_t xp_pixmaps[];
 
 void PaintBitmap(Drawable d, int type, int x, int y, int width, int height,
 		 int number);
-void PaintFuelSlice(Drawable d, int type, int x, int y, int width, int height,
-		    int image, int size);
-void PaintMeter(Drawable d, int type, int x, int y, int width, int height,
+void PaintFuelSlice(Drawable d, int type, int x, int y, int width, int height, 
+		    int image, int size); 
+void PaintMeter(Drawable d, int type, int x, int y, int width, int height, 
 		int size);
 
 int Block_bitmap_images(int type);
 int Block_bitmaps_create(void);
 
-void Block_bitmap_create_begin(Drawable d,
+void Block_bitmap_create_begin(Drawable d, 
 			       xp_pixmap_t *xp_pixmap, int image,
 			       int width, int height);
 
 void Block_bitmap_create_end(Drawable d);
 
-void Block_bitmap_set_pixel(xp_pixmap_t *xp_pixmap, int image, int x, int y,
+void Block_bitmap_set_pixel(xp_pixmap_t *xp_pixmap, int image, int x, int y, 
 			    RGB_COLOR color);
-void Block_bitmap_paint(Drawable d, int type, int x, int y,
+void Block_bitmap_paint(Drawable d, int type, int x, int y, 
 			int width, int height,
 		 int number);
 
 void Cache_ships(Drawable d);
 
-void Block_bitmap_create(Display* dpy, Drawable d,
+void Block_bitmap_create(Display* dpy, Drawable d, 
 			 xp_pixmap_t *xp_pixmap, int number,
 			 int width, int height);
 
-void Block_bitmap_paint_fuel_slice(Drawable d, int type, int x, int y,
-				   int width, int height,
+void Block_bitmap_paint_fuel_slice(Drawable d, int type, int x, int y, 
+				   int width, int height, 
 				   int image, int size);
 
-void Block_bitmap_paint_meter(Drawable d, int type, int x, int y,
-			      int width, int height,
+void Block_bitmap_paint_meter(Drawable d, int type, int x, int y, 
+			      int width, int height, 
 			      int size);
 
 #endif

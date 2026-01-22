@@ -1,0 +1,86 @@
+# $Id: Makefile.in,v 1.6 2004/01/28 05:53:13 dick Exp $
+# @configure_input@
+#
+# Makefile.in for xpilot++'s directory src
+# ./src/Makefile.in
+#
+# Copyright 2001 by XPilot Team "xpilot@xpilot.org"
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU Library General Public
+# License as published by the Free Software Foundation; either
+# version 2 of the License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# Library General Public License for more details.
+#
+# You should have received a copy of the GNU Library General Public
+# License along with this library; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
+# USA.
+#
+# Please report all bugs and problems to "xpilot++@buckosoft.com".
+#
+# $Log: Makefile.in,v $
+# Revision 1.6  2004/01/28 05:53:13  dick
+# Force the make to die on failure by using "exit 1" instead of "break" in the loops.
+# Tidy up the make install output.
+#
+# Revision 1.5  2002/07/23 18:31:26  dick
+# don't build kbconfig and xpwhere
+#
+# Revision 1.4  2002/06/26 04:55:23  dick
+# Add scoreserver to the Linux mix.
+#
+# Revision 1.3  2002/06/01 20:53:19  dick
+# ./configure works again.  Add header comment info to Imakefiles.
+#
+# Revision 1.2  2001/10/24 16:40:19  dick
+# Add support for "make install"
+#
+# Revision 1.1  2001/09/23 06:25:27  dick
+# Added support for autoconf.
+# Right now, "make install" is not supported.  And config.h is rather empty.
+
+
+# DIRS= replay  # leave out replay for now.
+DIRS = common client serverlib server scoreserver control
+
+################################################################
+TOP=@top_srcdir@
+
+include @top_srcdir@/makeinclude
+
+all:
+	@for dir in $(DIRS); do\
+		echo "=== making $$dir ===";\
+		(cd $$dir; $(MAKE) $(MFLAGS)) || exit 1;\
+	done
+
+install:
+	@for dir in $(DIRS); do\
+		echo "=== installing $$dir ===";\
+		(cd $$dir; $(MAKE) $(MFLAGS) install) || exit 1;\
+	done
+
+depend:
+	@for dir in $(DIRS); do\
+		echo "=== making dependencies in $$dir ===";\
+		(cd $$dir; $(MAKE) $(MFLAGS) depend) || exit 1;\
+	done
+
+clean:
+	-@ rm -f core config.cache *.o *.bck
+	@for dir in $(DIRS); do\
+		echo "=== cleaning $$dir ===";\
+		(cd $$dir; $(MAKE) $(MFLAGS) clean) || exit 1;\
+	done
+
+distclean: clean
+	-@ rm -f Makefile
+	@for dir in $(DIRS); do\
+		echo "=== distcleaning $$dir ===";\
+		(cd $$dir; $(MAKE) $(MFLAGS) distclean) || exit 1;\
+	done

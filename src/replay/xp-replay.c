@@ -1,8 +1,8 @@
-/* $Id: xp-replay.c,v 5.1 2001/04/24 13:51:06 bertg Exp $
+/* $Id: xp-replay.c,v 1.1.1.1 2001/07/04 07:13:43 dick Exp $
  *
  * XP-Replay, playback an XPilot session.  Copyright (C) 1994-98 by
  *
- *      Bjï¿½rn Stabell        <bjoern@xpilot.org>
+ *      Bjørn Stabell        <bjoern@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
  *      Steven Singer        (S.Singer@ph.surrey.ac.uk)
@@ -1822,7 +1822,7 @@ static struct recordwin *Init_recordwindow(unsigned long bg, void *data)
     values.height = y;
     values.x = (DisplayWidth(dpy, screen_num) - values.width) / 2;
     values.y = (DisplayHeight(dpy, screen_num) - values.height) / 2;
-
+    
     XReconfigureWMWindow(dpy, rwin->win, screen_num,
 			 CWX | CWY | CWWidth | CWHeight, &values);
 

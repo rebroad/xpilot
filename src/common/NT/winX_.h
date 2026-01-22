@@ -1,8 +1,8 @@
-/* $Id: winX_.h,v 5.1 2002/06/15 18:10:05 dik Exp $
+/* $Id: winX_.h,v 1.2 2002/07/11 16:36:03 dick Exp $
  *
  * XPilot, a multiplayer gravity war game.  Copyright (C) 1991-2001 by
  *
- *      Bjï¿½rn Stabell        <bjoern@xpilot.org>
+ *      Bjørn Stabell        <bjoern@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
  *      Dick Balaska         <dick@xpilot.org>
@@ -28,7 +28,7 @@
 *  This file is the private interface to the Winodoze -> X11 translator.	*
 *  Here we hide the gory Windoze details from X11							*
 *																			*
-*  $Id: winX_.h,v 5.1 2002/06/15 18:10:05 dik Exp $							*
+*  $Id: winX_.h,v 1.2 2002/07/11 16:36:03 dick Exp $							*
 \***************************************************************************/
 #ifndef	_WINX__H_
 #define	_WINX__H_
@@ -55,7 +55,7 @@ struct	XID_HWND {
 #define		DT_1	0
 #define		DT_2	1
 
-	long	event_mask;		// which events this window cares about
+	long	event_mask;		// which events this window cares about	
 	BOOL	mouseover;		// used to track which window was "entered"
 	int		bgcolor;
 	HDC		hBmpDCa[2];

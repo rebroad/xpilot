@@ -1,8 +1,8 @@
-/* $Id: MainFrm.cpp,v 5.0 2001/04/07 20:00:59 dik Exp $
+/* $Id: MainFrm.cpp,v 1.2 2002/06/26 05:07:06 dick Exp $
  *
  * XPilot, a multiplayer gravity war game.  Copyright (C) 1991-2001 by
  *
- *      Bjï¿½rn Stabell        <bjoern@xpilot.org>
+ *      Bjørn Stabell        <bjoern@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
  *      Dick Balaska         <dick@xpilot.org>
@@ -60,6 +60,7 @@ BEGIN_MESSAGE_MAP(CMainFrame, CFrameWnd)
 	ON_WM_QUERYNEWPALETTE()
 END_MESSAGE_MAP()
 
+/*
 static UINT indicators[] =
 {
 	ID_SEPARATOR,           // status line indicator
@@ -67,6 +68,7 @@ static UINT indicators[] =
 	ID_INDICATOR_NUM,
 	ID_INDICATOR_SCRL,
 };
+*/
 
 /////////////////////////////////////////////////////////////////////////////
 // CMainFrame construction/destruction
@@ -74,49 +76,25 @@ static UINT indicators[] =
 CMainFrame::CMainFrame()
 {
 	// TODO: add member initialization code here
-
+	
 }
 
 CMainFrame::~CMainFrame()
 {
 }
 
+///////////////////////////////////////////////////////////////////////////////
 int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
 {
 	if (CFrameWnd::OnCreate(lpCreateStruct) == -1)
 		return -1;
-
-#if 0
-	if (!m_wndToolBar.Create(this) ||
-		!m_wndToolBar.LoadToolBar(IDR_MAINFRAME))
-	{
-		TRACE0("Failed to create toolbar\n");
-		return -1;      // fail to create
-	}
-
-	if (!m_wndStatusBar.Create(this) ||
-		!m_wndStatusBar.SetIndicators(indicators,
-		  sizeof(indicators)/sizeof(UINT)))
-	{
-		TRACE0("Failed to create status bar\n");
-		return -1;      // fail to create
-	}
-	// TODO: Remove this if you don't want tool tips or a resizeable toolbar
-	m_wndToolBar.SetBarStyle(m_wndToolBar.GetBarStyle() |
-		CBRS_TOOLTIPS | CBRS_FLYBY | CBRS_SIZE_DYNAMIC);
-
-	// TODO: Delete these three lines if you don't want the toolbar to
-	//  be dockable
-	m_wndToolBar.EnableDocking(CBRS_ALIGN_ANY);
-	EnableDocking(CBRS_ALIGN_ANY);
-	DockControlBar(&m_wndToolBar);
-#endif
-
+	
 	// CG: The following line was added by the Splash Screen component.
 	CSplashWnd::ShowSplashScreen(this);
 	return 0;
 }
 
+///////////////////////////////////////////////////////////////////////////////
 void CMainFrame::OnPaletteChanged(CWnd* pFocusWnd)
 {
 	CFrameWnd::OnPaletteChanged(pFocusWnd);
@@ -125,6 +103,7 @@ void CMainFrame::OnPaletteChanged(CWnd* pFocusWnd)
 		OnQueryNewPalette();
 }
 
+///////////////////////////////////////////////////////////////////////////////
 BOOL CMainFrame::OnQueryNewPalette()
 {
 	ChangePalette(HWND(*this));
@@ -133,6 +112,7 @@ BOOL CMainFrame::OnQueryNewPalette()
 	return(TRUE);
 }
 
+///////////////////////////////////////////////////////////////////////////////
 BOOL CMainFrame::PreCreateWindow(CREATESTRUCT& cs)
 {
 	// TODO: Modify the Window class or styles here by modifying
@@ -147,7 +127,7 @@ BOOL CMainFrame::PreCreateWindow(CREATESTRUCT& cs)
 	return CFrameWnd::PreCreateWindow(cs);
 }
 
-/////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
 // CMainFrame diagnostics
 
 #ifdef _DEBUG
@@ -166,10 +146,9 @@ void CMainFrame::Dump(CDumpContext& dc) const
 /////////////////////////////////////////////////////////////////////////////
 // CMainFrame message handlers
 
-BOOL CMainFrame::PreTranslateMessage(MSG* pMsg)
+BOOL CMainFrame::PreTranslateMessage(MSG* pMsg) 
 {
-	// TODO: Add your specialized code here and/or call the base class
-
+	// Ignore Alt-down, Alt-up (which activates the menu)
 	if (pMsg->message == WM_SYSKEYUP)
 		return(1);
 	return CFrameWnd::PreTranslateMessage(pMsg);

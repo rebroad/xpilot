@@ -65,7 +65,7 @@ Example:
 
 By default, the first 12 messages are bound to the function keys, F1-F12.
 The others are not bound to any key by default.
-
+  
 
 Is that all? Booorriiiinnnggg...
 ================================
@@ -77,7 +77,7 @@ If the code takes arguments, they are separated by the '|' character
 and surrounded by brackets, '[' and ']'.
 
 
-List of control codes:
+List of control codes: 
 
 
 r - random message
@@ -119,7 +119,7 @@ Example:	See example above (message file)
 t - your team
 -------------
 
-Is substituted by your team number. This is very useful
+Is substituted by your team number. This is very useful 
 when you want to send a message to your own team. If you aren't in a
 team play game, '#t' is ignored.
 
@@ -133,7 +133,7 @@ n - new message
 ---------------
 
 Sends the accumulated message up to this control code and
-starts on a new message. Note: The last 'line' sent doesn't
+starts on a new message. Note: The last 'line' sent doesn't 
 need a trailing #n
 Note: A real newline (in a file) is treated like nothing
 (use #n to make newlines).
@@ -141,7 +141,7 @@ Note: A real newline (in a file) is treated like nothing
 Syntax:		#n
 
 Example:	This message is getting long so it's#nbest to split it.
-
+ 		
 		Message1#nMessage2#nMessage3
 
 
@@ -166,7 +166,7 @@ the player that is put into the message:
 
 	t - team
 	--------
-
+	
 	Is substituted by the number of the team of the selected player,
 	or nothing if you aren't in a team play game.
 	Note: #st is the same as #t
@@ -206,7 +206,7 @@ the player that is put into the message:
 
 Compares the first and second parsed fields and then parses the 3rd or the
 (optional)4th field, depending on how the comparison went.
-
+	
 Syntax:		#=[string1|string2|true-string|false-string]
     or:		#=[string1|string2|true-string]
 
@@ -219,7 +219,7 @@ Example:	#=[#ln|H.E.R.O.|Please don't kill me, #ln|#ln:Prepare to die!]
 
 Compares the first and second parsed fields and then parses the 3rd or the
 (optional)4th field, depending on how the comparison went.
-
+	
 Syntax:		#<[number1|number2|true-string|false-string]
     or:		#<[number1|number2|true-string]
 
@@ -286,7 +286,7 @@ If you want to ask about or comment on anything, or report a bug,
 just mail us (HeadAce or H.E.R.O.)
 
 
-HeadAce:  Jonny Svï¿½rling, d93-jsv@nada.kth.se
-H.E.R.O.: Adam Lorentzon, d93-alo@nada.kth.se
+HeadAce:  Jonny Svärling, d93-jsv@nada.kth.se
+H.E.R.O.: Adam Lorentzon, d93-alo@nada.kth.se	
 
 [code modified and adapted, svenske@xpilot.org]

@@ -1,4 +1,4 @@
-/* $Id: const.h,v 5.9 2001/11/29 14:48:11 bertg Exp $
+/* $Id: const.h,v 1.10 2004/05/20 22:14:37 dick Exp $
  *
  * XPilot, a multiplayer gravity war game.  Copyright (C) 1991-2001 by
  *
@@ -20,10 +20,39 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ *
+ *  $Log: const.h,v $
+ *  Revision 1.10  2004/05/20 22:14:37  dick
+ *  NO_ID is common through all projects, not just the server
+ *
+ *  Revision 1.9  2004/01/19 22:08:26  dick
+ *  MAX_MAP_SIZE is a global const.
+ *
+ *  Revision 1.8  2002/08/01 14:53:55  dick
+ *  Define 3 special cookies; NONE, NOSUP, and SPECIAL.
+ *
+ *  Revision 1.7  2002/06/01 06:06:46  dick
+ *  Encapsulate (almost) everything.  Get rid of (almost) all refs to theWorld.
+ *
+ *  Revision 1.6  2002/05/18 20:55:35  dick
+ *  Update to XPilot-4.5.1
+ *
+ *  Revision 1.5  2001/09/11 09:08:31  dick
+ *  Encapsulate all client resources into new class Ini (Linux cleanups)
+ *
+ *  Revision 1.4  2001/07/24 09:03:59  dick
+ *  Remove all global options.  Use World.options instead.
+ *
+ *  Revision 1.3  2001/07/23 21:08:36  dick
+ *  Encapsulate ShipMass, ShotsMax, ShotsLife, ShotsMass, FPS.
+ *
+ *  Revision 1.2  2001/07/07 12:00:41  dick
+ *  Rename classes to C++ "Style".  old World becomes theWorld.
+ *
  */
 
-#ifndef CONST_H
-#define CONST_H
+#ifndef	CONST_H
+#define	CONST_H
 
 #ifndef _WINDOWS
 #include <limits.h>
@@ -76,6 +105,8 @@
 extern DFLOAT		tbl_sin[];
 extern DFLOAT		tbl_cos[];
 
+#define DEF_SPARK_RAND	    0x55	/* 66% */
+
 #if 0
   /* The way it was: one table, and always range checking. */
 # define tsin(x)	(tbl_sin[MOD2(x, TABLE_SIZE)])
@@ -108,20 +139,27 @@ extern DFLOAT		tbl_cos[];
 #define QUICK_LENGTH(x,y)	( ABS(x)+ABS(y) ) /*-BA Only approx, but v. quick */
 #define LIMIT(val, lo, hi)	( val=(val)>(hi)?(hi):((val)<(lo)?(lo):(val)) )
 
-
 #ifndef MOD2
 #  define MOD2(x, m)		( (x) & ((m) - 1) )
 #endif	/* MOD2 */
 
 /* Do NOT change these! */
+#define MAX_MAP_SIZE	900	/* map dimension limitation: ((0x7FFF - 1280) / 35) */
 #define MAX_CHECKS		26
 #define MAX_TEAMS		10
 
-
 #define EXPIRED_MINE_ID		4096   /* assume no player has this id */
+
+#define	NO_ID			-1
+
+#define	COOKIENONE		0		// no cookie from this client
+#define	COOKIENOSUP		1		// older clients don't support cookies
+#define	COOKIESPECIAL	2		// less than this are special cookies
 
 #define MAX_CHARS		80
 #define MSG_LEN			256
+
+#define FONT_LEN		256
 
 #define NUM_MODBANKS		4
 
@@ -145,8 +183,8 @@ extern DFLOAT		tbl_cos[];
 #define ENERGY_PACK_FUEL        ((500+(randomMT()&511))<<FUEL_SCALE_BITS)
 
 #define TARGET_DAMAGE		(250<<FUEL_SCALE_BITS)
-#define TARGET_FUEL_REPAIR_PER_FRAME (TARGET_DAMAGE / (FPS * 10))
-#define TARGET_REPAIR_PER_FRAME	(TARGET_DAMAGE / (FPS * 600))
+#define TARGET_FUEL_REPAIR_PER_FRAME (TARGET_DAMAGE / (GetFPS() * 10))
+#define TARGET_REPAIR_PER_FRAME	(TARGET_DAMAGE / (GetFPS() * 600))
 #define TARGET_UPDATE_DELAY	(TARGET_DAMAGE / (TARGET_REPAIR_PER_FRAME \
 				    * BLOCK_SZ))
 
@@ -158,15 +196,13 @@ extern DFLOAT		tbl_cos[];
 #define SHIP_SZ		        16
 
 #define VISIBILITY_DISTANCE	1000.0
-
 #define BALL_RADIUS		10
 
 #define MISSILE_LEN		15
-
 #define TEAM_NOT_SET		0xffff
 #define TEAM_NOT_SET_STR	"4095"
-
 #define DEBRIS_TYPES		(8 * 4 * 4)
+
 
 #ifndef FALSE
 #define FALSE   0
@@ -176,13 +212,13 @@ extern DFLOAT		tbl_cos[];
 #endif
 
 #ifdef __GNUC__
-#define INLINE	inline
+#define	INLINE	inline
 #else
 #define INLINE
 #endif /* __GNUC__ */
 
-#undef rand
-#define rand()	please dont use rand.
+// fltk uses rand.  It is very bad to redefine it.
+#undef	rand
+//#define	rand(void)	please dont use rand.
 
 #endif
-

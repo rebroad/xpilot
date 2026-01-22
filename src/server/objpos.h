@@ -1,4 +1,4 @@
-/* $Id: objpos.h,v 5.0 2001/04/07 20:01:00 dik Exp $
+/* $Id: objpos.h,v 1.3 2002/09/11 16:42:04 dick Exp $
  *
  * XPilot, a multiplayer gravity war game.  Copyright (C) 1991-2001 by
  *
@@ -20,20 +20,29 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ *
+ *  $Log: objpos.h,v $
+ *  Revision 1.3  2002/09/11 16:42:04  dick
+ *  Here endeth the server encapsulation task.
+ *  theWorld is now an array of World(s) and get loaded dynamically.
+ *
+ *  Revision 1.2  2001/07/07 12:00:42  dick
+ *  Rename classes to C++ "Style".  old World becomes theWorld.
+ *
  */
 
 #ifndef OBJPOS_H
 #define OBJPOS_H
 
-void Object_position_set_clicks(object *obj, int cx, int cy);
-void Object_position_set_pixels(object *obj, DFLOAT x, DFLOAT y);
-void Object_position_init_pixels(object *obj, DFLOAT x, DFLOAT y);
-void Player_position_restore(player *pl);
-void Player_position_set_clicks(player *pl, int cx, int cy);
-void Player_position_set_pixels(player *pl, DFLOAT x, DFLOAT y);
-void Player_position_init_pixels(player *pl, DFLOAT x, DFLOAT y);
-void Player_position_limit(player *pl);
-void Player_position_debug(player *pl, const char *msg);
+void Object_position_set_clicks(Object *obj, int cx, int cy);
+void Object_position_set_pixels(Object *obj, DFLOAT x, DFLOAT y);
+void Object_position_init_pixels(Object *obj, DFLOAT x, DFLOAT y);
+void Player_position_restore(Player *pl);
+void Player_position_set_clicks(Player *pl, int cx, int cy);
+void Player_position_set_pixels(Player *pl, DFLOAT x, DFLOAT y);
+void Player_position_init_pixels(Player *pl, DFLOAT x, DFLOAT y);
+//void Player_position_limit(Player *pl);
+void Player_position_debug(Player *pl, const char *msg);
 
 #define Object_position_remember(o_) \
 	((o_)->prevpos.x = (o_)->pos.x, \

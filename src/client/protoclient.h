@@ -1,4 +1,4 @@
-/* $Id: protoclient.h,v 5.5 2004/02/11 18:58:52 dik Exp $
+/* $Id: protoclient.h,v 1.10 2005/03/17 22:12:13 kps Exp $
  *
  * XPilot, a multiplayer gravity war game.  Copyright (C) 1991-2001 by
  *
@@ -24,6 +24,8 @@
 
 #ifndef	PROTOCLIENT_H
 #define	PROTOCLIENT_H
+
+class Connectparam;
 
 /*
  * about.c
@@ -52,24 +54,25 @@ void Colors_debug(void);
 /*
  * default.c
  */
-extern void Parse_options(int *argcp, char **argvp, char *realName, int *port,
-			  int *my_team, int *text, int *list,
-			  int *join, int *noLocalMotd,
-			  char *nickName, char *dispName, char *hostName,
-			  char *shut_msg);
-extern void defaultCleanup(void);				/* memory cleanup */
+//extern void Parse_options(int *argcp, char **argvp, char *realName, int *port,
+//			  int *my_team, bool *text, bool *list,
+//			  bool *join, bool *noLocalMotd,
+//			  char *nickName, char *dispName, char *hostName,
+//			  char *shut_msg);
+//extern void defaultCleanup(void);				/* memory cleanup */
 
 #ifndef _WINDOWS
-extern void Get_xpilotrc_file(char *, unsigned);
+//extern void Get_xpilotrc_file(char *, unsigned);
 #else
-extern	char* Get_xpilotini_file(int level);
+//extern	char* Get_xpilotini_file(int level);
 #endif
 /*
  * join.c
  */
-extern int Join(char *server_addr, char *server_name, int port,
-		char *real, char *nick, int my_team,
-		char *display, unsigned version);
+//extern int Join(char *server_addr, char *server_name, int port,
+//		char *real, char *nick, int my_team,
+//		char *display, unsigned version);
+extern int Join(Connectparam* conpar);
 
 /*
  * metaclient.c
@@ -79,8 +82,8 @@ extern int metaclient(int, char **);
 /*
  * math.c
  */
-extern int ON(char *optval);
-extern int OFF(char *optval);
+//extern int ON(char *optval);
+//extern int OFF(char *optval);
 
 /*
  * paintdata.c
@@ -97,9 +100,10 @@ extern int Init_asteroids(void);
 /*
  * query.c
  */
-#ifdef SOCKLIB_H
-extern int Query_all(sock_t *sockfd, int port, char *msg, int msglen);
-#endif
+//#ifdef SOCKLIB_H
+class Sock;
+extern int Query_all(Sock* sockfd, int port, char *msg, int msglen);
+//#endif
 
 #ifdef	LIMIT_ACCESS
 extern bool		Is_allowed(char *);
@@ -117,32 +121,27 @@ extern void Record_init(char *filename);
 extern void Simulate(void);
 
 /*
- * textinterface.c
+ * talk.c
  */
-#ifdef CONNECTPARAM_H
-int Connect_to_server(int auto_connect, int list_servers,
-		      int auto_shutdown, char *shutdown_reason,
-		      Connect_param_t *conpar);
-int Contact_servers(int count, char **servers,
-                    int auto_connect, int list_servers,
-                    int auto_shutdown, char *shutdown_message,
-                    int find_max, int *num_found,
-                    char **server_addresses, char **server_names,
-		    unsigned *server_versions,
-                    Connect_param_t *conpar);
-#endif
+extern int Talk_macro(char *str);
 
 /*
- * usleep.c
+ * textinterface.c
  */
-extern int micro_delay(unsigned usec);
+int Connect_to_server(int auto_connect, int list_servers,
+		      int auto_shutdown, char *shutdown_reason,
+		      Connectparam *conpar);
+bool Contact_servers(int count, char **servers,
+					 int auto_connect, int list_servers,
+					 int auto_shutdown, char *shutdown_message,
+					 int find_max, int *num_found,
+					 char **server_addresses, char **server_names,
+					 Connectparam *conpar);
 
 /*
  * welcome.c
  */
-#ifdef CONNECTPARAM_H
-int Welcome_screen(Connect_param_t *conpar);
-#endif
+int Welcome_screen(Connectparam* conpar);
 
 /*
  * widget.c
@@ -159,10 +158,10 @@ extern	void WinXCreateItemBitmaps();
 /*
  * winX - The Windows X emulator
  */
-#ifdef _WINDOWS
-#define	WinXFlush(__w)	WinXFlush(__w)
+#if defined(_WINDOWS) && !defined(_CYGWIN)
+#	define	WinXFlush(__w)	WinXFlush(__w)
 #else
-#define	WinXFlush(__w)
+#	define	WinXFlush(__w)
 #endif
 
 

@@ -1,4 +1,8 @@
-/* $Id: guiobjects.h,v 5.2 2001/06/02 21:00:45 bertg Exp $
+/* $Id: guiobjects.h,v 1.2 2004/06/03 06:04:42 dick Exp $
+ *
+ * guiobjects - paint objects on the playfield
+ *
+ * client - the user interface to the game.
  *
  * XPilot, a multiplayer gravity war game.  Copyright (C) 1991-2001 by
  *
@@ -21,6 +25,14 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
+/*
+ * $Log: guiobjects.h,v $
+ * Revision 1.2  2004/06/03 06:04:42  dick
+ * struct other_t becomes class Other.
+ * array Others becomes ObjList others.
+ * shipobj becomes ShipObj.
+ *
+ */
 
 #ifndef GUIOBJECTS_H
 #define GUIOBJECTS_H
@@ -28,7 +40,7 @@
 void Gui_paint_ball(int x, int y);
 void Gui_paint_ball_connecter(int x1, int y1, int x2, int y2);
 
-void Gui_paint_mine(int x, int y, int teammine, char *name);
+void Gui_paint_mine(int x, int y, int teammine, PCSTR name);
 
 void Gui_paint_spark(int color, int x, int y);
 

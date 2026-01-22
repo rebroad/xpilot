@@ -1,4 +1,4 @@
-/* $Id: item.h,v 5.0 2001/04/07 20:00:59 dik Exp $
+/* $Id: item.h,v 1.2 2001/07/07 12:00:41 dick Exp $
  *
  * XPilot, a multiplayer gravity war game.  Copyright (C) 1991-2001 by
  *
@@ -20,12 +20,17 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ *
+ *  $Log: item.h,v $
+ *  Revision 1.2  2001/07/07 12:00:41  dick
+ *  Rename classes to C++ "Style".  old World becomes theWorld.
+ *
  */
 
 #ifndef ITEM_H
 #define ITEM_H
 
-enum Item {
+enum Items {
     ITEM_FUEL			= 0,
     ITEM_WIDEANGLE		= 1,
     ITEM_REARSHOT		= 2,

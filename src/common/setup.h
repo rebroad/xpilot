@@ -1,4 +1,4 @@
-/* $Id: setup.h,v 5.1 2001/10/11 20:27:35 bertg Exp $
+/* $Id: setup.h,v 1.4 2004/04/26 07:07:14 dick Exp $
  *
  * XPilot, a multiplayer gravity war game.  Copyright (C) 1991-2001 by
  *
@@ -130,14 +130,15 @@ typedef struct {
     /* plus more mapdata here (HACK) */
 } setup_t;
 
+extern setup_t*		Setup;
+
+
 #ifndef NETSERVER_C
 # ifdef FPS
 #  error "FPS needs a different definition in the client"
 #  undef FPS
 # endif
 # define FPS		(Setup->frames_per_second)
-
-extern setup_t *Setup;
 
 #endif
 
