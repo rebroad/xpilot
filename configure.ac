@@ -14,13 +14,13 @@ AM_MAINTAINER_MODE
 AM_CONFIG_HEADER(config.h)
 
 dnl  Copyright & stuff.
-XP_AUTHORS="Bjørn Stabell, Ken Ronny Schouten, Bert Gijsbers, Dick Balaska, Uoti Urpala, Juha Lindström, Kristian Söderblom and Erik Andersson"
+XP_AUTHORS="BjÃ¸rn Stabell, Ken Ronny Schouten, Bert Gijsbers, Dick Balaska, Uoti Urpala, Juha LindstrÃ¶m, Kristian SÃ¶derblom and Erik Andersson"
 AC_SUBST([XP_AUTHORS])
 
 XP_COPYRIGHTDATE="1991-2004"
 AC_SUBST([XP_COPYRIGHTDATE])
 
-XP_COPYRIGHT="Copyright © $XP_COPYRIGHTDATE by $XP_AUTHORS"
+XP_COPYRIGHT="Copyright Â© $XP_COPYRIGHTDATE by $XP_AUTHORS"
 AC_SUBST([XP_COPYRIGHT])
 
 AC_SUBST([XP_RELEASEDATE],["Apr 25, 2004"])
@@ -216,6 +216,7 @@ fi
 
 AM_CONDITIONAL([COND_SDL_CLIENT], [test x$enable_sdl_client = xyes])
 AM_CONDITIONAL([COND_SDL_GAMELOOP], [test x$enable_sdl_gameloop = xyes])
+AM_CONDITIONAL([COND_X11_CLIENT], [test x$no_x != xyes])
 
 dnl  Checks for header files.
 dnl AC_HEADER_STDC

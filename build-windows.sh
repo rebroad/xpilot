@@ -134,6 +134,87 @@ build_zlib() {
     echo "  ✓ zlib installed"
 }
 
+# Function to build libpng for Windows
+build_libpng() {
+    echo "Building libpng for Windows..."
+    cd "$SHARED_BUILD_DIR"
+
+    LIBPNG_TAR="libpng-1.6.43.tar.xz"
+    LIBPNG_DIR="libpng-1.6.43"
+
+    if [ ! -f "$LIBPNG_TAR" ]; then
+        echo "  Downloading libpng..."
+        wget -q "https://download.sourceforge.net/libpng/$LIBPNG_TAR" || {
+            echo "  ERROR: Failed to download libpng"
+            return 1
+        }
+    fi
+
+    if [ ! -d "$LIBPNG_DIR" ]; then
+        echo "  Extracting libpng..."
+        tar xJf "$LIBPNG_TAR" || {
+            echo "  ERROR: Failed to extract libpng"
+            return 1
+        }
+    fi
+
+    cd "$LIBPNG_DIR"
+
+    # Check if already built
+    if [ -f ".libs/libpng16.a" ] || [ -f ".libs/libpng.a" ]; then
+        echo "  libpng already built, reinstalling..."
+        sudo make install >"$SHARED_BUILD_DIR/libpng-install.log" 2>&1 || true
+        if [ -f "${MINGW_LIB}/libpng.a" ] || [ -f "${MINGW_LIB}/libpng16.a" ]; then
+            echo "  ✓ libpng installed"
+            cd "$SCRIPT_DIR"
+            return 0
+        fi
+    fi
+
+    echo "  Configuring libpng..."
+    # libpng needs to find zlib
+    export CPPFLAGS="-I${MINGW_INCLUDE}"
+    export LDFLAGS="-L${MINGW_LIB}"
+    export CFLAGS="-I${MINGW_INCLUDE}"
+
+    ./configure \
+        --host="${MINGW_PREFIX}" \
+        --prefix="${MINGW_PREFIX_DIR}" \
+        --disable-shared \
+        --enable-static \
+        --quiet >"$SHARED_BUILD_DIR/libpng-configure.log" 2>&1 || {
+        echo "  ERROR: libpng configuration failed"
+        cat "$SHARED_BUILD_DIR/libpng-configure.log" | tail -20
+        return 1
+    }
+
+    echo "  Compiling libpng..."
+    make -j$(nproc) >"$SHARED_BUILD_DIR/libpng-build.log" 2>&1 || {
+        echo "  ERROR: libpng compilation failed"
+        cat "$SHARED_BUILD_DIR/libpng-build.log" | tail -20
+        return 1
+    }
+
+    echo "  Installing libpng..."
+    sudo make install >"$SHARED_BUILD_DIR/libpng-install.log" 2>&1 || {
+        echo "  ERROR: libpng installation failed"
+        return 1
+    }
+
+    # Create symlinks for compatibility (some code expects libpng.a, others libpng16.a)
+    if [ -f "${MINGW_LIB}/libpng16.a" ] && [ ! -f "${MINGW_LIB}/libpng.a" ]; then
+        sudo ln -sf libpng16.a "${MINGW_LIB}/libpng.a"
+    fi
+    if [ -f "${MINGW_INCLUDE}/libpng16/png.h" ] && [ ! -f "${MINGW_INCLUDE}/png.h" ]; then
+        sudo ln -sf libpng16/png.h "${MINGW_INCLUDE}/png.h"
+        sudo ln -sf libpng16/pngconf.h "${MINGW_INCLUDE}/pngconf.h"
+        sudo ln -sf libpng16/pnglibconf.h "${MINGW_INCLUDE}/pnglibconf.h"
+    fi
+
+    echo "  ✓ libpng installed"
+    cd "$SCRIPT_DIR"
+}
+
 # Function to build expat for Windows
 build_expat() {
     echo "Building expat for Windows..."
@@ -213,6 +294,14 @@ if ! check_library "zlib.h"; then
     }
 fi
 
+# Build libpng (depends on zlib) - needed for SDL_image PNG support
+if ! check_library "png.h"; then
+    build_libpng || {
+        echo "ERROR: Failed to build libpng"
+        exit 1
+    }
+fi
+
 if ! check_library "expat.h"; then
     build_expat || {
         echo "ERROR: Failed to build expat"
@@ -279,16 +368,37 @@ mkdir -p "$BUILD_DIR"
 cd "$BUILD_DIR"
 
 # Configure for Windows
+# Set library paths so configure can find the libraries we built
+# Note: CPPFLAGS must include the parent include directory (without /SDL)
+# because configure checks for "SDL/SDL_ttf.h"
+export LDFLAGS="-L${MINGW_LIB}"
+# -D_WINDOWS enables Windows-specific code paths in XPilot source
+# Also add build directory's src/common for generated headers like version.h
+# -DHAVE_GETTIMEOFDAY tells XPilot code that MinGW provides gettimeofday
+BUILD_DIR_ABS="${SCRIPT_DIR}/${BUILD_DIR}"
+export CPPFLAGS="-I${MINGW_INCLUDE} -I${MINGW_INCLUDE}/SDL -D_WINDOWS -DWIN32 -DHAVE_GETTIMEOFDAY -I${BUILD_DIR_ABS}/src/common"
+export CFLAGS="-I${MINGW_INCLUDE} -I${MINGW_INCLUDE}/SDL -D_WINDOWS -DWIN32 -DHAVE_GETTIMEOFDAY -I${BUILD_DIR_ABS}/src/common"
+export LIBS="-lSDL_ttf -lSDL_image -lfreetype -lpng16 -lz"
+export PKG_CONFIG_PATH="${MINGW_LIB}/pkgconfig:${PKG_CONFIG_PATH:-}"
+
+# Get SDL_CFLAGS but remove -Dmain=SDL_main which breaks configure tests
+# (configure's test programs have main() with no args, but SDL_main requires argc/argv)
+SDL_CFLAGS_RAW="$(/usr/x86_64-w64-mingw32/bin/sdl-config --cflags 2>/dev/null || echo '')"
+export SDL_CFLAGS="${SDL_CFLAGS_RAW//-Dmain=SDL_main/}"
+
 CONFIGURE_OPTS=(
     --host="${MINGW_PREFIX}"
     CC="${MINGW_CC}"
     CXX="${MINGW_CXX}"
+    CPPFLAGS="${CPPFLAGS}"
+    CFLAGS="${CFLAGS}"
+    LDFLAGS="${LDFLAGS}"
+    LIBS="${LIBS}"
+    SDL_CFLAGS="${SDL_CFLAGS}"
+    # Tell configure that socklen_t is available (MinGW provides it)
+    # This prevents config.h from defining socklen_t which conflicts with xpcommon.h
+    ac_cv_type_socklen_t=yes
 )
-
-# Set library paths so configure can find the libraries we built
-export LDFLAGS="-L${MINGW_LIB}"
-export CPPFLAGS="-I${MINGW_INCLUDE}"
-export PKG_CONFIG_PATH="${MINGW_LIB}/pkgconfig:${PKG_CONFIG_PATH:-}"
 
 # Add SDL paths if using local SDL installation
 if [ -n "$SDL_PREFIX" ] && [ "$SDL_PREFIX" != "${MINGW_PREFIX_DIR}" ]; then
@@ -711,6 +821,8 @@ if [ "$SDL_TTF_AVAILABLE" = false ]; then
             sudo make install-pkgconfigDATA >>"$SHARED_BUILD_DIR/sdl_ttf-install.log" 2>&1 || true
             # Install header manually if install target doesn't exist
             sudo cp SDL_ttf.h "${MINGW_INCLUDE}/SDL/" 2>/dev/null || true
+            # Fix permissions (cp preserves restrictive perms from build dir)
+            sudo chmod 644 "${MINGW_INCLUDE}/SDL/SDL_ttf.h" 2>/dev/null || true
             # Verify installation
             if [ ! -f "${MINGW_INCLUDE}/SDL/SDL_ttf.h" ]; then
                 echo "  ERROR: SDL_ttf header not installed"
@@ -772,12 +884,32 @@ if [ "$SDL_IMAGE_AVAILABLE" = false ]; then
     SDL_CFLAGS="$(${SDL_CONFIG:-sdl-config} --cflags 2>/dev/null || echo '-I/usr/x86_64-w64-mingw32/include/SDL')"
     SDL_LIBS="$(${SDL_CONFIG:-sdl-config} --libs 2>/dev/null || echo '-L/usr/x86_64-w64-mingw32/lib -lSDL')"
 
+    # Set up libpng paths for SDL_image
+    export CPPFLAGS="-I${MINGW_INCLUDE} -I${MINGW_INCLUDE}/libpng16"
+    export LDFLAGS="-L${MINGW_LIB}"
+    export PNG_CFLAGS="-I${MINGW_INCLUDE} -I${MINGW_INCLUDE}/libpng16"
+    export PNG_LIBS="-L${MINGW_LIB} -lpng16 -lz"
+
     ./configure \
         --host="${MINGW_PREFIX}" \
         --prefix="${MINGW_PREFIX_DIR}" \
         --with-sdl-prefix="${MINGW_PREFIX_DIR}" \
+        --disable-webp \
+        --enable-png \
+        --disable-png-shared \
+        --disable-jpg \
+        --disable-tif \
+        --enable-bmp \
+        --enable-gif \
+        --enable-pcx \
+        --enable-pnm \
+        --enable-tga \
+        --enable-xcf \
+        --enable-xpm \
         SDL_CFLAGS="$SDL_CFLAGS" \
         SDL_LIBS="$SDL_LIBS" \
+        PNG_CFLAGS="$PNG_CFLAGS" \
+        PNG_LIBS="$PNG_LIBS" \
         --quiet >"$SHARED_BUILD_DIR/sdl_image-configure.log" 2>&1 || {
         echo "  ERROR: SDL_image configuration failed"
         cat "$SHARED_BUILD_DIR/sdl_image-configure.log" | tail -20
@@ -805,6 +937,8 @@ if [ "$SDL_IMAGE_AVAILABLE" = false ]; then
         sudo make install-pkgconfigDATA >>"$SHARED_BUILD_DIR/sdl_image-install.log" 2>&1 || true
         # Install header manually if install target doesn't exist
         sudo cp SDL_image.h "${MINGW_INCLUDE}/SDL/" 2>/dev/null || true
+        # Fix permissions (cp preserves restrictive perms from build dir)
+        sudo chmod 644 "${MINGW_INCLUDE}/SDL/SDL_image.h" 2>/dev/null || true
         # Verify installation
         if [ ! -f "${MINGW_INCLUDE}/SDL/SDL_image.h" ]; then
             echo "  ERROR: SDL_image header not installed"
@@ -823,13 +957,39 @@ fi
 
 CONFIGURE_OPTS+=(--enable-sdl-client)
 
-# Patch configure script to skip X11 check for Windows when SDL is enabled
-echo "Patching configure to skip X11 check for Windows..."
-if [ ! -f "$SCRIPT_DIR/configure.bak" ]; then
-    cp "$SCRIPT_DIR/configure" "$SCRIPT_DIR/configure.bak"
+# Regenerate configure from configure.ac if needed
+echo "Checking build system..."
+
+# Copy SDL m4 macro from MinGW installation if not present
+if [ ! -f "$SCRIPT_DIR/sdl.m4" ]; then
+    SDL_M4="/usr/x86_64-w64-mingw32/share/aclocal/sdl.m4"
+    if [ -f "$SDL_M4" ]; then
+        echo "  Copying sdl.m4 from MinGW installation..."
+        cp "$SDL_M4" "$SCRIPT_DIR/"
+    else
+        echo "  WARNING: sdl.m4 not found at $SDL_M4"
+    fi
 fi
+
+# Regenerate configure if configure.ac is newer or configure doesn't exist
+if [ ! -f "$SCRIPT_DIR/configure" ] || [ "$SCRIPT_DIR/configure.ac" -nt "$SCRIPT_DIR/configure" ]; then
+    echo "  Regenerating configure from configure.ac..."
+    cd "$SCRIPT_DIR"
+    aclocal -I . 2>/dev/null || aclocal
+    autoconf
+    cd "$BUILD_DIR_ABS"
+fi
+
+# Patch configure script for Windows cross-compilation
+echo "Patching configure for Windows cross-compilation..."
+
 # Skip X11 check if SDL client is enabled (for Windows builds)
-sed -i 's/if test x$no_x == xyes; then/if test x$no_x == xyes \&\& test x$enable_sdl_client != xyes; then/' "$SCRIPT_DIR/configure"
+sed -i 's/if test x\$no_x == xyes; then/if test x$no_x == xyes \&\& test x$enable_sdl_client != xyes; then/' "$SCRIPT_DIR/configure"
+
+# Fix SDL_ttf/SDL_image tests - they use main() with no args, but -Dmain=SDL_main
+# requires (int argc, char *argv[]). Replace the test's empty main with proper signature.
+sed -i 's/main ()/main (int argc, char *argv[])/' "$SCRIPT_DIR/configure"
+
 
 # Pass through any additional configure options
 for arg in "$@"; do
@@ -837,6 +997,13 @@ for arg in "$@"; do
         CONFIGURE_OPTS+=("$arg")
     fi
 done
+
+# Fix permissions on installed headers (cp from build dir may have restrictive perms)
+echo "Fixing header permissions..."
+sudo chmod 644 "${MINGW_INCLUDE}/SDL/SDL_ttf.h" 2>/dev/null || true
+sudo chmod 644 "${MINGW_INCLUDE}/SDL/SDL_image.h" 2>/dev/null || true
+sudo chmod 644 "${MINGW_INCLUDE}/png.h" 2>/dev/null || true
+sudo chmod 644 "${MINGW_INCLUDE}"/libpng16/*.h 2>/dev/null || true
 
 echo "Configuring build..."
 CONFIGURE_LOG="$(pwd)/configure.log"
@@ -847,6 +1014,19 @@ CONFIGURE_LOG="$(pwd)/configure.log"
     tail -30 "$CONFIGURE_LOG"
     exit 1
 }
+
+# Fix config.h - remove socklen_t definition that conflicts with xpcommon.h
+# (MinGW provides socklen_t, and xpcommon.h also typedefs it for Windows)
+if [ -f "config.h" ]; then
+    sed -i 's/^#define socklen_t int$/\/* #define socklen_t int - disabled for MinGW *\//' config.h
+fi
+
+# Remove X11 client from build (we only want SDL client for Windows)
+# The X11 client uses X11-specific code that won't compile on Windows
+if [ -f "src/client/Makefile" ]; then
+    echo "Disabling X11 client build (Windows uses SDL client only)..."
+    sed -i 's/^bin_PROGRAMS = xpilot-ng-x11$(EXEEXT)$/bin_PROGRAMS =/' src/client/Makefile
+fi
 
 echo "Building Windows client..."
 make -j$(nproc) >/dev/null 2>&1 || {

@@ -53,10 +53,13 @@
 #define EPOCHFILETIME (116444736000000000LL)
 #endif
 
+/* MinGW and modern toolchains already provide struct timezone */
+#if !defined(__MINGW32__) && !defined(__MINGW64__)
 struct timezone {
     int tz_minuteswest; /* minutes W of Greenwich */
     int tz_dsttime;     /* type of dst correction */
 };
+#endif
 
 
 #ifndef HAVE_GETTIMEOFDAY

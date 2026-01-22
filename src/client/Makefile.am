@@ -1,5 +1,11 @@
 
+# Only build X11 client if X11 is available (not on Windows)
+if COND_X11_CLIENT
 bin_PROGRAMS = xpilot-ng-x11
+else
+bin_PROGRAMS =
+endif
+
 AM_CPPFLAGS = -DCONF_DATADIR=\"$(pkgdatadir)/\" -I$(top_srcdir)/src/common
 xpilot_ng_x11_SOURCES = \
 	about.c \
