@@ -1,10 +1,7 @@
-/* $Id: StdAfx.h,v 1.2 2004/02/03 03:39:52 dick Exp $
- *
- * StdAfx.cpp - Visual C++ precompiled header support
- *
+/*
  * XPilot, a multiplayer gravity war game.  Copyright (C) 1991-2001 by
  *
- *      Bjørn Stabell        <bjoern@xpilot.org>
+ *      Bjï¿½rn Stabell        <bjoern@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
  *      Dick Balaska         <dick@xpilot.org>
@@ -23,30 +20,21 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
-/*
- * $Log: StdAfx.h,v $
- * Revision 1.2  2004/02/03 03:39:52  dick
- * Add Windows precompiled header support.
- *
- */
 
-// Drasticly reduce the Windows compile time by using precompiled headers.
-// On my (dual) Xeon 2Ghz, `time makedistribution -a` goes from
-// 3:16 (196 seconds) to 1:32 (92 seconds).
-
-
-#ifndef	_STDAFX_H_
-#define _STDAFX_H_
-
-#if _MSC_VER > 1000
-#pragma once
-#endif // _MSC_VER > 1000
+// stdafx.h : include file for standard system include files,
+//  or project specific include files that are used frequently, but
+//      are changed infrequently
+//
 
 #define VC_EXTRALEAN		// Exclude rarely-used stuff from Windows headers
-#include <windows.h>
-#include <windowsx.h>
 
-//{{AFX_INSERT_LOCATION}}
-// Microsoft Visual C++ will insert additional declarations immediately before the previous line.
+#include <afxwin.h>         // MFC core and standard components
+#include <afxext.h>         // MFC extensions
+#ifndef _AFX_NO_AFXCMN_SUPPORT
+#include <afxcmn.h>			// MFC support for Windows 95 Common Controls
+#endif // _AFX_NO_AFXCMN_SUPPORT
 
-#endif // _STDAFX_H_
+#include <afxsock.h>		// MFC socket extensions
+
+
+

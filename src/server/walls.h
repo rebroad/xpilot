@@ -1,8 +1,11 @@
-/* $Id: walls.h,v 1.3 2002/06/01 06:06:48 dick Exp $
+/*
+ * XPilotNG, an XPilot-like multiplayer space war game.
  *
- * XPilot, a multiplayer gravity war game.  Copyright (C) 1991-2001 by
+ * Copyright (C) 2000-2004 Uoti Urpala <uau@users.sourceforge.net>
  *
- *      Bjørn Stabell        <bjoern@xpilot.org>
+ * Copyright (C) 1991-2001 by
+ *
+ *      Bjï¿½rn Stabell        <bjoern@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
  *      Dick Balaska         <dick@xpilot.org>
@@ -19,25 +22,19 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- *
- *  $Log: walls.h,v $
- *  Revision 1.3  2002/06/01 06:06:48  dick
- *  Encapsulate (almost) everything.  Get rid of (almost) all refs to theWorld.
- *
- *  Revision 1.2  2001/07/07 12:00:43  dick
- *  Rename classes to C++ "Style".  old World becomes theWorld.
- *
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
 #ifndef WALLS_H
 #define WALLS_H
 
 #ifndef CLICK_H
-#include "click.h"
+# include "click.h"
 #endif
 
-extern char walls_version[];
+#ifndef OBJECT_H
+# include "object.h"
+#endif
 
 /*
  * Wall collision detection and bouncing.
@@ -68,19 +65,6 @@ typedef enum {
     CrashWallAngle = 0x200
 } move_crash_t;
 
-typedef enum {
-    NotABounce = 0,
-    BounceHorLo = 0x01,
-    BounceHorHi = 0x02,
-    BounceVerLo = 0x04,
-    BounceVerHi = 0x08,
-    BounceLeftDown = 0x10,
-    BounceLeftUp = 0x20,
-    BounceRightDown = 0x40,
-    BounceRightUp = 0x80,
-    BounceEdge = 0x0100
-} move_bounce_t;
-
 typedef struct {
     int			edge_wrap;
     int			edge_bounce;
@@ -90,25 +74,23 @@ typedef struct {
     int			treasure_crashes;
     int			wormhole_warps;
     int			phased;
-    Object		*obj;
-    Player		*pl;
+    object_t		*obj;
+    player_t		*pl;
 } move_info_t;
 
-class move_state_t {
-public:
+typedef struct {
     const move_info_t	*mip;
     move_crash_t	crash;
-    move_bounce_t	bounce;
-    clpos		pos;
-    vector		vel;
-    clvec		todo;
-    clvec		done;
+    clpos_t		pos;
+    vector_t		vel;
+    clvec_t		todo;
+    clvec_t		done;
     int			dir;
     int			cannon;
     int			wormhole;
     int			target;
     int			treasure;
-};
+} move_state_t;
 
 struct move_parameters {
     click_t		click_width;		/* Map width in clicks */
@@ -122,5 +104,75 @@ struct move_parameters {
     unsigned long	obj_target_mask;	/* object target hit? */
     unsigned long	obj_treasure_mask;	/* objects treasure crash? */
 };
+
+/* kps change 100, 30 etc to something sane */
+struct polystyle {
+    char id[100];
+    int color;
+    int texture_id;
+    int defedge_id;
+    int flags;
+};
+
+struct edgestyle {
+    char id[100];
+    int width;
+    int color;
+    int style;
+};
+
+struct bmpstyle {
+    char id[100];
+    char filename[32];
+    int flags;
+};
+
+typedef struct {
+    int style;
+    int group;
+    int edges;
+    clpos_t pos;
+    int num_points;
+    int estyles_start;
+    int num_echanges;
+    int is_decor;
+} poly_t;
+
+typedef uint32_t hitmask_t;
+
+typedef struct move {
+    clvec_t start;
+    clvec_t delta;
+    hitmask_t hitmask;
+    object_t *obj;
+} move_t;
+
+typedef struct group group_t;
+
+struct group {
+    int type;
+    int team;
+    hitmask_t hitmask;
+    bool (*hitfunc)(group_t *groupptr, move_t *move);
+    int mapobj_ind;
+};
+
+extern struct polystyle pstyles[256];
+extern struct edgestyle estyles[256];
+extern struct bmpstyle  bstyles[256];
+extern poly_t *pdata;
+extern int *estyleptr;
+extern int *edgeptr;
+extern group_t *groups;
+extern int num_groups, max_groups;
+
+static inline group_t *groupptr_by_id(int group)
+{
+    if (group >= 0 && group < num_groups)
+	return &groups[group];
+    return NULL;
+}
+
+extern int num_pstyles, num_estyles, num_bstyles;
 
 #endif

@@ -1,12 +1,9 @@
-/* $Id: netclient.h,v 1.9 2007/02/12 07:57:18 dick Exp $
+/*
+ * XPilotNG, an XPilot-like multiplayer space war game.
  *
- * netclient - receive stuff from the server and decode it.
+ * Copyright (C) 1991-2001 by
  *
- * client - the user interface to the game.
- *
- * XPilot, a multiplayer gravity war game.  Copyright (C) 1991-2001 by
- *
- *      Bjørn Stabell        <bjoern@xpilot.org>
+ *      Bjï¿½rn Stabell        <bjoern@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
  *      Dick Balaska         <dick@xpilot.org>
@@ -23,22 +20,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- */
-/*
- * $Log: netclient.h,v $
- * Revision 1.9  2007/02/12 07:57:18  dick
- * Support RobotWatchDeco, which is decorated shapes displayed on the playfield.
- *
- * Revision 1.8  2007/01/17 08:59:49  dick
- * RobotWatch is a list of Strings sent from the client when a player is paused
- * and watching a robot.  This list contains diagnostic information about
- * what the heck the robot thinks it's doing.
- * It's kinda like the Terminator view where he's looking at a 6502 dump.
- *
- * Revision 1.7  2004/05/28 18:02:29  dick
- * Send_shape() takes a PCSTR, not a char*.
- *
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
 #ifndef	NETCLIENT_H
@@ -49,16 +31,27 @@
 #include "types.h"
 #endif
 
-class Connectparam;
+#define MIN_RECEIVE_WINDOW_SIZE		1
+#define MAX_RECEIVE_WINDOW_SIZE		4
 
-extern int	simulating;
-//extern int	receive_window_size;
-extern long	last_loops;
+#define MAX_SUPPORTED_FPS		200
+
+typedef struct {
+    int view_width;
+    int view_height;
+    int spark_rand;
+    int num_spark_colors;
+} display_t;
+
+extern int	 simulating;
+extern int	 receive_window_size;
+extern long	 last_loops;
+extern bool      packetMeasurement;
+extern display_t server_display; /* the servers idea about our display */
 
 int Net_setup(void);
-//int Net_verify(char *real, char *nick, char *dpy, int my_team);
-int Net_verify(Connectparam* conpar);
-int Net_init(PCSTR server, int port);
+int Net_verify(char *real, char *nick, char *dpy);
+int Net_init(char *server, int port);
 void Net_cleanup(void);
 void Net_key_change(void);
 int Net_flush(void);
@@ -91,13 +84,12 @@ int Receive_rounddelay(void);
 int Receive_debris(void);
 int Receive_wreckage(void);
 int Receive_asteroid(void);
-int ReceiveRobotWatch(void);
-int ReceiveRobotWatchDeco(void);
 int Receive_wormhole(void);
 int Receive_fastshot(void);
 int Receive_ecm(void);
 int Receive_trans(void);
 int Receive_paused(void);
+int Receive_appearing(void);
 int Receive_radar(void);
 int Receive_fastradar(void);
 int Receive_damaged(void);
@@ -105,8 +97,8 @@ int Receive_leave(void);
 int Receive_war(void);
 int Receive_seek(void);
 int Receive_player(void);
+int Receive_team(void);
 int Receive_score(void);
-int	ReceiveScoreTable();
 int Receive_score_object(void);
 int Receive_team_score(void);
 int Receive_timing(void);
@@ -120,19 +112,18 @@ int Receive_string(void);
 int Receive_reply(int *replyto, int *result);
 int Send_ack(long rel_loops);
 int Send_keyboard(u_byte *);
-int Send_shape(PCSTR);
-int Send_power(DFLOAT power);
-int Send_power_s(DFLOAT power_s);
-int Send_turnspeed(DFLOAT turnspeed);
-int Send_turnspeed_s(DFLOAT turnspeed_s);
-int Send_turnresistance(DFLOAT turnresistance);
-int Send_turnresistance_s(DFLOAT turnresistance_s);
+int Send_shape(char *);
+int Send_power(double pwr);
+int Send_power_s(double pwr_s);
+int Send_turnspeed(double turnspd);
+int Send_turnspeed_s(double turnspd_s);
+int Send_turnresistance(double turnres);
+int Send_turnresistance_s(double turnres_s);
 int Send_pointer_move(int movement);
 int Receive_audio(void);
 int Receive_talk_ack(void);
-int Receive_cookie(void);
 int Send_talk(void);
-int Send_display(void);
+int Send_display(int width, int height, int sparks, int spark_colors);
 int Send_modifier_bank(int);
 int Net_talk(char *str);
 int Net_ask_for_motd(long offset, long maxlen);
@@ -140,7 +131,7 @@ int Receive_time_left(void);
 int Receive_eyes(void);
 int Receive_motd(void);
 int Receive_magic(void);
-int Send_audio_request(int onoff);
+int Send_audio_request(int on);
 int Send_fps_request(int fps);
 int Receive_loseitem(void);
 

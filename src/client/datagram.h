@@ -1,8 +1,9 @@
-/* $Id: datagram.h,v 1.4 2002/09/16 21:41:19 dick Exp $
+/*
+ * XPilotNG, an XPilot-like multiplayer space war game.
  *
- * XPilot, a multiplayer gravity war game.  Copyright (C) 1991-2001 by
+ * Copyright (C) 1991-2001 by
  *
- *      Bjørn Stabell        <bjoern@xpilot.org>
+ *      Bjï¿½rn Stabell        <bjoern@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
  *      Dick Balaska         <dick@xpilot.org>
@@ -19,16 +20,22 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
 #ifndef	DATAGRAM_H
 #define	DATAGRAM_H
 
-class Sock;
+#ifndef SOCKLIB_H
+/* need sock_t */
+#include "socklib.h"
+#endif
 
-int create_dgram_addr_socket(Sock* sock, PCSTR dotaddr, int port);
-int create_dgram_socket(Sock* sock, int port);
-void close_dgram_socket(Sock* sock);
+/*
+ * datagram.c
+ */
+int create_dgram_addr_socket(sock_t *sock, char *dotaddr, int port);
+int create_dgram_socket(sock_t *sock, int port);
+void close_dgram_socket(sock_t *sock);
 
 #endif

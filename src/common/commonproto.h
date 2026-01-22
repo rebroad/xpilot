@@ -1,8 +1,9 @@
-/* $Id: commonproto.h,v 1.5 2004/05/04 21:10:47 dick Exp $
+/*
+ * XPilotNG, an XPilot-like multiplayer space war game.
  *
- * XPilot, a multiplayer gravity war game.  Copyright (C) 1991-2001 by
+ * Copyright (C) 1991-2001 by
  *
- *      Bjørn Stabell        <bjoern@xpilot.org>
+ *      Bjï¿½rn Stabell        <bjoern@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
  *      Dick Balaska         <dick@xpilot.org>
@@ -19,39 +20,49 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- */
-/*
- * $Log: commonproto.h,v $
- * Revision 1.5  2004/05/04 21:10:47  dick
- * Remove randommnt.h
- *
- * Revision 1.4  2004/01/08 18:37:53  dick
- * Fix double rfrac() declaration
- *
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
 #ifndef	COMMONPROTO_H
 #define	COMMONPROTO_H
 
-#ifndef TYPES_H
-/* need DFLOAT */
-#include "types.h"
-#endif
+/* randommt.c */
+extern void seedMT(unsigned int seed);
+extern unsigned int reloadMT(void);
+extern unsigned int randomMT(void);
 
 /* math.c */
+extern double rfrac(void);
 extern int mod(int x, int y);
 extern void Make_table(void);
+extern int ON(const char *optval);
+extern int OFF(const char *optval);
+extern double findDir(double x, double y);
+
+/* strdup.c */
+extern char *xp_strdup(const char *);
+extern char *xp_safe_strdup(const char *old_string);
 
 /* default.c */
-//unsigned String_hash(const char *s);
+unsigned String_hash(const char *s);
 
 /* strlcpy.c */
+#ifndef HAVE_STRLCPY
 size_t strlcpy(char *dest, const char *src, size_t size);
+#endif
+#ifndef HAVE_STRLCAT
 size_t strlcat(char *dest, const char *src, size_t size);
+#endif
+
+/* strcasecmp.c */
+#ifndef HAVE_STRCASECMP
+int strcasecmp(const char *str1, const char *str2);
+#endif
+#ifndef HAVE_STRNCASECMP
+int strncasecmp(const char *str1, const char *str2, size_t n);
+#endif
 
 /* xpmemory.c */
-
 void *xp_malloc(size_t size);
 void *xp_realloc(void *oldptr, size_t size);
 void *xp_calloc(size_t nmemb, size_t size);

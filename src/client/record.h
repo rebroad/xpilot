@@ -1,8 +1,9 @@
-/* $Id: record.h,v 1.1.1.1 2001/07/04 07:13:40 dick Exp $
+/*
+ * XPilotNG, an XPilot-like multiplayer space war game.
  *
- * XPilot, a multiplayer gravity war game.  Copyright (C) 1991-2001 by
+ * Copyright (C) 1991-2001 by
  *
- *      Bjørn Stabell        <bjoern@xpilot.org>
+ *      Bjï¿½rn Stabell        <bjoern@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
  *      Dick Balaska         <dick@xpilot.org>
@@ -19,7 +20,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
 #ifndef RECORD_H
@@ -39,8 +40,8 @@ struct recordable_drawing {
     int (*drawLines)(Display *display, Drawable drawable, GC gc,
 		     XPoint *points, int npoints, int mode);
     int (*drawLine)(Display *display, Drawable drawable, GC gc,
-		    int x1, int y1,
-		    int x2, int y2);
+		    int x_1, int y_1,
+		    int x_2, int y_2);
     int (*drawRectangle)(Display *display, Drawable drawable, GC gc,
 			 int x, int y,
 			 unsigned int width, unsigned int height);
@@ -54,7 +55,7 @@ struct recordable_drawing {
     int (*fillPolygon)(Display *display, Drawable drawable, GC gc,
 			XPoint *points, int npoints,
 			int shape, int mode);
-    void (*paintItemSymbol)(unsigned char type, Drawable drawable, GC mygc,
+    void (*paintItemSymbol)(int type, Drawable drawable, GC mygc,
 			    int x, int y, int color);
     int (*fillRectangle)(Display *display, Drawable drawable, GC gc,
 			  int x, int y,
@@ -69,14 +70,15 @@ struct recordable_drawing {
 		     int dash_offset, const char *dash_list, int n);
 };
 
-extern struct recordable_drawing	rd;	/* external Drawing interface */
+extern struct recordable_drawing rd;	/* external Drawing interface */
 
-extern int		recording;	/* Are we recording or not. */
-
+extern bool recording;	/* Are we recording or not. */
+extern int recordFPS;	/* FPS to record. */
 
 long Record_size(void);
 void Record_toggle(void);
-void Record_init(char *filename);
+void Record_init(const char *filename);
 void Record_cleanup(void);
+void Store_record_options(void);
 
 #endif

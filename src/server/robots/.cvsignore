@@ -1,9 +1,0 @@
-*.swp
-xpilotserver
-Makefile
-Makefile.my
-tags
-log
-.depend
-nohup.out
-.exrc

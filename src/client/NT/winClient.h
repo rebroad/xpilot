@@ -1,8 +1,7 @@
-/* $Id: winClient.h,v 1.6 2002/09/02 16:12:18 dick Exp $
- *
+/*
  * XPilot, a multiplayer gravity war game.  Copyright (C) 1991-2001 by
  *
- *      Bjørn Stabell        <bjoern@xpilot.org>
+ *      Bjï¿½rn Stabell        <bjoern@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
  *      Dick Balaska         <dick@xpilot.org>
@@ -27,35 +26,41 @@
 *																			*
 *  interface from the MFC poo to the xpilot "C" source.						*
 *																			*
-*  $Id: winClient.h,v 1.6 2002/09/02 16:12:18 dick Exp $						*
+*  						*
 \***************************************************************************/
 
 #ifndef	_INC_WINDOWS
 #include <windows.h>
 #endif
 
-extern	void		xpilotShutdown();
-extern	int			main(int argc, char** argv);
-extern	int			Net_fd(void);
-extern	int			Net_input(void);
-extern	void		Paint_frame(void);
-extern	void		PaintWinClient();
-extern	HINSTANCE	hInstance;
-extern	void		Client_cleanup();
-
-extern	void		InitWinX(HWND m_hWnd);
-extern	void		WinXShutdown();
-
-extern	int			received_self;
-
-/* requests from the xpilot "real code" to mfc */
-extern	void	_Trace(const char* lpszFormat, ...);
-extern	const char* DoTalkWindow();
-//extern	char*	Get_xpilotini_file(int level);
-
-#ifdef	_DEBUG
-extern	void	xpmemShutdown();
+#ifdef __cplusplus
+extern "C" {
 #endif
 
-extern	void	Progress(const char* s, ...);
+    extern void xpilotShutdown();
+    extern int main(int argc, char **argv);
+    extern int Net_fd(void);
+    extern int Net_input(void);
+    extern void Paint_frame(void);
+    extern void PaintWinClient();
+    extern HINSTANCE hInstance;
+    extern void Client_cleanup();
 
+    extern void InitWinX(HWND m_hWnd);
+    extern void WinXShutdown();
+
+    extern int received_self;
+
+/* requests from the xpilot "real code" to mfc */
+    extern void _Trace(char *lpszFormat, ...);
+    extern const char *mfcDoTalkWindow();
+
+#ifdef	_DEBUG
+    extern void xpmemShutdown();
+#endif
+
+    extern void Progress(const char *s, ...);
+
+#ifdef __cplusplus
+};
+#endif

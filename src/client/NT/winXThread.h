@@ -1,8 +1,7 @@
-/* $Id: winXThread.h,v 1.1.1.1 2001/07/04 07:13:41 dick Exp $
- *
+/*
  * XPilot, a multiplayer gravity war game.  Copyright (C) 1991-2001 by
  *
- *      Bjørn Stabell        <bjoern@xpilot.org>
+ *      Bjï¿½rn Stabell        <bjoern@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
  *      Dick Balaska         <dick@xpilot.org>
@@ -28,25 +27,30 @@
 *  XPilot specific:															*
 *  This module is an attempt at running the BitBlt in another thread.		*
 *																			*
-*  $Id: winXThread.h,v 1.1.1.1 2001/07/04 07:13:41 dick Exp $					*
+*  					*
 \***************************************************************************/
 
+#ifndef WINXTHREAD_H
+#define WINXTHREAD_H
+
 typedef struct {
-	HDC		hDC;
-	HDC		hBmpDC;
-	RECT	rect;
-	HWND	hWnd;
-	Window	w;
-	int		isDrawing;
-	HPALETTE	myPal;
+    HDC hDC;
+    HDC hBmpDC;
+    RECT rect;
+    HWND hWnd;
+    Window w;
+    int isDrawing;
+    HPALETTE myPal;
 
 
-	HANDLE	eventDraw;
-	HANDLE	eventNotDrawing;
-	HANDLE	eventKillServerThread;
-	HANDLE	eventServerThreadKilled;
+    HANDLE eventDraw;
+    HANDLE eventNotDrawing;
+    HANDLE eventKillServerThread;
+    HANDLE eventServerThreadKilled;
 } _dinfo;
 
-extern	_dinfo	dinfo;
+extern _dinfo dinfo;
 
-extern void winXTDraw(HDC hDC, Window xidno, RECT* rect);
+extern void winXTDraw(HDC hDC, Window xidno, RECT * rect);
+
+#endif

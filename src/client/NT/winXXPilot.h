@@ -1,8 +1,8 @@
-/* $Id: winXXPilot.h,v 1.3 2001/09/11 07:33:45 dick Exp $
+/*
  *
  * XPilot, a multiplayer gravity war game.  Copyright (C) 1991-2001 by
  *
- *      Bjørn Stabell        <bjoern@xpilot.org>
+ *      Bjï¿½rn Stabell        <bjoern@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
  *      Dick Balaska         <dick@xpilot.org>
@@ -27,7 +27,7 @@
 *																			*
 *  This file contains the private winX definitions for the XPilot client	*
 *																			*
-*  $Id: winXXPilot.h,v 1.3 2001/09/11 07:33:45 dick Exp $							*
+*  							*
 \***************************************************************************/
 #ifndef	_WINXPILOT_H_
 #define	_WINXPILOT_H_
@@ -40,60 +40,73 @@
 
 #include "../../common/NT/winX.h"
 
-extern	int	WinXGetWindowRectangle(Window window, XRectangle* rect);
+#ifdef	__cplusplus
+extern "C" {
+#endif
+
+
+    extern int WinXGetWindowRectangle(Window window, XRectangle * rect);
 
 #ifdef	_DEBUG
 #define	WinXCreateWinDC(__w) \
 	WinXCreateWinDC_(__w, __FILE__, __LINE__)
 
-extern	WinXCreateWinDC_(Window w, const char* file, const int line);
+    extern WinXCreateWinDC_(Window w, const char *file, const int line);
 #else
 #define	WinXCreateWinDC(__w) \
 	WinXCreateWinDC_(__w)
-extern	WinXCreateWinDC_(Window w);
+    extern WinXCreateWinDC_(Window w);
 #endif
 
-extern	void WinXExit();
-extern	void WinXFlush(Window w);
-extern	void WinXSetEventMask(Window w, long mask);
+    extern void WinXExit();
+    extern void WinXFlush(Window w);
+    extern void WinXSetEventMask(Window w, long mask);
 /* extern	void WinXSetBackColor(GC gc, unsigned long background); */
 /* extern	void WinXClearWindow(GC gc); */
 /* extern	void WinXGetDrawRect(RECT* rect); */
-extern	void WinXBltPixToWin(Pixmap src, Window dest,
-				  int src_x, int src_y, unsigned int width, unsigned int height,
-				  int dest_x, int dest_y);
-extern	void WinXBltWinToPix(Window src, Pixmap dest,
-				  int src_x, int src_y, unsigned int width, unsigned int height,
-				  int dest_x, int dest_y);
-extern	Pixmap WinXGetRadarBitmap(int width, int height);
+    extern void WinXBltPixToWin(Pixmap src, Window dest,
+				int src_x, int src_y, unsigned int width,
+				unsigned int height, int dest_x,
+				int dest_y);
+    extern void WinXBltWinToPix(Window src, Pixmap dest, int src_x,
+				int src_y, unsigned int width,
+				unsigned int height, int dest_x,
+				int dest_y);
+    extern Pixmap WinXGetRadarBitmap(int width, int height);
 /* extern	WinXSetEvent(Window w, int message, (void func)());
 extern	void WinXPaintPlayers(); */
 
 /* used for creating item bitmaps */
-extern	Pixmap WinXCreateBitmapFromData(Display* dpy, Drawable d, char* data, 
-							  unsigned int width, unsigned int height, int color);
+    extern Pixmap WinXCreateBitmapFromData(Display * dpy, Drawable d,
+					   char *data, unsigned int width,
+					   unsigned int height, int color);
 
-extern	Window WinXGetParent(Window w);
-extern	BOOL WinXGetWindowRect(Window w, RECT* rect);
-extern	BOOL WinXGetWindowPlacement(Window w, WINDOWPLACEMENT* wp);
+    extern Window WinXGetParent(Window w);
+    extern BOOL WinXGetWindowRect(Window w, RECT * rect);
+    extern BOOL WinXGetWindowPlacement(Window w, WINDOWPLACEMENT * wp);
 
-extern	void WinXResize(void);
+    extern void WinXResize(void);
 
 #ifdef _XPDOC
-extern void Resize(Window w, int width, int height);
-extern BOOL ChangePalette(HWND hwnd);
-extern Window top;
+    extern void Resize(Window w, int width, int height);
+    extern BOOL ChangePalette(HWND hwnd);
+    extern Window top;
 #endif
-extern BOOL drawPending;	// try to throttle the deadly frame backup syndrome
+    extern BOOL drawPending;	// try to throttle the deadly frame backup syndrome
 
 // Windows config options
 /* extern int iScaleFactor; */
-//extern int	RadarDivisor;
-//extern bool	ThreadedDraw;
+    extern int RadarDivisor;
+    extern int ThreadedDraw;
 
 
 // temp until the new WinMotd (using the motd api) comes along 
-extern int Startup_server_motd(void);
+    extern int Startup_server_motd(void);
 
-#endif	/* _WINDOWS */
-#endif	/* _WINXPILOT_H_ */
+#ifdef	__cplusplus
+};
+#endif
+
+
+#endif				/* _WINDOWS */
+#endif				/* _WINXPILOT_H_ */

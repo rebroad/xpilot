@@ -1,8 +1,9 @@
-/* $Id: const.h,v 1.12 2007/02/17 06:11:43 dick Exp $
+/*
+ * XPilotNG, an XPilot-like multiplayer space war game.
  *
- * XPilot, a multiplayer gravity war game.  Copyright (C) 1991-2001 by
+ * Copyright (C) 1991-2001 by
  *
- *      Bjørn Stabell        <bjoern@xpilot.org>
+ *      Bjï¿½rn Stabell        <bjoern@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
  *      Dick Balaska         <dick@xpilot.org>
@@ -19,50 +20,14 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- *
- *  $Log: const.h,v $
- *  Revision 1.12  2007/02/17 06:11:43  dick
- *  Add PATH_LEN of 260
- *
- *  Revision 1.11  2007/01/13 22:31:27  dick
- *  Copy MAX_NAME_LEN here from pack.h.  Robots like it here
- *
- *  Revision 1.10  2004/05/20 22:14:37  dick
- *  NO_ID is common through all projects, not just the server
- *
- *  Revision 1.9  2004/01/19 22:08:26  dick
- *  MAX_MAP_SIZE is a global const.
- *
- *  Revision 1.8  2002/08/01 14:53:55  dick
- *  Define 3 special cookies; NONE, NOSUP, and SPECIAL.
- *
- *  Revision 1.7  2002/06/01 06:06:46  dick
- *  Encapsulate (almost) everything.  Get rid of (almost) all refs to theWorld.
- *
- *  Revision 1.6  2002/05/18 20:55:35  dick
- *  Update to XPilot-4.5.1
- *
- *  Revision 1.5  2001/09/11 09:08:31  dick
- *  Encapsulate all client resources into new class Ini (Linux cleanups)
- *
- *  Revision 1.4  2001/07/24 09:03:59  dick
- *  Remove all global options.  Use World.options instead.
- *
- *  Revision 1.3  2001/07/23 21:08:36  dick
- *  Encapsulate ShipMass, ShotsMax, ShotsLife, ShotsMass, FPS.
- *
- *  Revision 1.2  2001/07/07 12:00:41  dick
- *  Rename classes to C++ "Style".  old World becomes theWorld.
- *
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#ifndef	CONST_H
-#define	CONST_H
+#ifndef CONST_H
+#define CONST_H
 
-#ifndef _WINDOWS
-#include <limits.h>
-#include <math.h>
+#ifndef XPCONFIG_H
+#include "xpconfig.h"
 #endif
 
 #ifndef TYPES_H
@@ -74,19 +39,10 @@
  * MAXFLOAT instead.
  */
 #ifndef	FLT_MAX
-#   if defined(__sgi) || defined(__FreeBSD__)
-#       include <float.h>	/* FLT_MAX for SGI Personal Iris or FreeBSD */
+#   if defined(MAXFLOAT)
+#      define FLT_MAX	MAXFLOAT
 #   else
-#	if defined(__sun__)
-#           include <values.h>	/* MAXFLOAT for suns */
-#	endif
-#   endif
-#   if !defined(FLT_MAX)
-#	if defined(MAXFLOAT)
-#	    define FLT_MAX	MAXFLOAT
-#	else
-#	    define FLT_MAX	1e30f	/* should suffice :-) */
-#	endif
+#      define FLT_MAX	1e30f	/* should suffice :-) */
 #   endif
 #endif
 
@@ -99,7 +55,12 @@
 
 /* Not everyone has LINE_MAX either, *sigh* */
 #ifndef LINE_MAX
-#   define LINE_MAX 2048
+#   define LINE_MAX	2048
+#endif
+
+/* No comment. */
+#ifndef PATH_MAX
+#   define PATH_MAX	1023
 #endif
 
 #define RES		128
@@ -108,10 +69,8 @@
 
 #define TABLE_SIZE	RES
 
-extern DFLOAT		tbl_sin[];
-extern DFLOAT		tbl_cos[];
-
-#define DEF_SPARK_RAND	    0x55	/* 66% */
+extern double		tbl_sin[];
+extern double		tbl_cos[];
 
 #if 0
   /* The way it was: one table, and always range checking. */
@@ -145,29 +104,28 @@ extern DFLOAT		tbl_cos[];
 #define QUICK_LENGTH(x,y)	( ABS(x)+ABS(y) ) /*-BA Only approx, but v. quick */
 #define LIMIT(val, lo, hi)	( val=(val)>(hi)?(hi):((val)<(lo)?(lo):(val)) )
 
+
 #ifndef MOD2
 #  define MOD2(x, m)		( (x) & ((m) - 1) )
 #endif	/* MOD2 */
 
+/* borrowed from autobook */
+#define XFREE(ptr) \
+do { \
+    if (ptr) { free(ptr);  ptr = NULL; } \
+} while (0)
+
+/* Use this to remove unused parameter warning. */
+#define UNUSED_PARAM(x) x = x
+
 /* Do NOT change these! */
-#define MAX_MAP_SIZE	900	/* map dimension limitation: ((0x7FFF - 1280) / 35) */
-#define MAX_CHECKS		26
+#define OLD_MAX_CHECKS		26
 #define MAX_TEAMS		10
 
 #define EXPIRED_MINE_ID		4096   /* assume no player has this id */
 
-#define	NO_ID			-1
-
-#define	COOKIENONE		0		// no cookie from this client
-#define	COOKIENOSUP		1		// older clients don't support cookies
-#define	COOKIESPECIAL	2		// less than this are special cookies
-
-#define	MAX_NAME_LEN	16
 #define MAX_CHARS		80
 #define MSG_LEN			256
-
-#define FONT_LEN		256
-#define	PATH_LEN		260
 
 #define NUM_MODBANKS		4
 
@@ -179,22 +137,9 @@ extern DFLOAT		tbl_cos[];
 #define MAX_PLAYER_TURNRESISTANCE	1.0
 #define MIN_PLAYER_TURNRESISTANCE	0.0
 
-#define FUEL_SCALE_BITS         8
-#define FUEL_SCALE_FACT         (1<<FUEL_SCALE_BITS)
-#define FUEL_MASS(f)            ((f)*0.005/FUEL_SCALE_FACT)
-#define MAX_STATION_FUEL	(500<<FUEL_SCALE_BITS)
-#define START_STATION_FUEL	(20<<FUEL_SCALE_BITS)
-#define STATION_REGENERATION	(0.06*FUEL_SCALE_FACT)
-#define MAX_PLAYER_FUEL		(2600<<FUEL_SCALE_BITS)
-#define MIN_PLAYER_FUEL		(350<<FUEL_SCALE_BITS)
-#define REFUEL_RATE		(5<<FUEL_SCALE_BITS)
-#define ENERGY_PACK_FUEL        ((500+(randomMT()&511))<<FUEL_SCALE_BITS)
-
-#define TARGET_DAMAGE		(250<<FUEL_SCALE_BITS)
-#define TARGET_FUEL_REPAIR_PER_FRAME (TARGET_DAMAGE / (GetFPS() * 10))
-#define TARGET_REPAIR_PER_FRAME	(TARGET_DAMAGE / (GetFPS() * 600))
-#define TARGET_UPDATE_DELAY	(TARGET_DAMAGE / (TARGET_REPAIR_PER_FRAME \
-				    * BLOCK_SZ))
+#define MAX_STATION_FUEL	500.0
+#define TARGET_DAMAGE		250.0
+#define SELF_DESTRUCT_DELAY	150.0
 
 /*
  * Size (pixels) of radius for legal HIT!
@@ -204,29 +149,16 @@ extern DFLOAT		tbl_cos[];
 #define SHIP_SZ		        16
 
 #define VISIBILITY_DISTANCE	1000.0
+
 #define BALL_RADIUS		10
 
 #define MISSILE_LEN		15
+
 #define TEAM_NOT_SET		0xffff
-#define TEAM_NOT_SET_STR	"4095"
+
 #define DEBRIS_TYPES		(8 * 4 * 4)
 
-
-#ifndef FALSE
-#define FALSE   0
-#endif
-#ifndef TRUE
-#define TRUE    1
-#endif
-
-#ifdef __GNUC__
-#define	INLINE	inline
-#else
-#define INLINE
-#endif /* __GNUC__ */
-
-// fltk uses rand.  It is very bad to redefine it.
-#undef	rand
-//#define	rand(void)	please dont use rand.
+#undef rand
+#define rand()	please dont use rand.
 
 #endif

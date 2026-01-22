@@ -1,8 +1,9 @@
-/* $Id: dbuff.h,v 1.1.1.1 2001/07/04 07:13:39 dick Exp $
+/*
+ * XPilotNG, an XPilot-like multiplayer space war game.
  *
- * XPilot, a multiplayer gravity war game.  Copyright (C) 1991-2001 by
+ * Copyright (C) 1991-2001 by
  *
- *      Bjørn Stabell        <bjoern@xpilot.org>
+ *      Bjï¿½rn Stabell        <bjoern@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
  *      Dick Balaska         <dick@xpilot.org>
@@ -19,37 +20,31 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
 #ifndef	DBUFF_H
 #define	DBUFF_H
 
-#ifdef SPARC_CMAP_HACK
-# if defined(sparc) || defined(__sparc)
-#  if defined(SVR4) || defined(__svr4__)
-#   include <sys/fbio.h>
-#  else
-#   include <sun/fbio.h>
-#  endif
-# else
-#  undef SPARC_CMAP_HACK
-# endif
-#endif
+#include "xpcommon.h"
 
 #ifdef DBE
-# include <X11/extensions/Xdbe.h>
-# undef MBX
+#  ifdef HAVE_X11_EXTENSIONS_XDBE_H
+#    include <X11/extensions/Xdbe.h>
+#  endif
+#  undef MBX
 #else
-# undef XdbeBackBuffer
-# define XdbeBackBuffer	unsigned int
+#  undef XdbeBackBuffer
+#  define XdbeBackBuffer	unsigned int
 #endif
 
 #ifdef MBX
-# include <X11/extensions/multibuf.h>
+#  ifdef HAVE_X11_EXTENSIONS_MULTIBUF_H
+#    include <X11/extensions/multibuf.h>
+#  endif
 #else
-# undef Multibuffer
-# define Multibuffer	unsigned int
+#   undef Multibuffer
+#   define Multibuffer	unsigned int
 #endif
 
 
@@ -78,13 +73,6 @@ typedef struct {
 } dbuff_mbx_state_t;
 
 typedef struct {
-    int			fbfd;
-#ifdef SPARC_CMAP_HACK
-    struct fbcmap	hardcmap;
-#endif
-} dbuff_cmap_hack_t;
-
-typedef struct {
     Display		*display;
     dbuff_t		type;
     dbuff_multibuffer_t	multibuffer_type;
@@ -98,24 +86,23 @@ typedef struct {
     unsigned long	pixel;
     dbuff_dbe_state_t	dbe;
     dbuff_mbx_state_t	mbx;
-    dbuff_cmap_hack_t	cmap_hack;
 } dbuff_state_t;
 
 extern dbuff_state_t   *dbuf_state;    /* Holds current dbuff state */
 
 dbuff_state_t *start_dbuff(Display *display, Colormap cmap,
 			   dbuff_t type,
-			   int num_planes, XColor *colors);
+			   unsigned num_planes, XColor *colors);
 void dbuff_switch(dbuff_state_t *state);
 void dbuff_init_buffer(dbuff_state_t *state);
 void end_dbuff(dbuff_state_t *state);
 void dbuff_list(Display *display);
 
 #ifndef MBX
-# undef Multibuffer
+#  undef Multibuffer
 #endif
 #ifndef DBE
-# undef XdbeBackBuffer
+#  undef XdbeBackBuffer
 #endif
 
 #endif

@@ -1,8 +1,9 @@
-/* $Id: objpos.h,v 1.3 2002/09/11 16:42:04 dick Exp $
+/*
+ * XPilotNG, an XPilot-like multiplayer space war game.
  *
- * XPilot, a multiplayer gravity war game.  Copyright (C) 1991-2001 by
+ * Copyright (C) 1991-2001 by
  *
- *      Bjørn Stabell        <bjoern@xpilot.org>
+ *      Bjï¿½rn Stabell        <bjoern@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
  *      Dick Balaska         <dick@xpilot.org>
@@ -19,34 +20,44 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- *
- *  $Log: objpos.h,v $
- *  Revision 1.3  2002/09/11 16:42:04  dick
- *  Here endeth the server encapsulation task.
- *  theWorld is now an array of World(s) and get loaded dynamically.
- *
- *  Revision 1.2  2001/07/07 12:00:42  dick
- *  Rename classes to C++ "Style".  old World becomes theWorld.
- *
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
 #ifndef OBJPOS_H
 #define OBJPOS_H
 
-void Object_position_set_clicks(Object *obj, int cx, int cy);
-void Object_position_set_pixels(Object *obj, DFLOAT x, DFLOAT y);
-void Object_position_init_pixels(Object *obj, DFLOAT x, DFLOAT y);
-void Player_position_restore(Player *pl);
-void Player_position_set_clicks(Player *pl, int cx, int cy);
-void Player_position_set_pixels(Player *pl, DFLOAT x, DFLOAT y);
-void Player_position_init_pixels(Player *pl, DFLOAT x, DFLOAT y);
-//void Player_position_limit(Player *pl);
-void Player_position_debug(Player *pl, const char *msg);
+void Object_position_set_clpos(world_t *world, object_t *obj, clpos_t pos);
+void Object_position_init_clpos(world_t *world, object_t *obj, clpos_t pos);
+void Player_position_restore(player_t *pl);
+void Player_position_set_clpos(player_t *pl, clpos_t pos);
+void Player_position_init_clpos(player_t *pl, clpos_t pos);
+void Player_position_limit(player_t *pl);
+void Player_position_debug(player_t *pl, const char *msg);
 
-#define Object_position_remember(o_) \
-	((o_)->prevpos.x = (o_)->pos.x, \
-	 (o_)->prevpos.y = (o_)->pos.y)
-#define Player_position_remember(p_) Object_position_remember(p_)
+static inline void Object_position_remember(object_t *obj)
+{
+    obj->prevpos = obj->pos;
+}
+
+static inline void Player_position_remember(player_t *pl)
+{
+    Object_position_remember((object_t *)pl);
+}
+
+static inline void Object_position_set_clvec(world_t *world, object_t *obj,
+					     clvec_t vec)
+{
+    clpos_t pos;
+
+    pos.cx = vec.cx;
+    pos.cy = vec.cy;
+
+    Object_position_set_clpos(world, obj, pos);
+}
+
+static inline void Player_position_set_clvec(player_t *pl, clvec_t vec)
+{
+    Object_position_set_clvec(pl->world, (object_t *)pl, vec);
+}
 
 #endif
