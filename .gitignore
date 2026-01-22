@@ -1,0 +1,24 @@
+# Build artifacts
+Makefile
+Makefile.in
+config.h
+config.log
+config.status
+stamp-h1
+*.o
+*.a
+*.deps/
+.deps/
+
+# Built binaries
+xpilot-ng-*
+src/client/xpilot-ng-*
+src/server/xpilot-ng-*
+src/replay/xpilot-ng-*
+
+# Build directories
+build-windows/
+
+# Auto-generated files (if any)
+autom4te.cache/
+*.cache
