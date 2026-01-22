@@ -1,8 +1,0 @@
-.depend
-Makefile
-Debug
-Release
-*.opt
-*.ncb
-*.plg
-xpscoreserver

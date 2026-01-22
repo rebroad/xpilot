@@ -1,8 +1,9 @@
-/* $Id: checknames.h,v 1.2 2002/09/16 21:24:21 dick Exp $
+/*
+ * XPilotNG, an XPilot-like multiplayer space war game.
  *
- * XPilot, a multiplayer gravity war game.  Copyright (C) 1991-2001 by
+ * Copyright (C) 1991-2001 by
  *
- *      Bjørn Stabell        <bjoern@xpilot.org>
+ *      Bjï¿½rn Stabell        <bjoern@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
  *      Dick Balaska         <dick@xpilot.org>
@@ -19,7 +20,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
 #ifndef CHECKNAMES_H
@@ -28,14 +29,14 @@
 #define NAME_OK		1
 #define NAME_ERROR	0
 
-class String;
+#define PROT_EXT	'~'
 
-int CheckRealName(String& name);
-void FixRealName(String& name);
-int CheckNickName(String& name);
-void FixNickName(String& name);
-int CheckHostName(String& name);
-void FixHostName(String& name);
+int Check_user_name(char *name);
+void Fix_user_name(char *name);
+int Check_nick_name(char *name);
+void Fix_nick_name(char *name);
+int Check_host_name(char *name);
+void Fix_host_name(char *name);
 int Check_disp_name(char *name);
 void Fix_disp_name(char *name);
 

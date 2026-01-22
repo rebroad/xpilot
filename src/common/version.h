@@ -1,11 +1,16 @@
 /* 
+ * XPilotNG, an XPilot-like multiplayer space war game.
  *
- * XPilot, a multiplayer gravity war game.  Copyright (C) 1991-2005 by
+ * Copyright (C) 1991-2004 by
  *
  *      Bjørn Stabell        <bjoern@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
  *      Dick Balaska         <dick@xpilot.org>
+ *      Uoti Urpala          <uau@users.sourceforge.net>
+ *      Juha Lindström       <juhal@users.sourceforge.net>
+ *      Kristian Söderblom   <kps@users.sourceforge.net>
+ *      Erik Andersson       <maximan@users.sourceforge.net>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,25 +24,17 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
 #ifndef	VERSION_H
 #define	VERSION_H
 
-#if defined(__hpux)
-#   pragma COPYRIGHT_DATE	"1991-2005"
-#   pragma COPYRIGHT		"Dick Balaska, Jarrod Miller, Bert Gijsbers, Bjørn Stabell & Ken Ronny Schouten"
-#   pragma VERSIONID		"XPilot 5.0.1a3"
+#define TITLE			"XPilot NG 4.6.3"
+#ifndef VERSION
+#  define VERSION		"4.6.3"
 #endif
-
-#define VERSION			"5.0.1a3"
-#ifdef	_WINDOWS
-#define	TITLE			"5.0.1a3-NT"
-#else
-#define TITLE			"XPilot 5.0.1a3"
-#endif
-#define AUTHORS			"Dick Balaska, Jarrod Miller, Bert Gijsbers, Bjørn Stabell & Ken Ronny Schouten"
-#define COPYRIGHT		"Copyright © 1991-2005 by Dick Balaska, Jarrod Miller, Bert Gijsbers, Bjørn Stabell & Ken Ronny Schouten"
+#define AUTHORS			"Bjørn Stabell, Ken Ronny Schouten, Bert Gijsbers, Dick Balaska, Uoti Urpala, Juha Lindström, Kristian Söderblom and Erik Andersson"
+#define COPYRIGHT		"Copyright © 1991-2004 by Bjørn Stabell, Ken Ronny Schouten, Bert Gijsbers, Dick Balaska, Uoti Urpala, Juha Lindström, Kristian Söderblom and Erik Andersson"
 
 #endif /* VERSION_H */

@@ -1,6 +1,12 @@
-/* $Id: setup.h,v 1.4 2004/04/26 07:07:14 dick Exp $
+/* 
+ * XPilotNG, an XPilot-like multiplayer space war game.
  *
- * XPilot, a multiplayer gravity war game.  Copyright (C) 1991-2001 by
+ * Copyright (C) 2003-2004 by
+ *
+ *      Uoti Urpala          <uau@users.sourceforge.net>
+ *      Kristian Söderblom   <kps@users.sourceforge.net>
+ *
+ * Copyright (C) 1991-2001 by
  *
  *      Bjørn Stabell        <bjoern@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
@@ -19,7 +25,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
 #ifndef SETUP_H
@@ -37,6 +43,7 @@
 
 /*
  * Tell the client how and if the map is compressed.
+ * This is only for client compatibility with the old protocol.
  */
 #define SETUP_MAP_ORDER_XY	1
 #define SETUP_MAP_ORDER_YX	2
@@ -118,27 +125,31 @@ typedef struct {
     long		map_data_len;		/* num. compressed map bytes */
     long		mode;			/* playing mode */
     short		lives;			/* max. number of lives */
-    short		x;			/* width in blocks */
-    short		y;			/* height in blocks */
+    short		x;			/* OLD width in blocks */
+    short		y;			/* OLD height in blocks */
     short		width;			/* width in pixels */
     short		height;			/* height in pixels */
     short		frames_per_second;	/* FPS */
-    short		map_order;		/* row major or col major */
+    short		map_order;		/* OLD row or col major */
+    short		unused1;		/* padding */
     char		name[MAX_CHARS];	/* name of map */
     char		author[MAX_CHARS];	/* name of author of map */
+    char		data_url[MSG_LEN];	/* location where client
+						   can load additional data
+						   like bitmaps; MSG_LEN to
+						   allow >80 chars */
     unsigned char	map_data[4];		/* compressed map data */
     /* plus more mapdata here (HACK) */
 } setup_t;
 
-extern setup_t*		Setup;
-
-
-#ifndef NETSERVER_C
+#ifndef SERVER
 # ifdef FPS
 #  error "FPS needs a different definition in the client"
 #  undef FPS
 # endif
 # define FPS		(Setup->frames_per_second)
+
+extern setup_t *Setup;
 
 #endif
 

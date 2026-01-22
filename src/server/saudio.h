@@ -1,8 +1,9 @@
-/* $Id: saudio.h,v 1.4 2004/05/01 19:21:29 dick Exp $
+/*
+ * XPilotNG, an XPilot-like multiplayer space war game.
  *
- * XPilot, a multiplayer gravity war game.  Copyright (C) 1991-2001 by
+ * Copyright (C) 1991-2001 by
  *
- *      Bjørn Stabell        <bjoern@xpilot.org>
+ *      Bjï¿½rn Stabell        <bjoern@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
  *      Dick Balaska         <dick@xpilot.org>
@@ -19,45 +20,24 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
+
 /* This piece of code was provided by Greg Renda (greg@ncd.com). */
 
-#ifndef _saudio_h
-#define _saudio_h
-
-#if defined(SERVER_SOUND) && !defined(SOUND)
-/* Enable only sound support in the server, not in the client. */
-#define SOUND	1
-#endif
+#ifndef SAUDIO_H
+#define SAUDIO_H
 
 #define SDBG(x)	/*#x*/
 
-#ifndef SOUND
+#include "audio.h"
 
-/*
- * Define like this to avoid having to put #ifdef SOUND all over the place.
- */
-#define SoundPlayerInit(player)		((player)->audio = NULL)
-#define SoundPlayerOnOff(player, onoff)
-#define SoundPlayPlayer(player, index)
-#define SoundPlayAll(w, index)
-#define SoundPlaySensors(w, x, y, index)
-#define SoundPlayQueued(player)
-#define SoundClose(player)
+int		sound_player_init(player_t *);
+void		sound_player_on(player_t *pl, int on);
+void		sound_play_player(player_t *, int);
+void		sound_play_all(int);
+void		sound_play_sensors(clpos_t, int);
+void		sound_play_queued(player_t * pl);
+void		sound_close(player_t * pl);
 
-#else						/* SOUND */
-
-#include "audioDefs.h"
-
-int			SoundPlayerInit(Player *);
-void		SoundPlayerOnOff(Player* pl, int onoff);
-void		SoundPlayPlayer(Player*, int);
-void		SoundPlayAll(World* w, int);
-void		SoundPlaySensors(World* w, DFLOAT, DFLOAT, int);
-void		SoundPlayQueued(Player* pl);
-void		SoundClose(Player* pl);
-
-#endif						/* SOUND */
-
-#endif						/* _saudio_h */
+#endif						/* SAUDIO_H */

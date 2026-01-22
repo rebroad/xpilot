@@ -1,8 +1,9 @@
-/* $Id: astershape.h,v 1.1.1.1 2001/07/04 07:13:41 dick Exp $
+/*
+ * XPilotNG, an XPilot-like multiplayer space war game.
  *
- * XPilot, a multiplayer gravity war game.  Copyright (C) 1991-2001 by
+ * Copyright (C) 1991-2001 by
  *
- *      Bjørn Stabell        <bjoern@xpilot.org>
+ *      Bjï¿½rn Stabell        <bjoern@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
  *      Dick Balaska         <dick@xpilot.org>
@@ -19,11 +20,13 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
 #ifndef ASTERSHAPE_H
 #define ASTERSHAPE_H
+
+#include "types.h"
 
 #define NUM_ASTEROID_SHAPES 2
 #define NUM_ASTEROID_POINTS 12
@@ -37,6 +40,6 @@
       {-10,0}, {-8, 7}, {-4, 9}, { 0,10}, { 5, 7}, { 6, 3}, \
       {10, 0}, { 9,-4}, { 7,-7}, {0,-10}, {-6,-9}, {-9,-7}
 
-extern position *asteroidShapes[NUM_ASTEROID_SHAPES][NUM_ASTEROID_POINTS];
+extern position_t *asteroidShapes[NUM_ASTEROID_SHAPES][NUM_ASTEROID_POINTS];
 
 #endif

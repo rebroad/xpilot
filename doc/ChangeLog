@@ -30,6 +30,7 @@ not be turned on while being cloaked.  Fixed.  Thanks go to Paul Forman.
 
 Kristian Söderblom contributed several important bugfixes.
 
+
 ===============================================================================
 
 This is a summary of changes of release 4.5.4 compared to release 4.5.3.
@@ -62,6 +63,7 @@ Windows installation, at the end of a successful installation, offers
 to launch XPwho (for Internet games) and/or XPilotServer (for local games).
 Hopefully, this will help with newbie installations who start XPilot.exe
 and can't figure out why nothing happens.
+
 
 ===============================================================================
 
@@ -401,10 +403,6 @@ Jarno van der Kolk submitted a version of xp-replay for Windows:
     it doesn't really like the 80 Mb recordings from the summercamp. It CAN
     handle the ballrunrecordings from the various ballrunsites just fine
     though.
-
-Paul Alexander Drees submitted a bugfix for the Windows version of XPilot.
-    It used to be that, if you typed a message, the score window would go 
-    blank until a new set of scores came in.
 
 ===============================================================================
 
@@ -1822,6 +1820,6 @@ Guido Koopman contributed more bug fixes:
     - man pages are outdated
 
 ===============================================================================
-==== $Id: ChangeLog,v 1.7 2004/01/08 18:10:50 dick Exp $
+==== $Id: ChangeLog,v 1.5 2004/01/31 12:32:54 kps Exp $
 ===============================================================================
 

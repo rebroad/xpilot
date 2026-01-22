@@ -1,8 +1,7 @@
-/* $Id: error.h,v 1.8 2005/03/17 22:12:13 kps Exp $
- *
+/*
  * XPilot, a multiplayer gravity war game.  Copyright (C) 1991-2001 by
  *
- *      Bjørn Stabell        <bjoern@xpilot.org>
+ *      Bjï¿½rn Stabell        <bjoern@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
  *      Dick Balaska         <dick@xpilot.org>
@@ -34,42 +33,20 @@
 #ifndef	ERROR_H
 #define	ERROR_H
 
-# if (defined(__STDC__) && !defined(__sun__) || defined(__cplusplus) || defined(_WINDOWS))
-#  include <stdarg.h>
-    extern void warn(const char *fmt, ...);
-    extern void error(const char *fmt, ...);
-    extern void fatal(const char *fmt, ...);
-    extern void dumpcore(const char *fmt, ...);
-# else
-#  include <varargs.h>
-    extern void warn();
-    extern void error();
-    extern void fatal();
-    extern void dumpcore();
-# endif
+#include "xpcommon.h"
+extern void warn(const char *fmt, ...);
+extern void error(const char *fmt, ...);
+extern void fatal(const char *fmt, ...);
+extern void dumpcore(const char *fmt, ...);
 
 #ifdef _WINDOWS
-    extern void WinTrace(const char *fmt, ...);
-#	 ifdef	_DEBUG
-		//#  define	Trace _Trace
-#		ifndef	Trace
-			//typedef const char* LPCTSTR;
-			//void AfxTrace(LPCTSTR lpszFormat, ...);
-#			define	Trace WinTrace
-#		endif
-#	else
-#		define	Trace
-#	endif
-#else
-#	ifdef	_DEBUG
-#		define	Trace	xpprintf
-#	else
-#		define	Trace()
-#	endif
+# ifdef	_DEBUG
+#  define	Trace _Trace
+# else
+#  define	Trace
+# endif
 #endif
 
 extern void init_error(const char *prog);
-
-//extern const char* showtime();
 
 #endif	/* ERROR_H */

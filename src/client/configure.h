@@ -1,8 +1,9 @@
-/* $Id: configure.h,v 1.1.1.1 2001/07/04 07:13:39 dick Exp $
+/*
+ * XPilotNG, an XPilot-like multiplayer space war game.
  *
- * XPilot, a multiplayer gravity war game.  Copyright (C) 1991-2001 by
+ * Copyright (C) 1991-2001 by
  *
- *      Bjørn Stabell        <bjoern@xpilot.org>
+ *      Bjï¿½rn Stabell        <bjoern@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
  *      Dick Balaska         <dick@xpilot.org>
@@ -19,13 +20,18 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
 #ifndef	CONFIGURE_H
 #define	CONFIGURE_H
 
-int Config(bool);
+#define CONFIG_NONE    0
+#define CONFIG_DEFAULT 1
+#define CONFIG_COLORS  2
+
+void Config_init(void);
+int Config(bool, int);
 void Config_redraw(void);
 void Config_resize(void);
 void Config_destroy(void);

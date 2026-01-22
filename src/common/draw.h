@@ -1,8 +1,9 @@
-/* $Id: draw.h,v 1.11 2004/06/03 06:05:36 dick Exp $
+/*
+ * XPilotNG, an XPilot-like multiplayer space war game.
  *
- * XPilot, a multiplayer gravity war game.  Copyright (C) 1991-2001 by
+ * Copyright (C) 1991-2001 by
  *
- *      Bjørn Stabell        <bjoern@xpilot.org>
+ *      Bjï¿½rn Stabell        <bjoern@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
  *      Dick Balaska         <dick@xpilot.org>
@@ -19,47 +20,17 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- *
- *  $Log: draw.h,v $
- *  Revision 1.11  2004/06/03 06:05:36  dick
- *  shipobj becomes ShipObj
- *
- *  Revision 1.10  2004/01/08 18:10:50  dick
- *  Update to XPilot 4.5.5beta
- *
- *  Revision 1.9  2002/08/01 14:57:07  dick
- *  Remove reference to theWorld
- *
- *  Revision 1.8  2002/07/11 16:36:03  dick
- *  Update to XPilot-4.5.4beta
- *
- *  Revision 1.7  2001/10/04 17:33:19  dick
- *  Include file cleanup
- *
- *  Revision 1.6  2001/09/11 07:33:45  dick
- *  Encapsulate all client resources into new class Ini.
- *
- *  Revision 1.5  2001/08/09 07:31:32  dick
- *  shipobj becomes a basic class
- *
- *  Revision 1.4  2001/07/30 01:08:04  dick
- *  Ship parsing uses const(s).
- *
- *  Revision 1.3  2001/07/23 21:08:36  dick
- *  Encapsulate ShipMass, ShotsMax, ShotsLife, ShotsMass, FPS.
- *
- *  Revision 1.2  2001/07/07 12:00:41  dick
- *  Rename classes to C++ "Style".  old World becomes theWorld.
- *
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
 #ifndef	DRAW_H
 #define	DRAW_H
 
+#ifndef TYPES_H
+/* need position */
 #include "types.h"
 #include "const.h"
-#include "cstring.h"
+#endif
 
 /*
  * Abstract (non-display system specific) drawing definitions.
@@ -71,6 +42,7 @@
  * The server supports only 4 colors, except for spark/debris, which
  * may have 8 different colors.
  */
+#define NUM_COLORS	    4
 
 #define BLACK		    0
 #define WHITE		    1
@@ -82,11 +54,11 @@
  * attributes defined.
  */
 #if defined(_WINDOWS) && !defined(PENS_OF_PLENTY)
-#define	CLOAKCOLOROFS	15		/* colors 16 and 17 are dashed white/blue */
-#define	MISSILECOLOR	18		/* wide white pen */
-#define	LASERCOLOR		19		/* wide red pen */
-#define	LASERTEAMCOLOR	20		/* wide blue pen */
-#define	FUNKCOLORS		6		/* 6 funky colors here (15-20) */
+#define	CLOAKCOLOROFS	15	/* colors 16 and 17 are dashed white/blue */
+#define	MISSILECOLOR	18	/* wide white pen */
+#define	LASERCOLOR	19	/* wide red pen */
+#define	LASERTEAMCOLOR	20	/* wide blue pen */
+#define	FUNKCOLORS	6	/* 6 funky colors here (15-20) */
 #endif
 
 /*
@@ -96,14 +68,24 @@
 #define MAX_VIEW_SIZE	    1024
 #define DEF_VIEW_SIZE	    768
 
+/*
+ * Spark rand limits.
+ */
+#define MIN_SPARK_RAND	    0		/* Not display spark */
+#define MAX_SPARK_RAND	    0x80	/* Always display spark */
+#define DEF_SPARK_RAND	    0x55	/* 66% */
+
 #define DSIZE		    4	    /* Size of diamond (on radar) */
 
-#define MSG_DURATION	    1024
-#define MSG_FLASH	    892
+#define	UPDATE_SCORE_DELAY	(FPS)
 
-#define TITLE_DELAY	    500
-#define	UPDATE_SCORE_DELAY  (GetFPS())
-#define CONTROL_DELAY	    100
+/*
+ * Polygon style flags
+ */
+#define STYLE_FILLED          (1U << 0)
+#define STYLE_TEXTURED        (1U << 1)
+#define STYLE_INVISIBLE       (1U << 2)
+#define STYLE_INVISIBLE_RADAR (1U << 3)
 
 /*
  * Please don't change any of these maxima.
@@ -111,49 +93,165 @@
  */
 #define MIN_SHIP_PTS	    3
 #define MAX_SHIP_PTS	    24
+/* SSHACK needs to double the vertices */
+#define MAX_SHIP_PTS2	    (MAX_SHIP_PTS * 2)
 #define MAX_GUN_PTS	    3
 #define MAX_LIGHT_PTS	    3
 #define MAX_RACK_PTS	    4
 
-class ShipObj {			/* Defines wire-obj, i.e. ship */
-public:
-	ShipObj();
-    position	*pts[MAX_SHIP_PTS];	/* the shape rotated many ways */
+/* kps - moved here from server/click.h */
+typedef int click_t;
+
+typedef struct {
+    click_t		cx, cy;
+} clpos_t;
+
+#define CLICK_SHIFT		6
+#define CLICK			(1 << CLICK_SHIFT)
+#define PIXEL_CLICKS		CLICK
+#define BLOCK_CLICKS		(BLOCK_SZ << CLICK_SHIFT)
+#define CLICK_TO_PIXEL(C)	((int)((C) >> CLICK_SHIFT))
+#define CLICK_TO_BLOCK(C)	((int)((C) / (BLOCK_SZ << CLICK_SHIFT)))
+#define CLICK_TO_FLOAT(C)	((double)(C) * (1.0 / CLICK))
+#define PIXEL_TO_CLICK(I)	((click_t)(I) << CLICK_SHIFT)
+#define FLOAT_TO_CLICK(F)	((int)((F) * CLICK))
+
+/* clk used on server, pxl on client */
+typedef union {
+    clpos_t clk;
+    position_t pxl;
+} shapepos_t;
+
+typedef struct {
+    shapepos_t	*pts[MAX_SHIP_PTS2];	/* the shape rotated many ways */
     int		num_points;		/* total points in object */
-    position	engine[RES];		/* Engine position */
-    position	m_gun[RES];		/* Main gun position */
+    int		num_orig_points;	/* points before SSHACK */
+    shapepos_t	cashed_pts[MAX_SHIP_PTS2];
+    int		cashed_dir;
+} shape_t;
+
+typedef struct {			/* Defines wire-obj, i.e. ship */
+    shapepos_t	*pts[MAX_SHIP_PTS2];	/* the shape rotated many ways */
+    int		num_points;		/* total points in object */
+    int		num_orig_points;	/* points before SSHACK */
+    shapepos_t	cashed_pts[MAX_SHIP_PTS2];
+    int		cashed_dir;
+
+    shapepos_t	engine[RES];		/* Engine position */
+    shapepos_t	m_gun[RES];		/* Main gun position */
     int		num_l_gun,
 		num_r_gun,
 		num_l_rgun,
 		num_r_rgun;		/* number of additional cannons */
-    position	*l_gun[MAX_GUN_PTS],	/* Additional cannon positions, left*/
+    shapepos_t	*l_gun[MAX_GUN_PTS],	/* Additional cannon positions, left*/
 		*r_gun[MAX_GUN_PTS],	/* Additional cannon positions, right*/
 		*l_rgun[MAX_GUN_PTS],	/* Additional rear cannon positions, left*/
 		*r_rgun[MAX_GUN_PTS];	/* Additional rear cannon positions, right*/
     int		num_l_light,		/* Number of lights */
 		num_r_light;
-    position	*l_light[MAX_LIGHT_PTS], /* Left and right light positions */
+    shapepos_t	*l_light[MAX_LIGHT_PTS], /* Left and right light positions */
 		*r_light[MAX_LIGHT_PTS];
     int		num_m_rack;		/* Number of missile racks */
-    position	*m_rack[MAX_RACK_PTS];
+    shapepos_t	*m_rack[MAX_RACK_PTS];
     int		shield_radius;		/* Radius of shield used by client. */
 
-    String	name;
-    String	author;
-};
+#ifdef	_NAMEDSHIPS
+    char*	name;
+    char*	author;
+#endif
+} shipshape_t;
 
-extern ShipObj*	Default_ship(void);
-extern void		Free_ship_shape(ShipObj* w);
-extern ShipObj*	Parse_shape_str(PCSTR str);
-extern ShipObj*	Convert_shape_str(PCSTR str);
-extern void		Calculate_shield_radius(ShipObj* w);
-extern int		Validate_shape_str(PCSTR str);
-extern void		Convert_ship_2_string(ShipObj* w, char* buf, char *ext,
+extern shipshape_t *Default_ship(void);
+extern void Free_ship_shape(shipshape_t *ship);
+extern shipshape_t *Parse_shape_str(char *str);
+extern shipshape_t *Convert_shape_str(char *str);
+extern void Calculate_shield_radius(shipshape_t *ship);
+extern int Validate_shape_str(char *str);
+extern void Convert_ship_2_string(shipshape_t *ship, char *buf, char *ext,
 				  unsigned shape_version);
-void Rotate_point(position pt[RES]);
+extern void Rotate_point(shapepos_t pt[RES]);
+extern void Rotate_position(position_t pt[RES]);
+extern shapepos_t ipos2shapepos(ipos_t pos);
+extern position_t shapepos2position(shapepos_t pt);
+extern shapepos_t *Shape_get_points(shape_t *s, int dir);
 
-extern double rfrac(void);
+shapepos_t Ship_get_point(shipshape_t *ship, int i, int dir);
+shapepos_t Ship_get_engine(shipshape_t *ship, int dir);
+shapepos_t Ship_get_m_gun(shipshape_t *ship, int dir);
+shapepos_t Ship_get_l_gun(shipshape_t *ship, int gun, int dir);
+shapepos_t Ship_get_r_gun(shipshape_t *ship, int gun, int dir);
+shapepos_t Ship_get_l_rgun(shipshape_t *ship, int gun, int dir);
+shapepos_t Ship_get_r_rgun(shipshape_t *ship, int gun, int dir);
+shapepos_t Ship_get_l_light(shipshape_t *ship, int l, int dir);
+shapepos_t Ship_get_r_light(shipshape_t *ship, int l, int dir);
+shapepos_t Ship_get_m_rack(shipshape_t *ship, int rack, int dir);
 
-extern int mod(int x, int y);
+position_t Ship_get_point_position(shipshape_t *ship, int i, int dir);
+position_t Ship_get_engine_position(shipshape_t *ship, int dir);
+position_t Ship_get_m_gun_position(shipshape_t *ship, int dir);
+position_t Ship_get_l_gun_position(shipshape_t *ship, int gun, int dir);
+position_t Ship_get_r_gun_position(shipshape_t *ship, int gun, int dir);
+position_t Ship_get_l_rgun_position(shipshape_t *ship, int gun, int dir);
+position_t Ship_get_r_rgun_position(shipshape_t *ship, int gun, int dir);
+position_t Ship_get_l_light_position(shipshape_t *ship, int l, int dir);
+position_t Ship_get_r_light_position(shipshape_t *ship, int l, int dir);
+position_t Ship_get_m_rack_position(shipshape_t *ship, int rack, int dir);
+
+#ifdef SERVER
+
+static inline clpos_t Ship_get_point_clpos(shipshape_t *ship, int i, int dir)
+{
+    return Ship_get_point(ship, i, dir).clk;
+}
+
+static inline clpos_t Ship_get_engine_clpos(shipshape_t *ship, int dir)
+{
+    return Ship_get_engine(ship, dir).clk;
+}
+static inline clpos_t Ship_get_m_gun_clpos(shipshape_t *ship, int dir)
+{
+    return Ship_get_m_gun(ship, dir).clk;
+}
+static inline clpos_t Ship_get_l_gun_clpos(shipshape_t *ship, int gun, int dir)
+{
+    return Ship_get_l_gun(ship, gun, dir).clk;
+}
+static inline clpos_t Ship_get_r_gun_clpos(shipshape_t *ship, int gun, int dir)
+{
+    return Ship_get_r_gun(ship, gun, dir).clk;
+}
+static inline clpos_t Ship_get_l_rgun_clpos(shipshape_t *ship, int gun, int dir)
+{
+    return Ship_get_l_rgun(ship, gun, dir).clk;
+}
+static inline clpos_t Ship_get_r_rgun_clpos(shipshape_t *ship, int gun, int dir)
+{
+    return Ship_get_r_rgun(ship, gun, dir).clk;
+}
+static inline clpos_t Ship_get_l_light_clpos(shipshape_t *ship, int l, int dir)
+{
+    return Ship_get_l_light(ship, l, dir).clk;
+}
+static inline clpos_t Ship_get_r_light_clpos(shipshape_t *ship, int l, int dir)
+{
+    return Ship_get_r_light(ship, l, dir).clk;
+}
+static inline clpos_t Ship_get_m_rack_clpos(shipshape_t *ship, int rack, int dir)
+{
+    return Ship_get_m_rack(ship, rack, dir).clk;
+}
+
+#endif
+
+void Ship_set_point(shipshape_t *ship, int i, ipos_t pos);
+void Ship_set_engine(shipshape_t *ship, ipos_t pos);
+void Ship_set_m_gun(shipshape_t *ship, ipos_t pos);
+void Ship_set_l_gun(shipshape_t *ship, int i, ipos_t pos);
+void Ship_set_r_gun(shipshape_t *ship, int i, ipos_t pos);
+void Ship_set_l_rgun(shipshape_t *ship, int i, ipos_t pos);
+void Ship_set_r_rgun(shipshape_t *ship, int i, ipos_t pos);
+void Ship_set_l_light(shipshape_t *ship, int i, ipos_t pos);
+void Ship_set_r_light(shipshape_t *ship, int i, ipos_t pos);
+void Ship_set_m_rack(shipshape_t *ship, int i, ipos_t pos);
 
 #endif

@@ -1,8 +1,8 @@
-/* $Id: winBitmap.h,v 1.2 2004/01/06 04:48:27 dick Exp $
+/*
  *
  * XPilot, a multiplayer gravity war game.  Copyright (C) 1991-2001 by
  *
- *      Bjørn Stabell        <bjoern@xpilot.org>
+ *      Bjï¿½rn Stabell        <bjoern@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
  *      Dick Balaska         <dick@xpilot.org>
@@ -24,16 +24,16 @@
 #ifndef WINBITMAP_H
 #define WINBITMAP_H
 #include "../gfx2d.h"
-#include "../blockbitmaps.h"
-extern void PaintBitmap(Drawable d, int type, int x, int y, 
+#include "../bitmaps.h"
+extern void PaintBitmap(Drawable d, int type, int x, int y,
 			int width, int height, int number);
 
-void Block_bitmap_set_pixel(xp_pixmap_t *xp_pixmap, int image, 
+void Block_bitmap_set_pixel(xp_pixmap_t * xp_pixmap, int image,
 			    int x, int y, RGB_COLOR color);
 void Block_bitmap_paint(Drawable d, int type, int x, int y, int width,
-			int height, int number); 
-void Block_bitmap_create_begin(Drawable d, xp_pixmap_t *xp_pixmap, int image,
-			 int width, int height);
+			int height, int number);
+void Block_bitmap_create_begin(Drawable d, xp_pixmap_t * xp_pixmap,
+			       int image, int width, int height);
 void Block_bitmap_create_end(Drawable d);
 
 

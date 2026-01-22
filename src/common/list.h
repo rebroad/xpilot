@@ -1,8 +1,9 @@
-/* $Id: list.h,v 1.1.1.1 2001/07/04 07:13:42 dick Exp $
+/*
+ * XPilotNG, an XPilot-like multiplayer space war game.
  *
- * XPilot, a multiplayer gravity war game.  Copyright (C) 1991-2001 by
+ * Copyright (C) 1991-2001 by
  *
- *      Bjørn Stabell        <bjoern@xpilot.org>
+ *      Bjï¿½rn Stabell        <bjoern@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
  *      Dick Balaska         <dick@xpilot.org>
@@ -19,11 +20,11 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#ifndef LIST_H_INCLUDED
-#define LIST_H_INCLUDED
+#ifndef LIST_H
+#define LIST_H
 
 /*
  * A double linked list similar to the STL list, but implemented in C.
@@ -64,7 +65,7 @@ list_iter_t	List_erase_range(list_t alist, list_iter_t first, list_iter_t last);
 
 /* insert a new element into the list at position
  * and return the new position or NULL on failure. */
-list_iter_t	List_insert(list_t alist, list_iter_t position, void *element);
+list_iter_t	List_insert(list_t alist, list_iter_t pos, void *element);
 
 /* remove the first element from the list and return a pointer to it. */
 void*		List_pop_front(list_t);

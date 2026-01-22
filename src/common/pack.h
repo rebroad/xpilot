@@ -1,8 +1,11 @@
-/* $Id: pack.h,v 1.19 2007/02/12 07:49:02 dick Exp $
+/*
+ * XPilotNG, an XPilot-like multiplayer space war game.
  *
- * XPilot, a multiplayer gravity war game.  Copyright (C) 1991-2001 by
+ * Copyright (C) 2000-2004 Uoti Urpala <uau@users.sourceforge.net>
  *
- *      Bjørn Stabell        <bjoern@xpilot.org>
+ * Copyright (C) 1991-2001 by
+ *
+ *      Bjï¿½rn Stabell        <bjoern@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
  *      Dick Balaska         <dick@xpilot.org>
@@ -19,40 +22,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- */
-/*
- * $Log: pack.h,v $
- * Revision 1.19  2007/02/12 07:49:02  dick
- * Define PKT_ROBOT_WATCHDECO which displays stuff on the playfield.  Bump version to 0x5011.
- *
- * Revision 1.18  2007/01/18 20:59:42  dick
- * Increase MAX_RELIABLE_DATA_PACKET_SIZE from 1024 to 2048
- * to accomodate the RobotWatch messages which can be big.
- * Will this break backwards compatibility?
- *
- * Revision 1.17  2007/01/17 08:56:27  dick
- * 5010 supports PKT_ROBOT_WATCH
- *
- * Revision 1.16  2004/05/23 23:52:07  dick
- * src/common/IniClient.Defaults.cpp
- *
- * Revision 1.15  2004/04/21 23:21:16  dick
- * Define the SCORE_SERVER_PORT and E_UNKNOWNCTL
- *
- * Revision 1.14  2004/02/16 14:30:16  dick
- * server/sched.cpp and friends become serverlib/NetServer
- * which disconnects the udp listen and receive functionality from the game.
- *
- * Revision 1.13  2004/01/08 18:31:17  dick
- * Return E_TOOMANYIPS if that is the case.
- *
- * Revision 1.12  2002/09/09 23:28:47  dick
- * define E_NOTLOCAL, error trying to connect a localctl to an non-local server.
- *
- * Revision 1.11  2002/09/01 00:12:53  dick
- * note that version 0x5000 also supports client cookies.
- *
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
 #ifndef	PACK_H
@@ -60,10 +30,7 @@
 
 #define CAP_LETTER(c)	((c) = ((c)>='a' && (c)<='z') ? (c)-'a'+'A' : (c))
 
-#define SERVER_PORT			15345		/* Port which server listens to. */
-#define SERVER_PORT_STR	   "15345"		/* ASCII version of server port. */
-#define	SCORE_SERVER_PORT	15346		// ScoreServer listen port
-
+#define SERVER_PORT	15345		/* Port which server listens to. */
 
 /*
  * Magic contact word.
@@ -79,46 +46,35 @@
  * justifying an increment of the version word then please
  * set the 4th bit.  Like 0x3108 and 0x3109 till 0x310F, etc.
  * This way we can use the lower 8 values for public releases.
- *   3           2            1           0
- *  1098 7654 3210 9876 5432 1098 7654 3210
- *  |--| |--| |--| |--| |--- ---- ---- ---|
- *   m    m    p    w            m
- *   a    i    a    h            a
- *   j    n    t    a            g
- *   o    o    c    t            i
- *   r    r    h    ?            c
- *  
  *
  * Reasons why it changed in the past:
- * 3.0.1:   Rewrite of contact pack protocol, because of different structure
- *          layout rules on different architectures.
- * 3.0.2:   Rewrite of setup transmit from server to client to
- *          make it possible for 64-bit machines and 32-bit machines
- *          to join in the same game.  This was the last hardcoded
- *          structure that was shared between client and server.
- * 3.0.3:   Implemented a version awareness system, so that
- *          newer clients can join older servers and so that
- *          newer servers can support older clients.
- *          The client maintains a `version' variable indicating
- *          the version of the server it has joined and the server
- *          maintains for each connection a `connection_t->version'
- *          and a `player->version' variable.
- * 3.0.4:   The so-called `pizza-mode' introduced a new packet type.
- *          The score packet now also includes pl->mychar.
- * 3.0.4.1: New laser weapon introduces another packet change.
- *          Because there is an unofficial (and forbidden) 3.0.4 version
- *          floating around the sub patchlevel number is used to distinguish 
- *          versions.
- *          A new display packet to tell the server what the view sizes are
- *          and how many different debris intensities the client wants.
- * 3.0.4.2: New player-self status byte in self packet.
- * 3.0.4.3: Different and incompatible laser packet.
- *          New eyes packet to tell the client through wich players eyes we're
- *          looking through in case the client is in game over move and it is
- *          locked on someone else.
+ * 3.0.1: rewrite of contact pack protocol, because of
+ * different structure layout rules on different architectures.
+ * 3.0.2: rewrite of setup transmit from server to client to
+ * make it possible for 64-bit machines and 32-bit machines
+ * to join in the same game.  This was the last hardcoded
+ * structure that was shared between client and server.
+ * 3.0.3: implemented a version awareness system, so that
+ * newer clients can join older servers and so that
+ * newer servers can support older clients.
+ * The client maintains a `version' variable indicating
+ * the version of the server it has joined and the server
+ * maintains for each connection a `connection_t->version'
+ * and a `player->version' variable.
+ * 3.0.4: the so-called `pizza-mode' introduced a new packet type.
+ * The score packet now also includes pl->mychar.
+ * 3.0.4.1: new laser weapon introduces another packet change.
+ * Because there is an unofficial (and forbidden) 3.0.4 version floating
+ * around the sub patchlevel number is used to distinguish versions.
+ * A new display packet to tell the server what the view sizes are
+ * and how many different debris intensities the client wants.
+ * 3.0.4.2: new player-self status byte in self packet.
+ * 3.0.4.3: different and incompatible laser packet.
+ * New eyes packet to tell the client through wich players eyes we're
+ * looking through in case the client is in game over move and it is locked
+ * on someone else.
  * 3.1.0.0: new big patches implementing loads of new incompatible features.
- *          Major cleanup.  Old clients (before 310) can't join new servers
- *          anymore.
+ * Major cleanup.  Old clients (before 310) can't join new servers anymore.
  * 3.1.0.1: key-change-ids are now send as longs instead of bytes.
  * 3.1.0.2: different player status byte.
  * 3.1.0.3: different mine packet.
@@ -133,8 +89,7 @@
  * 3.3.2.0: Map decorations.
  * 3.4.0.0: Lose/drop item key.
  * 3.5.0.0: Player waiting queue.
- * 3.8.0.0: new items (deflector, hyperjump, phasing), keyboardsize and
- *          rounddelay.
+ * 3.8.0.0: new items (deflector, hyperjump, phasing), keyboardsize and rounddelay.
  * 4.1.0.0: new item (mirror).
  * 4.2.0.0: new power/turnspeed behavior
  * 4.2.0.1: new item (armor).
@@ -146,14 +101,20 @@
  * 4.4.0.1: fast radar packet
  * 4.5.0.0: new team score packet; score packet made larger to send decimals
  * 4.5.0.1: temporary wormholes
- * 5.0.0.0: XPilot5. New server control tool.  Player notification when
- *          someone's eyes change.  client cookies.  server programable client
- *          scoretable.
- * 5.0.1.0: Robot Watch packet.
- *          Increase MAX_RELIABLE_DATA_PACKET_SIZE from 1024 to 2048
- * 5.0.1.1: Robot WatchDeco packet. (Puts Robot logic as objects on the playfield.)
+
+ * Polygon branch
+ * 4.F.0.9: 4.3.0.0 + xp2 map format
+ * 4.F.1.0: Send_player(): Additional %c (1 when sending player's own info).
+ * 4.F.1.1: support for everything in 4.5.0.1
+ * 4.F.1.2: Show ships about to appear on bases, new team change packet.
+ * 4.F.1.3: cumulative turning
+ * 4.F.1.4: balls use polygon styles
  */
-#define	MAGIC		0x5011F4ED
+#ifdef SERVER
+#define	MAGIC		(is_polygon_map ? 0x4F14F4ED : 0x4501F4ED)
+#else
+#define	MAGIC		0x4F14F4ED
+#endif
 
 #define MAGIC2VERSION(M)	(((M) >> 16) & 0xFFFF)
 #define VERSION2MAGIC(V)	((((V) & 0xFFFF) << 16) | (MAGIC & 0xFFFF))
@@ -162,14 +123,26 @@
 /*
  * Which client versions can join this server.
  */
-#define MIN_CLIENT_VERSION	0x3103
+#ifdef SERVER
+#define MIN_CLIENT_VERSION	0x4203
 #define MAX_CLIENT_VERSION	MY_VERSION
+#endif
 
 /*
  * Which server versions can this client join.
  */
-#define MIN_SERVER_VERSION	0x3103
+#define MIN_SERVER_VERSION	0x4F09
 #define MAX_SERVER_VERSION	MY_VERSION
+
+/*
+ * We want to keep support for servers using the old map format in the client,
+ * but make incompatible changes while developing the new format. Therefore
+ * there is a separate "old" range of allowed servers.
+ */
+#define MIN_OLD_SERVER_VERSION  0x4203
+#define MAX_OLD_SERVER_VERSION  0x4501
+/* Which old-style (non-polygon) protocol version we support. */
+#define COMPATIBILITY_MAGIC 0x4501F4ED
 
 #define	MAX_STR_LEN		4096
 #define	MAX_DISP_LEN		80
@@ -184,44 +157,33 @@
 #define	REPLY_pack		0x10
 #define	REPORT_STATUS_pack	0x21
 #define	OPTION_LIST_pack	0x28
-//#define	CORE_pack		0x30		// DIK: not used?
+/*#define	CORE_pack		0x30*/
 #define	CONTACT_pack		0x31
-#define	CONNECT_CTL_pack	0x32
-
 /* The owner-only commands have a common bit high. */
 #define PRIVILEGE_PACK_MASK	0x40
 #define	LOCK_GAME_pack		0x62
 #define	MESSAGE_pack		0x63
 #define	SHUTDOWN_pack		0x64
 #define	KICK_PLAYER_pack	0x65
-#define	MAX_ROBOT_pack		0x66
+/*#define	MAX_ROBOT_pack		0x66*/
 #define	OPTION_TUNE_pack	0x67
 #define	CREDENTIALS_pack	0x69
-#define	PASSWORD_pack		0x6B
 
 /*
  * Possible error codes returned.
  */
-#define	SUCCESS			0x00		/* Operation successful */
-#define	E_SUCCESS		0x00
-#define	E_NOT_OWNER		0x01		/* Permission denied, not owner */
-#define	E_GAME_FULL		0x02		/* Game is full, play denied */
-#define	E_TEAM_FULL		0x03		/* Team is full, play denied */
+#define	SUCCESS		0x00		/* Operation successful */
+#define	E_NOT_OWNER	0x01		/* Permission denied, not owner */
+#define	E_GAME_FULL	0x02		/* Game is full, play denied */
+#define	E_TEAM_FULL	0x03		/* Team is full, play denied */
 #define	E_TEAM_NOT_SET	0x04		/* Need to specify a team */
 #define	E_GAME_LOCKED	0x05		/* Game is locked, entry denied */
-#define	E_NOT_FOUND		0x07		/* Player was not found */
-#define	E_IN_USE		0x08		/* Name is already in use */
-#define	E_SOCKET		0x09		/* Can't setup socket */
-#define	E_INVAL			0x0A		/* Invalid input parameters */
-#define	E_VERSION		0x0C		/* Incompatible version */
-#define	E_NOENT			0x0D		/* No such variable */
-#define	E_PASSWORD		0x0E		/* wrong password */
-#define	E_SERVER		0x0F		/* Server made a boo boo */
-#define	E_UNDEFINED		0x10		/* Operation undefined */
-#define	E_SCOREALREADY	0x11		/* Already have a score server attached */
-#define	E_SCORENOTOK	0x12		/* No score server allowed */
-#define	E_NOTLOCAL		0x13		/* tried to connect a localctl from not 127.0.0.1 */
-#define	E_TOOMANYIPS	0x14		/* Max number of connections from a client exceeded */
-#define	E_UNKNOWNCTL	0x15		/* Unknown control type */
+#define	E_NOT_FOUND	0x07		/* Player was not found */
+#define	E_IN_USE	0x08		/* Name is already in use */
+#define	E_SOCKET	0x09		/* Can't setup socket */
+#define	E_INVAL		0x0A		/* Invalid input parameters */
+#define	E_VERSION	0x0C		/* Incompatible version */
+#define	E_NOENT		0x0D		/* No such variable */
+#define	E_UNDEFINED	0x0E		/* Operation undefined */
 
 #endif

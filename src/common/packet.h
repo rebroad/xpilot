@@ -1,8 +1,9 @@
-/* $Id: packet.h,v 1.12 2007/02/12 07:49:02 dick Exp $
+/*
+ * XPilotNG, an XPilot-like multiplayer space war game.
  *
- * XPilot, a multiplayer gravity war game.  Copyright (C) 1991-2001 by
+ * Copyright (C) 1991-2001 by
  *
- *      Bjørn Stabell        <bjoern@xpilot.org>
+ *      Bjï¿½rn Stabell        <bjoern@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
  *      Dick Balaska         <dick@xpilot.org>
@@ -19,35 +20,11 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- *
- * $Log: packet.h,v $
- * Revision 1.12  2007/02/12 07:49:02  dick
- * Define PKT_ROBOT_WATCHDECO which displays stuff on the playfield.  Bump version to 0x5011.
- *
- * Revision 1.11  2007/01/18 20:59:42  dick
- * Increase MAX_RELIABLE_DATA_PACKET_SIZE from 1024 to 2048
- * to accomodate the RobotWatch messages which can be big.
- * Will this break backwards compatibility?
- *
- * Revision 1.10  2007/01/17 08:56:53  dick
- * PKT_ROBOT_WATCH sends brain strings to the client
- *
- * Revision 1.9  2004/05/23 23:52:07  dick
- * src/common/IniClient.Defaults.cpp
- *
- * Revision 1.8  2004/04/26 07:07:14  dick
- * Define a list of pages that can be displayed on the ScoreTable in the client.
- * Each page can be controlled by the server (and the server admin tool).
- *
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
 #ifndef PACKET_H
 #define PACKET_H
-
-//#define MAX_RELIABLE_DATA_PACKET_SIZE	1024
-#define MAX_RELIABLE_DATA_PACKET_SIZE	2048
-
 
 /* before version 3.8.0 this was 8 bytes. */
 #define KEYBOARD_SIZE		9
@@ -57,112 +34,112 @@
  */
 
 /* packet types: 0 - 9 */
-#define PKT_UNDEFINED		 0	// 00
-#define PKT_VERIFY			 1	// 01
-#define PKT_REPLY			 2	// 02
-#define PKT_PLAY			 3	// 03
-#define PKT_QUIT			 4	// 04
-#define PKT_MESSAGE			 5	// 05
-#define PKT_START			 6	// 06
-#define PKT_END				 7	// 07
-#define PKT_SELF			 8	// 08
-#define PKT_DAMAGED			 9	// 09
+#define PKT_UNDEFINED		0
+#define PKT_VERIFY		1
+#define PKT_REPLY		2
+#define PKT_PLAY		3
+#define PKT_QUIT		4
+#define PKT_MESSAGE		5
+#define PKT_START		6
+#define PKT_END			7
+#define PKT_SELF		8
+#define PKT_DAMAGED		9
 
 /* packet types: 10 - 19 */
-#define PKT_CONNECTOR		10	// 0A
-#define PKT_REFUEL			11	// 0B
-#define PKT_SHIP			12	// 0C
-#define PKT_ECM				13	// 0D
-#define PKT_PAUSED			14	// 0E
-#define PKT_ITEM			15	// 0F
-#define PKT_MINE			16	// 10
-#define PKT_BALL			17	// 11
-#define PKT_MISSILE			18	// 12
-#define PKT_SHUTDOWN		19	// 13
+#define PKT_CONNECTOR		10
+#define PKT_REFUEL		11
+#define PKT_SHIP		12
+#define PKT_ECM			13
+#define PKT_PAUSED		14
+#define PKT_ITEM		15
+#define PKT_MINE		16
+#define PKT_BALL		17
+#define PKT_MISSILE		18
+#define PKT_SHUTDOWN		19
 
 /* packet types: 20 - 29 */
-#define PKT_STRING			20	// 14
-#define PKT_DESTRUCT		21	// 15
-#define PKT_RADAR			22	// 16
-#define PKT_TARGET			23	// 17
-#define PKT_KEYBOARD		24	// 18
-#define PKT_SEEK			25	// 19
-#define PKT_SELF_ITEMS		26	// 1A /* still under development */
-#define PKT_TEAM_SCORE		27	// 1B /* was PKT_SEND_BUFSIZE */
-#define PKT_PLAYER			28	// 1C
-#define PKT_SCORE			29	// 1D
+#define PKT_STRING		20
+#define PKT_DESTRUCT		21
+#define PKT_RADAR		22
+#define PKT_TARGET		23
+#define PKT_KEYBOARD		24
+#define PKT_SEEK		25
+#define PKT_SELF_ITEMS		26	/* still under development */
+#define PKT_TEAM_SCORE		27	/* was PKT_SEND_BUFSIZE */
+#define PKT_PLAYER		28
+#define PKT_SCORE		29
 
 /* packet types: 30 - 39 */
-#define PKT_FUEL			30	// 1E
-#define PKT_BASE			31	// 1F
-#define PKT_CANNON			32	// 20
-#define PKT_LEAVE			33	// 21
-#define PKT_POWER			34	// 22
-#define PKT_POWER_S			35	// 23
-#define PKT_TURNSPEED		36	// 24
-#define PKT_TURNSPEED_S		37	// 25
-#define PKT_TURNRESISTANCE	38	// 26
-#define PKT_TURNRESISTANCE_S 39	// 27
+#define PKT_FUEL		30
+#define PKT_BASE		31
+#define PKT_CANNON		32
+#define PKT_LEAVE		33
+#define PKT_POWER		34
+#define PKT_POWER_S		35
+#define PKT_TURNSPEED		36
+#define PKT_TURNSPEED_S		37
+#define PKT_TURNRESISTANCE	38
+#define PKT_TURNRESISTANCE_S	39
 
 /* packet types: 40 - 49 */
-#define PKT_WAR				40	// 28
-#define PKT_MAGIC			41	// 29
-#define PKT_RELIABLE		42	// 2A
-#define PKT_ACK				43	// 2B
-#define PKT_FASTRADAR		44	// 2C
-#define PKT_TRANS			45	// 2D
-#define PKT_ACK_CANNON		46	// 2E
-#define PKT_ACK_FUEL		47	// 2F
-#define PKT_ACK_TARGET		48	// 30
-#define	PKT_SCORE_OBJECT	49	// 31
+#define PKT_WAR			40
+#define PKT_MAGIC		41
+#define PKT_RELIABLE		42
+#define PKT_ACK			43
+#define PKT_FASTRADAR		44
+#define PKT_TRANS		45
+#define PKT_ACK_CANNON		46
+#define PKT_ACK_FUEL		47
+#define PKT_ACK_TARGET		48
+#define	PKT_SCORE_OBJECT	49
 
 /* packet types: 50 - 59 */
-#define PKT_AUDIO			50	// 32
-#define PKT_TALK			51	// 33
-#define PKT_TALK_ACK		52	// 34
-#define PKT_TIME_LEFT		53	// 35
-#define PKT_LASER			54	// 36
-#define PKT_DISPLAY			55	// 37
-#define PKT_EYES			56	// 38
-#define PKT_SHAPE			57	// 39
-#define PKT_MOTD			58	// 3A
-#define PKT_LOSEITEM		59	// 3B
+#define PKT_AUDIO		50
+#define PKT_TALK		51
+#define PKT_TALK_ACK		52
+#define PKT_TIME_LEFT		53
+#define PKT_LASER		54
+#define PKT_DISPLAY		55
+#define PKT_EYES		56
+#define PKT_SHAPE		57
+#define PKT_MOTD		58
+#define PKT_LOSEITEM		59
 
 /* packet types: 60 - 69 */
-#define PKT_AUDIO2			60	// 3C
-#define PKT_NOT_USED_61		61	// 3D
-#define PKT_NOT_USED_62		62	// 3E
-#define PKT_NOT_USED_63		63	// 3F
-#define PKT_NOT_USED_64		64	// 40
-#define PKT_NOT_USED_65		65	// 41
-#define PKT_NOT_USED_66		66	// 42
-#define PKT_NOT_USED_67		67	// 43
-#define PKT_MODIFIERS		68	// 44
-#define PKT_FASTSHOT		69	// 45 /* replaces SHOT/TEAMSHOT */
+#define PKT_APPEARING		60
+#define PKT_TEAM		61
+#define PKT_NOT_USED_62		62
+#define PKT_NOT_USED_63		63
+#define PKT_NOT_USED_64		64
+#define PKT_NOT_USED_65		65
+#define PKT_NOT_USED_66		66
+#define PKT_NOT_USED_67		67
+#define PKT_MODIFIERS		68
+#define PKT_FASTSHOT		69	/* replaces SHOT/TEAMSHOT */
 
 /* packet types: 70 - 79 */
-#define PKT_THRUSTTIME		70	// 46
-#define PKT_MODIFIERBANK	71	// 47
-#define PKT_SHIELDTIME		72	// 48
-#define PKT_POINTER_MOVE	73	// 49
-#define PKT_REQUEST_AUDIO	74	// 4A
-#define PKT_ASYNC_FPS		75	// 4B
-#define PKT_TIMING			76	// 4C
-#define PKT_PHASINGTIME		77	// 4D
-#define PKT_ROUNDDELAY		78	// 4E
-#define PKT_WRECKAGE		79	// 4F
+#define PKT_THRUSTTIME		70
+#define PKT_MODIFIERBANK	71
+#define PKT_SHIELDTIME		72
+#define PKT_POINTER_MOVE	73
+#define PKT_REQUEST_AUDIO	74
+#define PKT_ASYNC_FPS		75
+#define PKT_TIMING		76
+#define PKT_PHASINGTIME		77
+#define PKT_ROUNDDELAY		78
+#define PKT_WRECKAGE		79
 
 /* packet types: 80 - 89 */
-#define PKT_ASTEROID		80	// 50
-#define PKT_WORMHOLE		81	// 51
-#define PKT_CTL				82	// 52
-#define PKT_NOP				83	// 53	/* Keep alive ping no-op */
-#define PKT_COOKIE			84	// 54
-#define PKT_SCORE_TABLE		85	// 55
-#define PKT_ROBOT_WATCH		86	// 56
-#define PKT_ROBOT_WATCHDECO	87	// 57
-#define PKT_NOT_USED_88		88	// 58
-#define PKT_NOT_USED_89		89	// 59
+#define PKT_ASTEROID		80
+#define PKT_WORMHOLE		81
+#define PKT_NOT_USED_82		82
+#define PKT_NOT_USED_83		83
+#define PKT_NOT_USED_84		84
+#define PKT_NOT_USED_85		85
+#define PKT_NOT_USED_86		86
+#define PKT_NOT_USED_87		87
+#define PKT_NOT_USED_88		88
+#define PKT_NOT_USED_89		89
 
 /* packet types: 90 - 99 */
 /*
@@ -171,11 +148,10 @@
  */
 
 /* status reports: 101 - 102 */
-#define PKT_FAILURE			101
-#define PKT_SUCCESS			102
+#define PKT_FAILURE		101
+#define PKT_SUCCESS		102
 
 /* optimized packet types: 128 - 255 */
-#define PKT_DEBRIS			128		/* + color + x + y */
+#define PKT_DEBRIS		128		/* + color + x + y */
 
 #endif
-
