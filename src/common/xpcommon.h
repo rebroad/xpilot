@@ -31,6 +31,8 @@
 #endif
 
 #ifdef _WINDOWS
+/* winsock2.h MUST be included before windows.h (which gets pulled in by stdlib.h) */
+# include <winsock2.h>
 # define HAVE_ASSERT_H 1
 # define HAVE_CTYPE_H 1
 # define HAVE_ERRNO_H 1

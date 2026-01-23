@@ -206,8 +206,8 @@ typedef struct _XComposeStatus {
 #define XK_braceright          0x07d
 #define XK_asciitilde          0x07e
 
-extern XLookupKeysym(XKeyEvent * key_event, int index);
-extern XLookupString(XKeyEvent * key_event, char *buffer_return,
+extern int XLookupKeysym(XKeyEvent * key_event, int index);
+extern int XLookupString(XKeyEvent * key_event, char *buffer_return,
 		     int bytes_buffer, KeySym * keysym_return,
 		     XComposeStatus * status_in_out);
 

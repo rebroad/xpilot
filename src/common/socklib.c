@@ -280,8 +280,15 @@ int sock_set_non_blocking(sock_t *sock, int flag)
 #endif
 
 #ifdef USE_IOCTL_FIONBIO
-    if (ioctl(sock->fd, FIONBIO, &flag) == 0)
-	return SOCK_IS_OK;
+    {
+#ifdef _WINDOWS
+	u_long wflag = (u_long)flag;
+	if (ioctl(sock->fd, FIONBIO, &wflag) == 0)
+#else
+	if (ioctl(sock->fd, FIONBIO, &flag) == 0)
+#endif
+	    return SOCK_IS_OK;
+    }
     sock_set_error(sock, errno, SOCK_CALL_FCNTL, __LINE__);
     sprintf(buf, "ioctl FIONBIO failed in socklib.c line %d", __LINE__);
     perror(buf);
