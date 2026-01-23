@@ -1136,12 +1136,45 @@ if [ -f "src/client/Makefile" ]; then
 fi
 
 echo "Building Windows client..."
+
+# Compile icon resource for Windows executable
+echo "  Compiling icon resource..."
+ICON_RC="$SCRIPT_DIR/src/client/sdl/xpilot.rc"
+ICON_RES="$SCRIPT_DIR/src/client/sdl/xpilot.res"
+ICON_FILE="$SCRIPT_DIR/src/client/NT/res/xpilot.ico"
+
+# Create res directory and copy icon if needed
+mkdir -p "$SCRIPT_DIR/src/client/sdl/res"
+if [ -f "$ICON_FILE" ]; then
+    cp "$ICON_FILE" "$SCRIPT_DIR/src/client/sdl/res/"
+fi
+
+# Create a simple RC file that windres can process
+cat > "$ICON_RC" << 'RCEOF'
+// XPilot icon resource
+1 ICON "res/xpilot.ico"
+RCEOF
+
+# Compile the resource file
+if [ -f "$SCRIPT_DIR/src/client/sdl/res/xpilot.ico" ]; then
+    ${CROSS_COMPILE}windres "$ICON_RC" -O coff -o "$ICON_RES" 2>/dev/null && \
+        echo "  Icon resource compiled successfully." || \
+        echo "  Warning: Could not compile icon resource."
+else
+    echo "  Warning: Icon file not found at $ICON_FILE"
+fi
+
 # For Windows, only build the client (not server or replay which have Unix dependencies)
 # Build common first, then client
 # Add -Werror during make (not during configure as it breaks configure tests)
 set -o pipefail
 make -C src/common V=1 CFLAGS="$CFLAGS -Werror" 2>&1 | tee "$SCRIPT_DIR/build-windows-make.log" || true
-make -C src/client V=1 CFLAGS="$CFLAGS -Werror" 2>&1 | tee -a "$SCRIPT_DIR/build-windows-make.log" || true
+# Add icon resource to LDADD for the client build
+ICON_LDADD=""
+if [ -f "$ICON_RES" ]; then
+    ICON_LDADD="$ICON_RES"
+fi
+make -C src/client V=1 CFLAGS="$CFLAGS -Werror" LDADD_EXTRA="$ICON_LDADD" 2>&1 | tee -a "$SCRIPT_DIR/build-windows-make.log" || true
 set +o pipefail
 
 # Check if client exe was built (may be in source or build directory)
@@ -1191,6 +1224,13 @@ echo "  Copying executables..."
 [ -n "$CLIENT_EXE" ] && cp "$CLIENT_EXE" "$INSTALLER_DIR/"
 [ -n "$SERVER_EXE" ] && cp "$SERVER_EXE" "$INSTALLER_DIR/"
 [ -n "$REPLAY_EXE" ] && cp "$REPLAY_EXE" "$INSTALLER_DIR/"
+
+# Copy icon for installer shortcuts
+echo "  Copying icon..."
+ICON_SRC="$SCRIPT_DIR/src/client/NT/res/xpilot.ico"
+if [ -f "$ICON_SRC" ]; then
+    cp "$ICON_SRC" "$INSTALLER_DIR/"
+fi
 
 # Copy data files (excluding Makefiles and build files)
 echo "  Copying data files..."
@@ -1325,6 +1365,10 @@ if command -v wixl >/dev/null 2>&1; then
 
     <Media Id="1" Cabinet="xpilot.cab" EmbedCab="yes" />
 
+    <!-- Application icon for shortcuts -->
+    <Icon Id="XPilotIcon" SourceFile="$INSTALLER_DIR/xpilot.ico" />
+    <Property Id="ARPPRODUCTICON" Value="XPilotIcon" />
+
     <Directory Id="TARGETDIR" Name="SourceDir">
       <Directory Id="ProgramFilesFolder">
         <Directory Id="INSTALLDIR" Name="XPilot NG">
@@ -1358,8 +1402,56 @@ DLEOF
         fi
     done
 
+    # Add README
+    cat >> "$WXS_FILE" << READMEEOF
+      <Component Id="ReadmeComponent" Guid="*">
+        <File Id="ReadmeFile" Source="$INSTALLER_DIR/README.txt" KeyPath="yes" />
+      </Component>
+READMEEOF
+
     cat >> "$WXS_FILE" << WIXEOF2
     </DirectoryRef>
+
+    <!-- Data directory -->
+    <DirectoryRef Id="DataDir">
+WIXEOF2
+
+    # Add data files to WXS (recursively)
+    DATA_COMP_ID=1
+    find "$INSTALLER_DIR/data" -type f | while read -r datafile; do
+        REL_PATH="${datafile#$INSTALLER_DIR/data/}"
+        FILE_ID="DataFile_$DATA_COMP_ID"
+        COMP_ID="DataComp_$DATA_COMP_ID"
+        cat >> "$WXS_FILE" << DATAEOF
+      <Component Id="$COMP_ID" Guid="*">
+        <File Id="$FILE_ID" Source="$datafile" Name="$(basename "$datafile")" KeyPath="yes" />
+      </Component>
+DATAEOF
+        DATA_COMP_ID=$((DATA_COMP_ID + 1))
+    done
+    # Save count for later
+    DATA_COMP_COUNT=$((DATA_COMP_ID - 1))
+
+    cat >> "$WXS_FILE" << WIXEOF2B
+    </DirectoryRef>
+
+    <!-- Doc directory -->
+    <DirectoryRef Id="DocDir">
+WIXEOF2B
+
+    # Add doc files to WXS
+    DOC_COMP_ID=1
+    find "$INSTALLER_DIR/doc" -type f | while read -r docfile; do
+        FILE_ID="DocFile_$DOC_COMP_ID"
+        COMP_ID="DocComp_$DOC_COMP_ID"
+        cat >> "$WXS_FILE" << DOCEOF
+      <Component Id="$COMP_ID" Guid="*">
+        <File Id="$FILE_ID" Source="$docfile" Name="$(basename "$docfile")" KeyPath="yes" />
+      </Component>
+DOCEOF
+        DOC_COMP_ID=$((DOC_COMP_ID + 1))
+    done
+    DOC_COMP_COUNT=$((DOC_COMP_ID - 1))
 
     <DirectoryRef Id="ApplicationProgramsFolder">
       <Component Id="ApplicationShortcut" Guid="*">
@@ -1367,7 +1459,8 @@ DLEOF
                   Name="XPilot NG"
                   Description="XPilot NG Space Combat Game"
                   Target="[INSTALLDIR]$CLIENT_NAME"
-                  WorkingDirectory="INSTALLDIR" />
+                  WorkingDirectory="INSTALLDIR"
+                  Icon="XPilotIcon" />
         <RemoveFolder Id="CleanUpShortCut" On="uninstall" />
         <RegistryValue Root="HKCU" Key="Software\\XPilotNG" Name="installed" Type="integer" Value="1" KeyPath="yes" />
       </Component>
@@ -1379,13 +1472,15 @@ DLEOF
                   Name="XPilot NG"
                   Description="XPilot NG Space Combat Game"
                   Target="[INSTALLDIR]$CLIENT_NAME"
-                  WorkingDirectory="INSTALLDIR" />
+                  WorkingDirectory="INSTALLDIR"
+                  Icon="XPilotIcon" />
         <RegistryValue Root="HKCU" Key="Software\\XPilotNG" Name="desktopshortcut" Type="integer" Value="1" KeyPath="yes" />
       </Component>
     </DirectoryRef>
 
     <Feature Id="ProductFeature" Title="XPilot NG" Level="1">
       <ComponentRef Id="MainExecutable" />
+      <ComponentRef Id="ReadmeComponent" />
       <ComponentRef Id="ApplicationShortcut" />
       <ComponentRef Id="DesktopShortcut" />
 WIXEOF2
@@ -1393,6 +1488,18 @@ WIXEOF2
     # Add DLL component refs
     for i in $(seq 1 $((DLL_COMP_ID - 1))); do
         echo "      <ComponentRef Id=\"DLL_$i\" />" >> "$WXS_FILE"
+    done
+
+    # Add data component refs (count the files again)
+    DATA_COUNT=$(find "$INSTALLER_DIR/data" -type f | wc -l)
+    for i in $(seq 1 $DATA_COUNT); do
+        echo "      <ComponentRef Id=\"DataComp_$i\" />" >> "$WXS_FILE"
+    done
+
+    # Add doc component refs
+    DOC_COUNT=$(find "$INSTALLER_DIR/doc" -type f | wc -l)
+    for i in $(seq 1 $DOC_COUNT); do
+        echo "      <ComponentRef Id=\"DocComp_$i\" />" >> "$WXS_FILE"
     done
 
     cat >> "$WXS_FILE" << WIXEOF3

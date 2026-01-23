@@ -21,9 +21,9 @@ endif
 if COND_WINDOWS
   xpilot_ng_sdl_SOURCES += win32hacks.c
   # SDL_ttf needs freetype, SDL_image needs png and zlib - must be in dependency order
-  xpilot_ng_sdl_LDADD += -lfreetype -lpng -lz -lws2_32 -lwinmm
+  xpilot_ng_sdl_LDADD += -lfreetype -lpng -lz -lws2_32 -lwinmm xpilot.res
 else
   xpilot_ng_sdl_LDADD += @X_LIBS@ @X_PRE_LIBS@ @X_EXTENSIONS_LIB@ @X_EXTRA_LIBS@ -lX11
 endif
 
-EXTRA_DIST = xpilot.rc xpilot_sdl.dsp xpilot_sdl.dsw
+EXTRA_DIST = xpilot.rc xpilot_sdl.dsp xpilot_sdl.dsw res/xpilot.ico
