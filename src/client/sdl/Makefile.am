@@ -1,7 +1,7 @@
 
 bin_PROGRAMS = xpilot-ng-sdl
 AM_CPPFLAGS = -DCONF_DATADIR=\"$(pkgdatadir)/\" \
-	-I$(top_srcdir)/src/common -I$(top_srcdir)/src/client @SDL_CFLAGS@
+	-I$(top_builddir)/src/common -I$(top_srcdir)/src/common -I$(top_srcdir)/src/client @SDL_CFLAGS@
 xpilot_ng_sdl_SOURCES = \
 	asteroid_data.h DT_drawtext.c DT_drawtext.h \
 	SDL_console.c SDL_console.h SDL_gfxPrimitives.c SDL_gfxPrimitives.h \

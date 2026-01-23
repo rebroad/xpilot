@@ -84,9 +84,20 @@ if [ -f "$SCRIPT_DIR/src/client/libxpclient.a" ] || \
     echo ""
 fi
 
-# Ensure configure script exists
+# Ensure autotools outputs exist/up-to-date (configure/Makefile.in).
+# This repo does not keep generated files in version control.
+NEED_AUTOTOOLS=false
 if [ ! -f "$SCRIPT_DIR/configure" ]; then
-    echo "Generating configure script..."
+    NEED_AUTOTOOLS=true
+fi
+# If any Makefile.am is newer than its corresponding Makefile.in, regen.
+if [ -f "$SCRIPT_DIR/configure" ] && command -v find >/dev/null 2>&1; then
+    if find "$SCRIPT_DIR" -name "Makefile.am" -type f -newer "$SCRIPT_DIR/configure" 2>/dev/null | head -1 | grep -q .; then
+        NEED_AUTOTOOLS=true
+    fi
+fi
+if [ "$NEED_AUTOTOOLS" = true ]; then
+    echo "Generating autotools files (configure/Makefile.in)..."
     if [ -f "$SCRIPT_DIR/configure.ac" ]; then
         # Copy SDL m4 macro if not present (needed for AM_PATH_SDL)
         if [ ! -f "$SCRIPT_DIR/sdl.m4" ]; then
