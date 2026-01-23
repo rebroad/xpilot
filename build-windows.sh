@@ -2,9 +2,10 @@
 # Build script for XPilot NG Windows client using MinGW cross-compiler
 # This script automatically handles all dependencies and cross-compiles the Windows client
 #
-# Usage: ./build-windows.sh [--clean] [--wine-test]
+# Usage: ./build-windows.sh [--clean] [--wine-test] [--wine-run]
 #   --clean            Force a clean build by removing the build directory first
 #   --wine-test        After building, smoke-test the generated MSI using Wine in a temporary prefix under /var/tmp (default)
+#   --wine-run         Run the installed Windows client from the latest Wine test prefix (no rebuild, no timeout)
 
 set -e
 
@@ -14,29 +15,109 @@ cd "$SCRIPT_DIR"
 # Parse command line arguments
 FORCE_CLEAN=false
 WINE_TEST=false
-for arg in "$@"; do
-    case "$arg" in
+WINE_RUN=false
+while [ $# -gt 0 ]; do
+    case "$1" in
         --clean)
             FORCE_CLEAN=true
+            shift
             ;;
         --wine-test)
             WINE_TEST=true
+            shift
+            ;;
+        --wine-run)
+            WINE_RUN=true
+            shift
             ;;
         --help|-h)
-            echo "Usage: $0 [--clean] [--wine-test]"
+            echo "Usage: $0 [--clean] [--wine-test] [--wine-run]"
             echo "  --clean            Force a clean build by removing the build directory first"
             echo "  --wine-test        After building, smoke-test the generated MSI using Wine in a temporary prefix"
+            echo "  --wine-run         Run the installed Windows client from the latest Wine test prefix (no rebuild)"
             echo ""
-            echo "Wine prefix templating:"
-            echo "  Set XPILOT_WINE_TEMPLATE_PREFIX to reuse an existing prefix as a template."
-            echo "  Otherwise, WINEPREFIX (if set) or ~/.wine is used when present."
+            echo "Wine run:"
+            echo "  Uses latest prefix under /var/tmp/xpilot by default."
+            echo "  Override with XPILOT_WINE_RUN_PREFIX=/path/to/prefix"
+            echo ""
             echo "Wine test location:"
             echo "  Default base dir: /var/tmp/xpilot (fits systemd-tmpfiles cleanup when enabled for /var/tmp)"
             echo "  Override with XPILOT_WINE_TEST_BASEDIR."
+            echo ""
+            echo "Wine test overrides:"
+            echo "  XPILOT_WINE_TEST_WINEDEBUG, XPILOT_WINE_TEST_*_MAX, XPILOT_WINE_TEST_*_IDLE, etc."
             exit 0
+            ;;
+        *)
+            echo "Unknown option: $1"
+            echo "Run '$0 --help' for usage."
+            exit 1
             ;;
     esac
 done
+
+wine_find_installed_xpilot_exe() {
+    # Print the full path to xpilot-ng-sdl.exe inside a Wine prefix, or nothing if not found.
+    local prefix="$1"
+    local exe_rel1="drive_c/Program Files/XPilot NG/xpilot-ng-sdl.exe"
+    local exe_rel2="drive_c/Program Files (x86)/XPilot NG/xpilot-ng-sdl.exe"
+    if [ -f "$prefix/$exe_rel1" ]; then
+        echo "$prefix/$exe_rel1"
+        return 0
+    fi
+    if [ -f "$prefix/$exe_rel2" ]; then
+        echo "$prefix/$exe_rel2"
+        return 0
+    fi
+    return 1
+}
+
+wine_run_latest_installed_client() {
+    if ! command -v wine >/dev/null 2>&1; then
+        echo "Wine run skipped: wine not found in PATH"
+        echo "  On Ubuntu/Debian you can try: sudo apt-get install -y wine64"
+        return 0
+    fi
+
+    local basedir="${XPILOT_WINE_TEST_BASEDIR:-/var/tmp/xpilot}"
+    local prefix="${XPILOT_WINE_RUN_PREFIX:-}"
+    if [ -z "$prefix" ]; then
+        prefix="$(ls -1dt "$basedir"/xpilot-wine-test.* 2>/dev/null | head -1 || true)"
+    fi
+    if [ -z "$prefix" ] || [ ! -d "$prefix" ]; then
+        echo "Wine run failed: no Wine test prefix found."
+        echo "  Looked in: $basedir"
+        echo "  Tip: run './build-windows.sh --wine-test' first, or set XPILOT_WINE_RUN_PREFIX."
+        return 1
+    fi
+
+    local exe_path=""
+    exe_path="$(wine_find_installed_xpilot_exe "$prefix" 2>/dev/null || true)"
+    if [ -z "$exe_path" ]; then
+        echo "Wine run failed: installed exe not found in prefix:"
+        echo "  $prefix"
+        return 1
+    fi
+
+    echo "=========================================="
+    echo "Wine run (no rebuild)"
+    echo "=========================================="
+    echo "WINEPREFIX: $prefix"
+    echo "EXE: $exe_path"
+    echo ""
+    export WINEPREFIX="$prefix"
+
+    # Default to windowed mode under Wine to avoid fullscreen display-change issues.
+    # Override by setting XPILOT_WINDOWED=0.
+    local install_dir
+    install_dir="$(dirname "$exe_path")"
+    (cd "$install_dir" && XPILOT_WINDOWED="${XPILOT_WINDOWED:-1}" wine "$exe_path")
+}
+
+if [ "$WINE_RUN" = true ]; then
+    wine_run_latest_installed_client
+    exit $?
+fi
 
 # Wine MSI smoke test (optional)
 #
@@ -306,14 +387,8 @@ wine_test_msi() {
     fi
 
     # Attempt to locate and launch the installed executable (best effort)
-    local exe_rel1="drive_c/Program Files/XPilot NG/xpilot-ng-sdl.exe"
-    local exe_rel2="drive_c/Program Files (x86)/XPilot NG/xpilot-ng-sdl.exe"
     local exe_path=""
-    if [ -f "$tmp_prefix/$exe_rel1" ]; then
-        exe_path="$tmp_prefix/$exe_rel1"
-    elif [ -f "$tmp_prefix/$exe_rel2" ]; then
-        exe_path="$tmp_prefix/$exe_rel2"
-    fi
+    exe_path="$(wine_find_installed_xpilot_exe "$tmp_prefix" 2>/dev/null || true)"
 
     if [ -n "$exe_path" ]; then
         echo "Installed exe: $exe_path"
