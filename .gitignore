@@ -20,9 +20,12 @@ src/replay/xpilot-ng-*
 build-windows/
 installer-windows/
 
-# Auto-generated files (if any)
+# Auto-generated files
 autom4te.cache/
 *.cache
+configure
+aclocal.m4
 
 # Configure backup
 configure.bak
+configure~
