@@ -1,11 +1,29 @@
 #!/bin/bash
 # Build script for XPilot NG Windows client using MinGW cross-compiler
 # This script automatically handles all dependencies and cross-compiles the Windows client
+#
+# Usage: ./build-windows.sh [--clean]
+#   --clean    Force a clean build by removing the build directory first
 
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$SCRIPT_DIR"
+
+# Parse command line arguments
+FORCE_CLEAN=false
+for arg in "$@"; do
+    case "$arg" in
+        --clean)
+            FORCE_CLEAN=true
+            ;;
+        --help|-h)
+            echo "Usage: $0 [--clean]"
+            echo "  --clean    Force a clean build by removing the build directory first"
+            exit 0
+            ;;
+    esac
+done
 
 echo "=========================================="
 echo "XPilot NG Windows Cross-Compilation"
@@ -420,13 +438,19 @@ if find "$SCRIPT_DIR/src" -name "*.o" -type f 2>/dev/null | head -1 | grep -q .;
 fi
 
 
-# Now clean/create build directory
+# Create build directory (incremental builds - let Makefiles decide what needs recompiling)
 if [ -d "$BUILD_DIR" ]; then
-    echo "Cleaning previous Windows build..."
-    rm -rf "$BUILD_DIR"
+    if [ "$FORCE_CLEAN" = true ]; then
+        echo "Cleaning previous Windows build (--clean specified)..."
+        rm -rf "$BUILD_DIR"
+    else
+        echo "Using existing build directory (incremental build)..."
+    fi
+else
+    echo "Creating build directory..."
 fi
 
-mkdir -p "$BUILD_DIR"
+mkdir -p "$BUILD_DIR" 2>/dev/null
 cd "$BUILD_DIR"
 
 # Configure for Windows
@@ -1132,27 +1156,91 @@ if [ "$SUDO_CACHED" = true ]; then
     sudo chmod 644 "${MINGW_INCLUDE}"/libpng16/*.h 2>/dev/null || true
 fi
 
-echo "Configuring build..."
-CONFIGURE_LOG="$(pwd)/configure.log"
-"$SCRIPT_DIR/configure" "${CONFIGURE_OPTS[@]}" >"$CONFIGURE_LOG" 2>&1 || {
-    echo ""
-    echo "Configuration failed. Full log: $CONFIGURE_LOG"
-    echo "Last 30 lines:"
-    tail -30 "$CONFIGURE_LOG"
-    exit 1
-}
-
-# Fix config.h - remove socklen_t definition that conflicts with xpcommon.h
-# (MinGW provides socklen_t, and xpcommon.h also typedefs it for Windows)
-if [ -f "config.h" ]; then
-    sed -i 's/^#define socklen_t int$/\/* #define socklen_t int - disabled for MinGW *\//' config.h
+# Only run configure if needed (Makefile doesn't exist or configure is newer)
+NEED_CONFIGURE=false
+if [ ! -f "Makefile" ]; then
+    NEED_CONFIGURE=true
+elif [ "$SCRIPT_DIR/configure" -nt "Makefile" ]; then
+    NEED_CONFIGURE=true
+elif [ "$FORCE_CLEAN" = true ]; then
+    NEED_CONFIGURE=true
 fi
 
-# Remove X11 client from build (we only want SDL client for Windows)
-# The X11 client uses X11-specific code that won't compile on Windows
-if [ -f "src/client/Makefile" ]; then
-    echo "Disabling X11 client build (Windows uses SDL client only)..."
-    sed -i 's/^bin_PROGRAMS = xpilot-ng-x11$(EXEEXT)$/bin_PROGRAMS =/' src/client/Makefile
+if [ "$NEED_CONFIGURE" = true ]; then
+    echo "Configuring build..."
+    CONFIGURE_LOG="$(pwd)/configure.log"
+    "$SCRIPT_DIR/configure" "${CONFIGURE_OPTS[@]}" >"$CONFIGURE_LOG" 2>&1 || {
+        echo ""
+        echo "Configuration failed. Full log: $CONFIGURE_LOG"
+        echo "Last 30 lines:"
+        tail -30 "$CONFIGURE_LOG"
+        exit 1
+    }
+
+    # Fix config.h - remove socklen_t definition that conflicts with xpcommon.h
+    # (MinGW provides socklen_t, and xpcommon.h also typedefs it for Windows)
+    if [ -f "config.h" ]; then
+        sed -i 's/^#define socklen_t int$/\/* #define socklen_t int - disabled for MinGW *\//' config.h
+    fi
+
+    # Remove X11 client from build (we only want SDL client for Windows)
+    # The X11 client uses X11-specific code that won't compile on Windows
+    if [ -f "src/client/Makefile" ]; then
+        echo "Disabling X11 client build (Windows uses SDL client only)..."
+        sed -i 's/^bin_PROGRAMS = xpilot-ng-x11$(EXEEXT)$/bin_PROGRAMS =/' src/client/Makefile
+    fi
+else
+    echo "Build already configured (use --clean to reconfigure)..."
+fi
+
+# Embed application icon into the Windows executable (only if needed)
+ICON_SRC="$SCRIPT_DIR/src/client/NT/res/xpilot.ico"
+ICON_OBJ="src/client/sdl/xpilot_icon.o"
+ICON_RC="src/client/sdl/xpilot_icon.rc"
+
+# Check if we need to (re)compile the icon resource
+NEED_ICON_COMPILE=false
+if [ ! -f "$ICON_OBJ" ]; then
+    NEED_ICON_COMPILE=true
+elif [ "$ICON_SRC" -nt "$ICON_OBJ" ]; then
+    NEED_ICON_COMPILE=true
+elif [ "$NEED_CONFIGURE" = true ]; then
+    # Makefile was regenerated, need to patch it again
+    NEED_ICON_COMPILE=true
+fi
+
+if [ "$NEED_ICON_COMPILE" = true ] && [ -f "$ICON_SRC" ]; then
+    echo "Setting up icon resource for Windows executable..."
+    # Create resource directory and copy icon
+    mkdir -p "src/client/sdl/res"
+    cp "$ICON_SRC" "src/client/sdl/res/"
+
+    # Create a minimal resource file for MinGW (the original uses MFC headers)
+    cat > "$ICON_RC" << 'RCEOF'
+// Minimal resource file for XPilot icon (MinGW compatible)
+// The "1" ID ensures this is the application icon
+1 ICON "res/xpilot.ico"
+RCEOF
+
+    # Compile the resource file
+    echo "  Compiling icon resource..."
+    WINDRES="${MINGW_PREFIX}-windres"
+    if $WINDRES "$ICON_RC" -o "$ICON_OBJ" 2>/dev/null; then
+        echo "  ✓ Icon resource compiled"
+
+        # Modify the SDL client Makefile to include the icon resource in the link
+        # (only if not already added)
+        if [ -f "src/client/sdl/Makefile" ]; then
+            if ! grep -q "xpilot_icon.o" "src/client/sdl/Makefile"; then
+                sed -i 's|xpilot_ng_sdl_LDADD = |xpilot_ng_sdl_LDADD = xpilot_icon.o |' src/client/sdl/Makefile
+                echo "  ✓ Icon will be embedded in executable"
+            fi
+        fi
+    else
+        echo "  Warning: Could not compile icon resource (windres failed)"
+    fi
+elif [ ! -f "$ICON_SRC" ]; then
+    echo "  Warning: Icon file not found at $ICON_SRC"
 fi
 
 echo "Building Windows client..."
@@ -1351,7 +1439,7 @@ if command -v wixl >/dev/null 2>&1; then
              Description="XPilot NG - Space Combat Game"
              Comments="XPilot NG for Windows" />
 
-    <Media Id="1" Cabinet="xpilot.cab" EmbedCab="yes" />
+    <Media Id="1" Cabinet="xpilot.cab" EmbedCab="yes" CompressionLevel="high" />
 
     <!-- Application icon for shortcuts -->
     <Icon Id="XPilotIcon" SourceFile="$INSTALLER_DIR/xpilot.ico" />
@@ -1441,6 +1529,9 @@ DOCEOF
     done
     DOC_COMP_COUNT=$((DOC_COMP_ID - 1))
 
+    cat >> "$WXS_FILE" << WIXEOF2C
+    </DirectoryRef>
+
     <DirectoryRef Id="ApplicationProgramsFolder">
       <Component Id="ApplicationShortcut" Guid="*">
         <Shortcut Id="ApplicationStartMenuShortcut"
@@ -1471,7 +1562,7 @@ DOCEOF
       <ComponentRef Id="ReadmeComponent" />
       <ComponentRef Id="ApplicationShortcut" />
       <ComponentRef Id="DesktopShortcut" />
-WIXEOF2
+WIXEOF2C
 
     # Add DLL component refs
     for i in $(seq 1 $((DLL_COMP_ID - 1))); do
