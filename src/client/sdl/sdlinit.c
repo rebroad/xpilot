@@ -125,6 +125,8 @@ int Init_window(void)
     int use_fullscreen = 1;  /* Default to fullscreen on Windows */
     char *windowed_env;
 #endif
+    Uint32 t_start = 0;
+    Uint32 t_tmp = 0;
 
     xpprintf("Init_window: Starting initialization...\n");
     xpprintf("Init_window: CONF_DATADIR = %s\n", Conf_datadir());
@@ -153,6 +155,7 @@ int Init_window(void)
         return -1;
     }
     xpprintf("Init_window: SDL video initialized\n");
+    t_start = SDL_GetTicks();
 
     atexit(SDL_Quit);
 
@@ -217,6 +220,11 @@ int Init_window(void)
     }
     xpprintf("Init_window: Window created successfully\n");
 
+    /* Set title for window as early as possible, then pump events so it updates even
+     * if we spend time initializing fonts/textures before the main loop starts. */
+    SDL_WM_SetCaption(TITLE, NULL);
+    SDL_PumpEvents();
+
     SDL_GL_GetAttribute(SDL_GL_RED_SIZE, &value);
     printf("RGB bpp %d/", value);
     SDL_GL_GetAttribute(SDL_GL_GREEN_SIZE,&value);
@@ -234,9 +242,11 @@ int Init_window(void)
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-    /* Set title for window */
-    SDL_WM_SetCaption(TITLE, NULL);
-    
+    /* Present an initial frame so the window isn't blank during heavy startup. */
+    glClear(GL_COLOR_BUFFER_BIT);
+    SDL_GL_SwapBuffers();
+    SDL_PumpEvents();
+
     /* this prevents a freetype crash if you pass non existant fonts */
     if (!file_exists(gamefontname)) {
     	error("cannot find your game font '%s'.\n" \
@@ -257,14 +267,18 @@ int Init_window(void)
     }
       
     if (gf_exists) {
+        t_tmp = SDL_GetTicks();
     	if (fontinit(&gamefont,gamefontname,gameFontSize)) {
     	    error("Font initialization failed with %s", gamefontname);
 	} else gf_init = true;
+        xpprintf("Init_window: game font init (primary) took %u ms\n", (unsigned)(SDL_GetTicks() - t_tmp));
     }
     if (!gf_init && df_exists) {
+        t_tmp = SDL_GetTicks();
     	if (fontinit(&gamefont,defaultfontname,gameFontSize)) {
     	    error("Default font initialization failed with %s", defaultfontname);
     	} else gf_init = true;
+        xpprintf("Init_window: game font init (default) took %u ms\n", (unsigned)(SDL_GetTicks() - t_tmp));
     }
     
     if (!gf_init) {
@@ -273,14 +287,18 @@ int Init_window(void)
     }
     
     if (gf_exists) {
+        t_tmp = SDL_GetTicks();
     	if (fontinit(&mapfont,gamefontname,mapFontSize)) {
     	    error("Font initialization failed with %s", gamefontname);
 	} else mf_init = true;
+        xpprintf("Init_window: map font init (primary) took %u ms\n", (unsigned)(SDL_GetTicks() - t_tmp));
     }
     if (!mf_init && df_exists) {
+        t_tmp = SDL_GetTicks();
     	if (fontinit(&mapfont,defaultfontname,mapFontSize)) {
     	    error("Default font initialization failed with %s", defaultfontname);
     	} else mf_init = true;
+        xpprintf("Init_window: map font init (default) took %u ms\n", (unsigned)(SDL_GetTicks() - t_tmp));
     }
 
     if (!mf_init) {
@@ -288,11 +306,7 @@ int Init_window(void)
 	return -1;
     }
 
-    /* Set up the clipboard */
-    if ( init_scrap() < 0 ) {
-    	error("Couldn't init clipboard: %s\n");
-    }
-
+    xpprintf("Init_window: Total Init_window time: %u ms\n", (unsigned)(SDL_GetTicks() - t_start));
     return 0;
 }
 
