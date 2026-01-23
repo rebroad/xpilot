@@ -463,9 +463,10 @@ export LDFLAGS="-L${MINGW_LIB}"
 # -DHAVE_GETTIMEOFDAY tells XPilot code that MinGW provides gettimeofday
 BUILD_DIR_ABS="${SCRIPT_DIR}/${BUILD_DIR}"
 # Override CONF_DATADIR to "data/" for Windows (Makefile.am sets it to pkgdatadir which is wrong for Windows)
+# Also override CONF_FONTDIR to "data/" (fonts are in data/ directly, not data/fonts/)
 # The double backslashes escape the quotes so they're passed through to the compiler correctly
-export CPPFLAGS="-I${MINGW_INCLUDE} -I${MINGW_INCLUDE}/SDL -D_WINDOWS -DWIN32 -DHAVE_GETTIMEOFDAY -I${BUILD_DIR_ABS}/src/common -DCONF_DATADIR=\\\"data/\\\""
-export CFLAGS="-I${MINGW_INCLUDE} -I${MINGW_INCLUDE}/SDL -D_WINDOWS -DWIN32 -DHAVE_GETTIMEOFDAY -I${BUILD_DIR_ABS}/src/common -DCONF_DATADIR=\\\"data/\\\""
+export CPPFLAGS="-I${MINGW_INCLUDE} -I${MINGW_INCLUDE}/SDL -D_WINDOWS -DWIN32 -DHAVE_GETTIMEOFDAY -I${BUILD_DIR_ABS}/src/common -DCONF_DATADIR=\\\"data/\\\" -DCONF_FONTDIR=\\\"data/\\\""
+export CFLAGS="-I${MINGW_INCLUDE} -I${MINGW_INCLUDE}/SDL -D_WINDOWS -DWIN32 -DHAVE_GETTIMEOFDAY -I${BUILD_DIR_ABS}/src/common -DCONF_DATADIR=\\\"data/\\\" -DCONF_FONTDIR=\\\"data/\\\""
 # -Werror will be added during make, not configure (configure tests may have warnings)
 export LIBS="-lSDL_ttf -lSDL_image -lfreetype -lpng16 -lz"
 export PKG_CONFIG_PATH="${MINGW_LIB}/pkgconfig:${PKG_CONFIG_PATH:-}"
@@ -1177,11 +1178,13 @@ else
     echo "Build already configured (use --clean to reconfigure)..."
 fi
 
-# Remove CONF_DATADIR from Makefile AM_CPPFLAGS (we override it in CPPFLAGS/CFLAGS)
-# This prevents redefinition errors since Makefile.am sets it to pkgdatadir
-echo "  Removing CONF_DATADIR from Makefile AM_CPPFLAGS (using override from build script)..."
+# Remove CONF_DATADIR and CONF_FONTDIR from Makefile AM_CPPFLAGS (we override them in CPPFLAGS/CFLAGS)
+# This prevents redefinition errors since Makefile.am may set them
+echo "  Removing CONF_DATADIR and CONF_FONTDIR from Makefile AM_CPPFLAGS (using override from build script)..."
 find . -name "Makefile" -type f -exec sed -i 's/-DCONF_DATADIR="[^"]*"//g' {} \; 2>/dev/null || true
-find . -name "Makefile" -type f -exec sed -i 's/-DCONF_DATADIR=\\"[^\\"]*\\"//g' {} \; 2>/dev/null || true=
+find . -name "Makefile" -type f -exec sed -i 's/-DCONF_DATADIR=\\"[^\\"]*\\"//g' {} \; 2>/dev/null || true
+find . -name "Makefile" -type f -exec sed -i 's/-DCONF_FONTDIR="[^"]*"//g' {} \; 2>/dev/null || true
+find . -name "Makefile" -type f -exec sed -i 's/-DCONF_FONTDIR=\\"[^\\"]*\\"//g' {} \; 2>/dev/null || true
 
 # Embed application icon into the Windows executable (only if needed)
 ICON_SRC="$SCRIPT_DIR/src/client/NT/res/xpilot.ico"
@@ -1235,67 +1238,120 @@ fi
 
 echo "Building Windows client..."
 
-# Check if CONF_DATADIR has changed (affects source files that use it)
-# Extract actual value from CPPFLAGS and compare to last build
-CONF_DATADIR_STAMP="$(pwd)/.conf_datadir_stamp"
-# Extract CONF_DATADIR value from CPPFLAGS (look for -DCONF_DATADIR=\"value\")
-# The value is stored as \\"data/\\" in the variable, so we need to match \\" not \"
-CURRENT_DATADIR=$(echo "$CPPFLAGS" | sed -n 's/.*-DCONF_DATADIR=\\\\"\([^\\]*\)\\\\".*/\1/p')
-if [ -z "$CURRENT_DATADIR" ]; then
-    # Fallback: if not in CPPFLAGS, check CFLAGS
-    CURRENT_DATADIR=$(echo "$CFLAGS" | sed -n 's/.*-DCONF_DATADIR=\\\\"\([^\\]*\)\\\\".*/\1/p')
-fi
-# If still not found, use default from xpconfig.h
-if [ -z "$CURRENT_DATADIR" ]; then
-    CURRENT_DATADIR="data/"  # Default for Windows
-fi
+# Generic function to detect changed defines and rebuild affected files
+# Extracts all -D defines from CPPFLAGS/CFLAGS, compares to previous build,
+# and touches source files that use any changed defines
+check_defines_and_rebuild() {
+    local DEFINES_STAMP="$(pwd)/.cpp_defines_stamp"
+    local CLIENT_EXE_CHECK="src/client/sdl/xpilot-ng-sdl.exe"
 
-LAST_DATADIR=""
-if [ -f "$CONF_DATADIR_STAMP" ]; then
-    LAST_DATADIR=$(cat "$CONF_DATADIR_STAMP" 2>/dev/null || echo "")
-fi
+    # Extract all -D defines from CPPFLAGS and CFLAGS
+    # Handles both -DNAME and -DNAME=value formats
+    # For -DNAME="value", we need to handle escaped quotes (\\" becomes ")
+    # First, split on spaces before -D, then extract the define name and value
+    local CURRENT_DEFINES=$(echo "$CPPFLAGS $CFLAGS" | \
+        tr ' ' '\n' | \
+        grep '^-D' | \
+        sed 's/^-D//' | \
+        sed 's/\\\\\\"/"/g' | \
+        sed 's/\\\\"/"/g' | \
+        sed 's/\\"/"/g' | \
+        sort | \
+        uniq)
 
-# Check if executable exists and is older than stamp file (built before CONF_DATADIR was set correctly)
-NEED_REBUILD=false
-CLIENT_EXE_CHECK="src/client/sdl/xpilot-ng-sdl.exe"
-if [ -f "$CLIENT_EXE_CHECK" ] && [ -f "$CONF_DATADIR_STAMP" ]; then
-    if [ "$CLIENT_EXE_CHECK" -ot "$CONF_DATADIR_STAMP" ]; then
-        # Executable is older than stamp - it was built before we set CONF_DATADIR correctly
-        NEED_REBUILD=true
+    # Read previous defines from stamp file
+    local LAST_DEFINES=""
+    if [ -f "$DEFINES_STAMP" ]; then
+        LAST_DEFINES=$(cat "$DEFINES_STAMP" 2>/dev/null || echo "")
     fi
-fi
 
-# If stamp doesn't exist or value changed, force rebuild of affected files
-if [ -z "$LAST_DATADIR" ] || [ "$LAST_DATADIR" != "$CURRENT_DATADIR" ] || [ "$NEED_REBUILD" = true ]; then
-    if [ -z "$LAST_DATADIR" ]; then
-        echo "  CONF_DATADIR not previously recorded (first run or --clean) - will rebuild affected files..."
-    elif [ "$NEED_REBUILD" = true ]; then
-        echo "  Executable was built before CONF_DATADIR was set correctly - forcing rebuild..."
-    else
-        echo "  CONF_DATADIR changed from '$LAST_DATADIR' to '$CURRENT_DATADIR' - forcing rebuild of affected files..."
-    fi
-    # Touch only the source files that actually use CONF_DATADIR or its derived macros
-    # (xpconfig.h is a header, so touching .c files that include it will force recompilation)
-    for f in src/common/config.c \
-             src/client/sdl/sdlinit.c \
-             src/client/sdl/main.c \
-             src/client/sdl/sdlpaint.c \
-             src/client/sdl/sdlmeta.c \
-             src/client/sdl/glwidgets.c \
-             src/client/sdl/console.c \
-             src/client/default.c; do
-        # Use source path (files are in source tree, not build tree)
-        SRC_FILE="$SCRIPT_DIR/$f"
-        if [ -f "$SRC_FILE" ]; then
-            touch "$SRC_FILE" 2>/dev/null || true
+    # Check if executable is older than stamp (built before defines were tracked)
+    local NEED_REBUILD=false
+    if [ -f "$CLIENT_EXE_CHECK" ] && [ -f "$DEFINES_STAMP" ]; then
+        if [ "$CLIENT_EXE_CHECK" -ot "$DEFINES_STAMP" ]; then
+            NEED_REBUILD=true
         fi
-    done
-fi
-# Write stamp file (we should be in BUILD_DIR at this point)
-echo "$CURRENT_DATADIR" > "$CONF_DATADIR_STAMP" 2>/dev/null || {
-    # Fallback if pwd failed or we're not in build dir
-    echo "$CURRENT_DATADIR" > "$BUILD_DIR/.conf_datadir_stamp" 2>/dev/null || true
+    fi
+
+    # Compare current and last defines
+    local DEFINES_CHANGED=false
+    if [ -z "$LAST_DEFINES" ] || [ "$NEED_REBUILD" = true ]; then
+        DEFINES_CHANGED=true
+    elif [ "$CURRENT_DEFINES" != "$LAST_DEFINES" ]; then
+        DEFINES_CHANGED=true
+    fi
+
+    if [ "$DEFINES_CHANGED" = true ]; then
+        if [ -z "$LAST_DEFINES" ]; then
+            echo "  Defines not previously recorded (first run or --clean) - detecting affected files..."
+        elif [ "$NEED_REBUILD" = true ]; then
+            echo "  Executable was built before defines were tracked - detecting affected files..."
+        else
+            echo "  Defines changed - detecting affected files..."
+        fi
+
+        # Find which defines changed (if we have previous values)
+        local CHANGED_DEFINES=""
+        if [ -n "$LAST_DEFINES" ]; then
+            # Find defines that are in current but not in last, or have different values
+            while IFS= read -r define; do
+                local def_name=$(echo "$define" | cut -d'=' -f1)
+                local def_value=$(echo "$define" | cut -d'=' -f2-)
+                local last_value=$(echo "$LAST_DEFINES" | grep "^${def_name}=" | cut -d'=' -f2-)
+                if [ "$def_value" != "$last_value" ]; then
+                    CHANGED_DEFINES="${CHANGED_DEFINES}${def_name} "
+                fi
+            done <<< "$CURRENT_DEFINES"
+        else
+            # First run: check all defines
+            CHANGED_DEFINES=$(echo "$CURRENT_DEFINES" | cut -d'=' -f1 | tr '\n' ' ')
+        fi
+
+        # For each changed define, find source files that use it and touch them
+        local TOUCHED_FILES=""
+        for def_name in $CHANGED_DEFINES; do
+            # Skip system defines that are unlikely to be in source code
+            # (these are typically only used in preprocessor conditionals)
+            if [[ "$def_name" =~ ^(_WINDOWS|WIN32|HAVE_|__) ]]; then
+                continue
+            fi
+
+            # Search for the define name in source files (case-sensitive)
+            # Look in .c, .cpp, .h files in src/ directory
+            # Pattern matches: word boundary before and after the define name
+            local FOUND_FILES=$(grep -r -l --include="*.c" --include="*.cpp" --include="*.h" \
+                -E "(^|[^A-Za-z0-9_])${def_name}([^A-Za-z0-9_]|$)" \
+                "$SCRIPT_DIR/src" 2>/dev/null || true)
+
+            if [ -n "$FOUND_FILES" ]; then
+                local file_count=$(echo "$FOUND_FILES" | wc -l)
+                echo "    Define ${def_name} changed - found ${file_count} affected file(s)"
+                for f in $FOUND_FILES; do
+                    # Only touch .c and .cpp files (headers will be recompiled when .c files are)
+                    if [[ "$f" =~ \.(c|cpp)$ ]]; then
+                        if [ -f "$f" ]; then
+                            touch "$f" 2>/dev/null || true
+                            TOUCHED_FILES="${TOUCHED_FILES}$(basename "$f") "
+                        fi
+                    fi
+                done
+            fi
+        done
+
+        if [ -n "$TOUCHED_FILES" ]; then
+            echo "  Touched files: $(echo "$TOUCHED_FILES" | tr ' ' '\n' | sort -u | tr '\n' ' ')"
+        fi
+    fi
+
+    # Write current defines to stamp file
+    echo "$CURRENT_DEFINES" > "$DEFINES_STAMP" 2>/dev/null || {
+        # Fallback if pwd failed or we're not in build dir
+        echo "$CURRENT_DEFINES" > "$BUILD_DIR/.cpp_defines_stamp" 2>/dev/null || true
+    }
 }
+
+# Check for changed defines and rebuild affected files
+check_defines_and_rebuild
 
 # For Windows, only build the client (not server or replay which have Unix dependencies)
 # Build common first, then client
