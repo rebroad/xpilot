@@ -24,6 +24,7 @@ src/replay/xpilot-ng-*
 
 # Build directories
 build-windows/
+build-linux/
 installer-windows/
 
 # Auto-generated files
