@@ -21,6 +21,7 @@
 #include <windows.h>
 #include <stdio.h>
 #include <stdarg.h>
+#include <string.h>
 
 /* needed by some server specific function in socklib.c */
 HWND notifyWnd;
@@ -39,16 +40,48 @@ struct {
 /* Write trace output to a log file since Windows GUI apps have no console */
 static FILE *trace_file = NULL;
 static int trace_initialized = 0;
+static char trace_path[MAX_PATH] = "";
 
 static void init_trace_file(void)
 {
+    char exe_path[MAX_PATH];
+    char *last_slash;
+    const char *try_paths[3];
+    int i, n = 0;
+
     if (!trace_initialized) {
         trace_initialized = 1;
-        trace_file = fopen("xpilot-debug.log", "w");
+        /* Prefer: 1) next to exe, 2) %TEMP%, 3) CWD */
+        if (GetModuleFileNameA(NULL, exe_path, sizeof(exe_path)) > 0) {
+            last_slash = strrchr(exe_path, '\\');
+            if (last_slash) {
+                *(last_slash + 1) = '\0';
+                snprintf(trace_path, sizeof(trace_path), "%sxpilot-debug.log", exe_path);
+                try_paths[n++] = trace_path;
+            }
+        }
+        if (n == 0)
+            try_paths[n++] = "xpilot-debug.log";
+
+        for (i = 0; i < n && !trace_file; i++) {
+            trace_file = fopen(try_paths[i], "w");
+            if (trace_file)
+                snprintf(trace_path, sizeof(trace_path), "%s", try_paths[i]);
+        }
+        /* Fallback: %TEMP% if exe dir not writable (e.g. Program Files) */
+        if (!trace_file) {
+            if (GetTempPathA(sizeof(exe_path), exe_path) > 0) {
+                snprintf(trace_path, sizeof(trace_path), "%sxpilot-debug.log", exe_path);
+                trace_file = fopen(trace_path, "w");
+            }
+        }
         if (trace_file) {
             fprintf(trace_file, "XPilot NG SDL Client Debug Log\n");
+            fprintf(trace_file, "Log file: %s\n", trace_path);
             fprintf(trace_file, "==============================\n\n");
             fflush(trace_file);
+        } else {
+            OutputDebugStringA("XPilot: could not create xpilot-debug.log (tried exe dir and %TEMP%)\n");
         }
     }
 }

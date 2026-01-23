@@ -1123,38 +1123,12 @@ if [ "$NEED_REGEN" = true ]; then
     cd "$BUILD_DIR_ABS"
 fi
 
-# Patch configure script for Windows cross-compilation
-echo "Patching configure for Windows cross-compilation..."
-
-# Skip X11 check if SDL client is enabled (for Windows builds)
-sed -i 's/if test x\$no_x == xyes; then/if test x$no_x == xyes \&\& test x$enable_sdl_client != xyes; then/' "$SCRIPT_DIR/configure"
-
-# Remove -Dmain=SDL_main from SDL_CFLAGS in configure - this breaks configure tests
-# because test programs use main(void) but SDL_main requires (int argc, char *argv[])
-sed -i 's/-Dmain=SDL_main//g' "$SCRIPT_DIR/configure"
-
-# Fix SDL_ttf/SDL_image tests - they use main(void) with no args
-# Replace with proper argc/argv signature as a fallback
-sed -i 's/main (void)/main (int argc, char *argv[])/g' "$SCRIPT_DIR/configure"
-sed -i 's/main ()/main (int argc, char *argv[])/g' "$SCRIPT_DIR/configure"
-
-
 # Pass through any additional configure options
 for arg in "$@"; do
     if [[ "$arg" != "--enable-sdl-client" && "$arg" != "--disable-sdl-client" ]]; then
         CONFIGURE_OPTS+=("$arg")
     fi
 done
-
-# Fix permissions on installed headers (cp from build dir may have restrictive perms)
-# Fix header permissions if needed (only if we have sudo and files exist)
-if [ "$SUDO_CACHED" = true ]; then
-    echo "Fixing header permissions..."
-    sudo chmod 644 "${MINGW_INCLUDE}/SDL/SDL_ttf.h" 2>/dev/null || true
-    sudo chmod 644 "${MINGW_INCLUDE}/SDL/SDL_image.h" 2>/dev/null || true
-    sudo chmod 644 "${MINGW_INCLUDE}/png.h" 2>/dev/null || true
-    sudo chmod 644 "${MINGW_INCLUDE}"/libpng16/*.h 2>/dev/null || true
-fi
 
 # Only run configure if needed (Makefile doesn't exist or configure is newer)
 NEED_CONFIGURE=false
@@ -1168,6 +1142,14 @@ fi
 
 if [ "$NEED_CONFIGURE" = true ]; then
     echo "Configuring build..."
+    # Patch configure only when we run it; doing it every run would touch configure
+    # and force NEED_CONFIGURE next time, causing full rebuilds every build
+    echo "  Patching configure for Windows cross-compilation..."
+    sed -i 's/if test x\$no_x == xyes; then/if test x$no_x == xyes \&\& test x$enable_sdl_client != xyes; then/' "$SCRIPT_DIR/configure"
+    sed -i 's/-Dmain=SDL_main//g' "$SCRIPT_DIR/configure"
+    sed -i 's/main (void)/main (int argc, char *argv[])/g' "$SCRIPT_DIR/configure"
+    sed -i 's/main ()/main (int argc, char *argv[])/g' "$SCRIPT_DIR/configure"
+
     CONFIGURE_LOG="$(pwd)/configure.log"
     "$SCRIPT_DIR/configure" "${CONFIGURE_OPTS[@]}" >"$CONFIGURE_LOG" 2>&1 || {
         echo ""
@@ -1249,9 +1231,17 @@ echo "Building Windows client..."
 # Build common first, then client
 # Add -Werror during make (not during configure as it breaks configure tests)
 set -o pipefail
-make -C src/common V=1 CFLAGS="$CFLAGS -Werror" 2>&1 | tee "$SCRIPT_DIR/build-windows-make.log" || true
-make -C src/client V=1 CFLAGS="$CFLAGS -Werror" 2>&1 | tee -a "$SCRIPT_DIR/build-windows-make.log" || true
+MAKE_FAILED=0
+make -C src/common V=1 CFLAGS="$CFLAGS -Werror" 2>&1 | tee "$SCRIPT_DIR/build-windows-make.log" || MAKE_FAILED=1
+make -C src/client V=1 CFLAGS="$CFLAGS -Werror" 2>&1 | tee -a "$SCRIPT_DIR/build-windows-make.log" || MAKE_FAILED=1
 set +o pipefail
+
+if [ "$MAKE_FAILED" -ne 0 ]; then
+    echo ""
+    echo "Build failed. Last 50 lines of build log:"
+    tail -50 "$SCRIPT_DIR/build-windows-make.log"
+    exit 1
+fi
 
 # Check if client exe was built (may be in source or build directory)
 CLIENT_EXE=""
@@ -1263,7 +1253,7 @@ fi
 
 if [ -z "$CLIENT_EXE" ]; then
     echo ""
-    echo "Build failed! Client executable not found."
+    echo "Build failed: client executable not found."
     echo "Last 50 lines of build log:"
     tail -50 "$SCRIPT_DIR/build-windows-make.log"
     exit 1

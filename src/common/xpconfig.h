@@ -182,6 +182,7 @@ char *Conf_logfile(void);
 char *Conf_ship_file(void);
 char *Conf_texturedir(void);
 char *Conf_sounddir(void);
+char *Conf_fontdir(void);
 char *Conf_soundfile(void);
 char *Conf_localguru(void);
 char *Conf_robotfile(void);
