@@ -3,12 +3,12 @@
  *
  * Copyright (C) 1991-2001 by
  *
- *      Bjørn Stabell        <bjoern@xpilot.org>
+ *      BjÃ¸rn Stabell        <bjoern@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
  *      Dick Balaska         <dick@xpilot.org>
  *
- * Copyright (C) 2003-2004 Kristian Söderblom <kps@users.sourceforge.net>
+ * Copyright (C) 2003-2004 Kristian SÃ¶derblom <kps@users.sourceforge.net>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -147,7 +147,8 @@ static void print_help(const char *arg)
 static void ignorePlayer(const char *name, int level)
 {
     other_t *other = Other_by_name(name, true);
-    char buf[64 + MAX_NAME_LEN];
+    /* Avoid -Wformat-truncation under FORTIFY/Werror; nicknames can be long. */
+    char buf[256];
 
     if (other != NULL) {
 	if (level == 1) {
@@ -168,7 +169,8 @@ static void ignorePlayer(const char *name, int level)
 static void unignorePlayer(const char *name)
 {
     other_t *other = Other_by_name(name, true);
-    char buf[64 + MAX_NAME_LEN];
+    /* Avoid -Wformat-truncation under FORTIFY/Werror; nicknames can be long. */
+    char buf[256];
 
     if (other != NULL) {
 	snprintf(buf, sizeof(buf),

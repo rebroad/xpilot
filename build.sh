@@ -9,6 +9,37 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$SCRIPT_DIR"
 
 BUILD_DIR="build-linux"
+FORCE_AUTORECONF=false
+FORCE_RECONFIGURE=false
+CONFIGURE_ARGS=()
+
+while [ $# -gt 0 ]; do
+    case "$1" in
+        --autoreconf)
+            FORCE_AUTORECONF=true
+            shift
+            ;;
+        --reconfigure)
+            FORCE_RECONFIGURE=true
+            shift
+            ;;
+        --help|-h)
+            echo "Usage: $0 [--autoreconf] [--reconfigure] [configure options...]"
+            echo ""
+            echo "  --autoreconf    Regenerate autotools files (configure/Makefile.in)"
+            echo "  --reconfigure   Rerun ./configure in build-linux/"
+            echo ""
+            echo "Notes:"
+            echo "  - By default, this script will NOT regenerate autotools or rerun configure unless needed."
+            echo "  - The build enforces warnings-as-errors via CFLAGS+=' -Werror' at make time."
+            exit 0
+            ;;
+        *)
+            CONFIGURE_ARGS+=("$1")
+            shift
+            ;;
+    esac
+done
 
 echo "=========================================="
 echo "XPilot NG Build Script for Linux"
@@ -86,17 +117,7 @@ fi
 
 # Ensure autotools outputs exist/up-to-date (configure/Makefile.in).
 # This repo does not keep generated files in version control.
-NEED_AUTOTOOLS=false
-if [ ! -f "$SCRIPT_DIR/configure" ]; then
-    NEED_AUTOTOOLS=true
-fi
-# If any Makefile.am is newer than its corresponding Makefile.in, regen.
-if [ -f "$SCRIPT_DIR/configure" ] && command -v find >/dev/null 2>&1; then
-    if find "$SCRIPT_DIR" -name "Makefile.am" -type f -newer "$SCRIPT_DIR/configure" 2>/dev/null | head -1 | grep -q .; then
-        NEED_AUTOTOOLS=true
-    fi
-fi
-if [ "$NEED_AUTOTOOLS" = true ]; then
+if [ "$FORCE_AUTORECONF" = true ] || [ ! -f "$SCRIPT_DIR/configure" ]; then
     echo "Generating autotools files (configure/Makefile.in)..."
     if [ -f "$SCRIPT_DIR/configure.ac" ]; then
         # Copy SDL m4 macro if not present (needed for AM_PATH_SDL)
@@ -112,9 +133,12 @@ if [ "$NEED_AUTOTOOLS" = true ]; then
                 fi
             done
         fi
-        aclocal -I . 2>/dev/null || aclocal
+        # Use a conservative autotools sequence to work across older distros.
+        # Also force-refresh config/missing to avoid the '--is-lightweight' warning.
+        aclocal -I .
         autoconf
-        automake --add-missing 2>/dev/null || true
+        autoheader
+        automake --add-missing --copy --force-missing
     else
         echo "ERROR: No configure.ac found"
         exit 1
@@ -125,17 +149,18 @@ fi
 mkdir -p "$BUILD_DIR"
 cd "$BUILD_DIR"
 
-# Configure if needed
-if [ ! -f Makefile ]; then
+# Configure if needed (or explicitly requested)
+if [ "$FORCE_RECONFIGURE" = true ] || [ ! -f Makefile ]; then
     echo "Configuring build..."
-    "$SCRIPT_DIR/configure" "$@"
+    "$SCRIPT_DIR/configure" "${CONFIGURE_ARGS[@]}"
     echo ""
 fi
 
 # Build
 echo "Building XPilot NG..."
 echo "Using $(nproc) parallel jobs"
-make -j$(nproc)
+# Enforce warnings-as-errors at build time (without impacting configure tests).
+make -j"$(nproc)" CFLAGS="${CFLAGS:-} -Werror"
 
 echo ""
 echo "=========================================="
