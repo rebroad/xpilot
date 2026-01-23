@@ -1093,7 +1093,8 @@ if [ "$NEED_REGEN" = true ]; then
     echo "  Regenerating build system (configure.ac or Makefile.am changed)..."
     cd "$SCRIPT_DIR"
     aclocal -I . 2>/dev/null || aclocal
-    autoconf
+    # Filter out misleading "You should run autoupdate" warnings from sdl.m4 (external file)
+    autoconf 2>&1 | grep -v "You should run autoupdate" | grep -v "is obsolete" | grep -v "is expanded from" | grep -v "the top level" || true
     # Also regenerate Makefile.in files
     automake --add-missing --copy 2>/dev/null || automake --add-missing 2>/dev/null || true
     cd "$BUILD_DIR_ABS"
