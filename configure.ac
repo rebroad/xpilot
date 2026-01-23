@@ -11,16 +11,16 @@ AC_CANONICAL_TARGET
 
 AM_INIT_AUTOMAKE
 AM_MAINTAINER_MODE
-AM_CONFIG_HEADER(config.h)
+AC_CONFIG_HEADERS([config.h])
 
 dnl  Copyright & stuff.
-XP_AUTHORS="Bj�rn Stabell, Ken Ronny Schouten, Bert Gijsbers, Dick Balaska, Uoti Urpala, Juha Lindstr�m, Kristian S�derblom and Erik Andersson"
+XP_AUTHORS="Bjørn Stabell, Ken Ronny Schouten, Bert Gijsbers, Dick Balaska, Uoti Urpala, Juha Lindström, Kristian Söderblom and Erik Andersson"
 AC_SUBST([XP_AUTHORS])
 
 XP_COPYRIGHTDATE="1991-2005"
 AC_SUBST([XP_COPYRIGHTDATE])
 
-XP_COPYRIGHT="Copyright � $XP_COPYRIGHTDATE by $XP_AUTHORS"
+XP_COPYRIGHT="Copyright © $XP_COPYRIGHTDATE by $XP_AUTHORS"
 AC_SUBST([XP_COPYRIGHT])
 
 AC_SUBST([XP_RELEASEDATE],["Sep 16, 2005"])
@@ -29,29 +29,25 @@ AC_SUBST([XP_DATADIR],"$prefix/share/xpilot-ng")
 dnl  Checks for options.
 dnl  We should have some general macro for these.
 AC_ARG_ENABLE(dbe,
-	AC_HELP_STRING([--enable-dbe],
-			[support for X Doublebuffer Extension in client]),
+	AS_HELP_STRING([--enable-dbe],[support for X Doublebuffer Extension in client]),
 [if test x$enable_dbe = xyes; then
 	AC_DEFINE([DBE], 1, [support for X Doublebuffer Extension in client])
 fi])
 
 AC_ARG_ENABLE(mbx,
-	AC_HELP_STRING([--enable-mbx],
-			[support for X Multibuffer Extension in client]),
+	AS_HELP_STRING([--enable-mbx],[support for X Multibuffer Extension in client]),
 [if test x$enable_mbx = xyes; then
 	AC_DEFINE([MBX], 1, [support for X Multibuffer Extension in client])
 fi])
 
 AC_ARG_ENABLE(plockserver,
-	AC_HELP_STRING([--enable-plockserver],
-			[lock the xpilot-ng server into memory]),
+	AS_HELP_STRING([--enable-plockserver],[lock the xpilot-ng server into memory]),
 [if test x$enable_plockserver = xyes; then
 	AC_DEFINE([PLOCKSERVER], 1, [lock the xpilot-ng server into memory])
 fi])
 
 AC_ARG_ENABLE(development,
-	AC_HELP_STRING([--enable-development],
-			[enable development code]),
+	AS_HELP_STRING([--enable-development],[enable development code]),
 [if test x$enable_development = xyes; then
 	AC_DEFINE([DEVELOPMENT], 1, [enable development code])
 fi])
@@ -95,7 +91,7 @@ AC_ARG_ENABLE(sound,
 
 dnl  Checks for programs.
 AC_PROG_CC
-dnl AC_PROG_GCC_TRADITIONAL
+dnl AC_PROG_GCC_TRADITIONAL is obsolete - AC_PROG_CC handles this now
 dnl AC_PROG_CPP
 
 dnl Needed if you want to compile with g++ e.g.
@@ -310,6 +306,18 @@ AM_CONDITIONAL([COND_XP_MAPEDIT], [test x$enable_xp_mapedit = xyes])
 AM_CONDITIONAL([COND_X11_CLIENT], [test x$enable_x11_client = xyes])
 AM_CONDITIONAL([COND_SDL_CLIENT], [test x$enable_sdl_client = xyes])
 AM_CONDITIONAL([COND_SDL_GAMELOOP], [test x$enable_sdl_gameloop = xyes])
+AM_CONDITIONAL([COND_X11_CLIENT], [test x$no_x != xyes])
+
+dnl Check if building for Windows (MinGW cross-compile or native)
+case "$host_os" in
+  mingw*|msys*|cygwin*)
+    windows_build=yes
+    ;;
+  *)
+    windows_build=no
+    ;;
+esac
+AM_CONDITIONAL([COND_WINDOWS], [test x$windows_build = xyes])
 
 dnl OpenAL client sound support.
 if test x$enable_sound = xyes; then
@@ -341,8 +349,16 @@ fi
 AM_CONDITIONAL([COND_SOUND], [test x$have_sound = xyes])
 
 dnl  Checks for header files.
-dnl AC_HEADER_STDC
-AC_HEADER_TIME
+dnl STDC_HEADERS is obsolete - C89 headers can be included unconditionally
+AC_CHECK_INCLUDES_DEFAULT
+AC_PROG_EGREP
+
+dnl Check for sys/time.h (TIME_WITH_SYS_TIME is obsolete but kept for compatibility)
+AC_CHECK_HEADERS_ONCE([sys/time.h])
+if test $ac_cv_header_sys_time_h = yes; then
+  AC_DEFINE([TIME_WITH_SYS_TIME],[1],[Define to 1 if you can safely include both <sys/time.h> and <time.h>.])
+fi
+
 dnl AC_HEADER_STDBOOL
 AC_CHECK_HEADERS([ \
 	arpa/inet.h \
@@ -394,25 +410,33 @@ AC_C_CONST
 AC_C_INLINE
 AC_C_VOLATILE
 AC_TYPE_MODE_T
-AC_TYPE_SIGNAL
+dnl RETSIGTYPE is void on all modern systems (C89+), but check for compatibility
+AC_CACHE_CHECK([return type of signal handlers],[ac_cv_type_signal],[AC_COMPILE_IFELSE(
+[AC_LANG_PROGRAM([#include <sys/types.h>
+#include <signal.h>
+],
+		 [return *(signal (0, 0)) (0) == 1;])],
+		   [ac_cv_type_signal=int],
+		   [ac_cv_type_signal=void])])
+AC_DEFINE_UNQUOTED([RETSIGTYPE],[$ac_cv_type_signal],[Define as the return type of signal handlers.])
+
 AC_TYPE_SIZE_T
 AC_STRUCT_TM
 
 dnl Check for socklen_t (in Unix98)
 AC_MSG_CHECKING(for socklen_t)
-AC_TRY_COMPILE([
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
 	#include <sys/types.h>
 	#include <sys/socket.h>
 	socklen_t x;
-], [],
-[
+]], [[]])],[
 	AC_MSG_RESULT(yes)
-], [
-	AC_TRY_COMPILE([
+],[
+	AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
 		#include <sys/types.h>
 		#include <sys/socket.h>
 		int accept(int, struct sockaddr *, size_t *);
-	], [], [
+	]], [[]])], [
 		AC_MSG_RESULT(size_t)
 		AC_DEFINE(socklen_t, size_t, [socklen_t size])
 	], [
@@ -430,7 +454,7 @@ dnl AC_FUNC_REALLOC
 
 AC_FUNC_MEMCMP
 AC_FUNC_SELECT_ARGTYPES
-AC_FUNC_SETVBUF_REVERSED
+dnl AC_FUNC_SETVBUF_REVERSED is obsolete and removed
 AC_FUNC_STAT
 AC_FUNC_STRFTIME
 AC_FUNC_STRTOD

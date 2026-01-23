@@ -1,250 +1,247 @@
 # Building XPilot NG
 
-This document provides detailed instructions for building XPilot NG on Linux and Windows.
+This document provides detailed instructions for building XPilot NG on Linux and cross-compiling for Windows.
 
-## Quick Start (Linux)
+## Quick Start
 
-The easiest way to build on Linux is to use the provided build script:
+### Linux
 
 ```bash
 ./build.sh
 ```
 
-This will automatically check dependencies, configure, and build the project.
+### Windows (cross-compiled from Linux)
 
-## Prerequisites
+```bash
+./build-windows.sh
+```
 
-### Linux Build Requirements
+This creates a Windows MSI installer automatically.
 
-- **Build tools**: `gcc`, `make`, `autoconf`, `automake`
-- **Libraries**:
-  - X11 development libraries (`libx11-dev` on Debian/Ubuntu)
-  - zlib development libraries (`zlib1g-dev` on Debian/Ubuntu)
-  - expat XML parser (`libexpat1-dev` on Debian/Ubuntu)
+## Linux Build
 
-**Install on Debian/Ubuntu:**
+### Prerequisites
+
+**Debian/Ubuntu:**
 ```bash
 sudo apt-get install build-essential autoconf automake \
-    libx11-dev zlib1g-dev libexpat1-dev
+    libx11-dev zlib1g-dev libexpat1-dev \
+    libsdl1.2-dev libsdl-ttf2.0-dev libsdl-image1.2-dev \
+    libgl1-mesa-dev libglu1-mesa-dev
 ```
 
-**Install on Fedora:**
+**Fedora:**
 ```bash
 sudo dnf install gcc make autoconf automake \
-    libX11-devel zlib-devel expat-devel
+    libX11-devel zlib-devel expat-devel \
+    SDL-devel SDL_ttf-devel SDL_image-devel \
+    mesa-libGL-devel mesa-libGLU-devel
 ```
 
-**Install on Arch Linux:**
+**Arch Linux:**
 ```bash
-sudo pacman -S base-devel libx11 zlib expat
+sudo pacman -S base-devel libx11 zlib expat \
+    sdl sdl_ttf sdl_image mesa glu
 ```
 
-### Windows Build Requirements
+### Building
 
-For cross-compilation from Linux:
-- MinGW-w64 cross-compiler (`mingw-w64` package)
-- Windows versions of required libraries (zlib, expat, SDL)
-
-For native Windows builds:
-- Visual Studio (project files `.dsp` are provided)
-- Or MinGW/MSYS2 with required libraries
-
-## Building on Linux
-
-### Method 1: Using the Build Script (Recommended)
+The recommended way is to use the build script:
 
 ```bash
 ./build.sh
 ```
 
-The script will:
-1. Check for required dependencies
-2. Configure the build system
-3. Compile the server and client
-4. Show you where the binaries are located
-
-### Method 2: Manual Build
-
-1. **Configure the build:**
-   ```bash
-   ./configure
-   ```
-
-   Common configure options:
-   - `--prefix=/usr/local` - Installation prefix (default)
-   - `--enable-sdl-client` - Build SDL/OpenGL client (requires SDL)
-   - `--enable-dbe` - Enable X Doublebuffer Extension
-   - `--enable-mbx` - Enable X Multibuffer Extension
-
-2. **Build:**
-   ```bash
-   make -j$(nproc)
-   ```
-
-3. **Install (optional):**
-   ```bash
-   sudo make install
-   ```
+This will:
+1. Regenerate autotools files if needed
+2. Configure the build in `build-linux/` (out-of-tree)
+3. Compile the server and clients
+4. Report binary locations
 
 ### Build Output
 
-After building, you'll find these binaries:
-- `src/server/xpilot-ng-server` - Game server
-- `src/client/xpilot-ng-x11` - X11 client
-- `src/replay/xpilot-ng-replay` - Replay viewer
+- `build-linux/src/server/xpilot-ng-server` - Game server
+- `build-linux/src/client/xpilot-ng-x11` - X11 client
+- `build-linux/src/client/sdl/xpilot-ng-sdl` - SDL/OpenGL client
+- `build-linux/src/replay/xpilot-ng-replay` - Replay viewer
 
-If SDL client is enabled:
-- `src/client/sdl/xpilot-ng-sdl` - SDL/OpenGL client
+### Manual Build
 
-## Building for Windows
+```bash
+mkdir build-linux && cd build-linux
+../configure --enable-sdl-client
+make -j$(nproc)
+```
 
-### Option 1: Cross-Compilation from Linux
+## Windows Build (Cross-Compilation)
 
-1. **Install MinGW-w64:**
-   ```bash
-   # Debian/Ubuntu
-   sudo apt-get install mingw-w64
+The `build-windows.sh` script provides fully automated Windows cross-compilation from Linux, including:
 
-   # Fedora
-   sudo dnf install mingw64-gcc
+- Automatic dependency building (zlib, expat, FreeType2, SDL_ttf, SDL_image)
+- MSI installer creation
+- All required DLLs bundled
 
-   # Arch
-   sudo pacman -S mingw-w64-gcc
-   ```
+### Prerequisites
 
-2. **Run the Windows build script:**
-   ```bash
-   ./build-windows.sh
-   ```
+The script will automatically install MinGW-w64 if not present. You need:
 
-   Note: This requires Windows versions of dependencies. For a complete
-   Windows build, you may need to:
-   - Install Windows libraries in `/usr/x86_64-w64-mingw32/` or similar
-   - Use `--enable-sdl-client` for SDL-based client (recommended)
+- `sudo` access (for package installation)
+- Internet connection (for downloading dependencies)
 
-3. **Copy required DLLs:**
-   The Windows executable will need these DLLs:
-   - `zlib1.dll`
-   - `libexpat-1.dll`
-   - `SDL.dll`, `SDL_ttf.dll`, `SDL_image.dll` (if using SDL client)
+Pre-installed MinGW packages needed:
+```bash
+# Debian/Ubuntu
+sudo apt-get install mingw-w64 libsdl1.2-dev:amd64
 
-### Option 2: Native Windows Build with Visual Studio
+# Fedora
+sudo dnf install mingw64-gcc mingw64-SDL mingw64-SDL_ttf mingw64-SDL_image
 
-The project includes Visual Studio project files (`.dsp` files):
+# Arch
+sudo pacman -S mingw-w64-gcc
+```
 
-1. Open `XPilot.dsw` in Visual Studio
-2. Select the configuration (Release/Debug)
-3. Build the solution
+### Building
 
-### Option 3: Native Windows Build with MinGW/MSYS2
+```bash
+./build-windows.sh
+```
 
-1. Install MSYS2 from https://www.msys2.org/
-2. Install required packages:
-   ```bash
-   pacman -S mingw-w64-x86_64-gcc \
-            mingw-w64-x86_64-zlib \
-            mingw-w64-x86_64-expat \
-            mingw-w64-x86_64-SDL \
-            mingw-w64-x86_64-SDL_ttf \
-            mingw-w64-x86_64-SDL_image
-   ```
+The script will:
+1. Install MinGW-w64 cross-compiler if needed
+2. Download and cross-compile dependencies:
+   - zlib (compression)
+   - expat (XML parsing)
+   - FreeType2 (font rendering, via Meson)
+   - SDL_ttf (SDL font support)
+   - SDL_image (image loading with PNG support)
+3. Configure and build XPilot NG SDL client
+4. Create an MSI installer with all files
 
-3. In MSYS2 MinGW64 shell:
-   ```bash
-   ./configure --enable-sdl-client
-   make
-   ```
+### Build Output
+
+- `build-windows/src/client/sdl/xpilot-ng-sdl.exe` - Windows SDL client
+- `xpilot-ng-windows.msi` - Windows installer (ready to distribute)
+
+### Installation Directory
+
+The MSI installs to `C:\Program Files\XPilot NG\` with this structure:
+```
+C:\Program Files\XPilot NG\
+├── xpilot-ng-sdl.exe     (main executable)
+├── zlib1.dll             (compression library)
+├── SDL_image.dll         (image loading)
+├── data\                 (game data)
+│   ├── fonts\
+│   ├── maps\
+│   ├── textures\
+│   └── *.txt
+├── doc\                  (documentation)
+└── README.txt
+```
+
+### Installer Creation
+
+The script prefers these installer formats (in order):
+1. **MSI** (via `wixl`) - Windows Installer, integrates with Add/Remove Programs
+2. **NSIS** (via `makensis`) - Executable installer
+3. **ZIP** - Fallback if no installer tools available
+
+Missing tools are installed automatically.
+
+## Build Options
+
+### Configure Options
+
+```bash
+./configure --help    # Show all options
+```
+
+Common options:
+- `--enable-sdl-client` - Build SDL/OpenGL client (recommended for Windows)
+- `--enable-sdl-gameloop` - Use SDL event loop (required for Windows SDL)
+- `--prefix=/path` - Installation prefix
+- `--enable-dbe` - X11 Double Buffer Extension
+- `--enable-mbx` - X11 Multi-Buffer Extension
+
+### Compiler Flags
+
+The Windows build uses `-Werror` to catch all warnings as errors, ensuring clean code.
 
 ## Troubleshooting
 
-### Build Errors
+### Linux Build Issues
 
-**"getline: conflicting types"**
-- Fixed in the source code. If you see this, ensure you have the latest version.
-
-**"multiple definition of 'players_exposed'"**
-- Fixed in the source code. Ensure `xpaint.c` doesn't define these variables.
-
-**Missing X11 libraries**
-- Install `libx11-dev` (Debian/Ubuntu) or equivalent for your distribution.
-
-**Missing zlib or expat**
-- Install development packages: `zlib1g-dev libexpat1-dev` (Debian/Ubuntu)
-
-### Windows Build Issues
-
-**Cross-compilation fails**
-- Ensure MinGW-w64 is properly installed
-- Check that Windows libraries are available in the MinGW prefix directory
-- Consider using SDL client instead of X11 client for Windows
-
-**Missing DLLs at runtime**
-- Copy required DLLs to the same directory as the executable
-- Or add the MinGW bin directory to PATH
-
-## Advanced Configuration
-
-### Enable SDL Client
-
-The SDL client provides better cross-platform support and OpenGL rendering:
-
+**Missing X11 libraries:**
 ```bash
-./configure --enable-sdl-client
+sudo apt-get install libx11-dev libxext-dev
 ```
 
-This requires:
-- SDL 1.2.0 or later
-- SDL_ttf
-- SDL_image
-- OpenGL libraries
-
-### Custom Installation Prefix
-
-Install to a custom location:
-
+**Missing OpenGL libraries:**
 ```bash
-./configure --prefix=/opt/xpilot
-make
-sudo make install
+sudo apt-get install libgl1-mesa-dev libglu1-mesa-dev
 ```
 
-### Development Build
-
-Enable development features:
-
+**Missing SDL libraries:**
 ```bash
-./configure --enable-development
+sudo apt-get install libsdl1.2-dev libsdl-ttf2.0-dev libsdl-image1.2-dev
 ```
 
-## Creating Windows Installer
+### Windows Cross-Compilation Issues
 
-### Using NSIS (Recommended)
+**"configure: error: *** Math library not found!"**
+- The script patches configure to handle MinGW quirks. If this persists, check that MinGW-w64 is properly installed.
 
-A NSIS installer script is provided (`build-windows.nsi`). To create an installer:
+**FreeType2 build produces ELF instead of PE/COFF:**
+- The script uses Meson (not Autotools) for FreeType2 to ensure correct cross-compilation.
 
-1. Install NSIS from https://nsis.sourceforge.io/
-2. Build the Windows client first (see Windows build instructions above)
-3. Copy required DLLs to the build directory
-4. Compile the NSIS script:
-   ```bash
-   makensis build-windows.nsi
-   ```
+**Missing DLLs at runtime:**
+- All required DLLs are bundled in the MSI installer automatically.
+- If building manually, copy DLLs from `/usr/x86_64-w64-mingw32/bin/`.
 
-This will create `xpilot-ng-setup.exe` installer.
+**wixl/makensis not found:**
+- The script will attempt to install these automatically via your package manager.
+- Manual install: `sudo apt-get install wixl nsis`
 
-### Alternative Installer Tools
+### Build Artifact Conflicts
 
-- **WiX Toolset**: https://wixtoolset.org/ (creates MSI installers)
-- **Inno Setup**: https://jrsoftware.org/isinfo.php (another popular installer)
+The build scripts use out-of-tree builds to prevent conflicts:
+- Linux: `build-linux/`
+- Windows: `build-windows/`
 
-A basic installer should include:
-- The client executable
-- Required DLLs (zlib, expat, SDL if used)
-- Data files from `lib/` directory
-- Documentation
+If you encounter stale artifacts, clean with:
+```bash
+rm -rf build-linux build-windows
+```
+
+## Development Notes
+
+### Code Quality
+
+The codebase builds with `-Werror` on Windows, meaning all compiler warnings are treated as errors. Key fixes applied:
+
+- Proper header include order (`winsock2.h` before `windows.h`)
+- Explicit function return types in NT compatibility headers
+- Guarded macro redefinitions (`#ifndef` guards)
+- Correct types for Windows API calls (`u_long` vs `int`)
+
+### Architecture
+
+- **src/common/** - Shared code between server and clients
+- **src/server/** - Game server
+- **src/client/** - X11 client and shared client code
+- **src/client/sdl/** - SDL/OpenGL client (cross-platform)
+- **src/replay/** - Replay viewer
+- **lib/** - Game data (maps, textures, fonts, configs)
+
+### Adding New Warnings
+
+To add stricter warnings, modify `CFLAGS` in configure or the build scripts:
+```bash
+CFLAGS="-Wall -Wextra -Werror" ./configure
+```
 
 ## Additional Resources
 
 - Main website: http://xpilot.sourceforge.net/
-- FAQ: telnet meta.xpilot.org 4402
-- Documentation: See `doc/man/` directory
+- Source repository: (your repo URL)
+- Documentation: See `doc/` directory
