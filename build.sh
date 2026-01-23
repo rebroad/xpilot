@@ -102,8 +102,7 @@ if [ ! -f "$SCRIPT_DIR/configure" ]; then
             done
         fi
         aclocal -I . 2>/dev/null || aclocal
-        # Filter out misleading "You should run autoupdate" warnings from sdl.m4 (external file)
-        autoconf 2>&1 | grep -v "You should run autoupdate" | grep -v "is obsolete" | grep -v "is expanded from" | grep -v "the top level" || true
+        autoconf
         automake --add-missing 2>/dev/null || true
     else
         echo "ERROR: No configure.ac found"
