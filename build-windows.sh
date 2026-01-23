@@ -12,18 +12,26 @@ echo "XPilot NG Windows Cross-Compilation"
 echo "=========================================="
 echo ""
 
-# Cache sudo password for unattended operation
-if command -v sudo >/dev/null 2>&1; then
-    echo "Caching sudo credentials..."
-    sudo -v
-    # Keep sudo alive for the duration of the script
-    while true; do
-        sudo -n true
-        sleep 60
-        kill -0 "$$" || exit
-    done 2>/dev/null &
-    SUDO_PID=$!
-fi
+# Sudo helper - only prompts if actually needed
+SUDO_CACHED=false
+ensure_sudo() {
+    if [ "$SUDO_CACHED" = true ]; then
+        return 0
+    fi
+    if command -v sudo >/dev/null 2>&1; then
+        echo "  (sudo access needed to install dependencies to system MinGW directories)"
+        if sudo -v; then
+            SUDO_CACHED=true
+            # Keep sudo alive for the duration of the script
+            (while true; do sudo -n true; sleep 60; kill -0 "$$" || exit; done 2>/dev/null) &
+            SUDO_PID=$!
+        else
+            echo "  WARNING: sudo not available, may fail to install dependencies"
+            return 1
+        fi
+    fi
+    return 0
+}
 
 # Cleanup function for exit
 cleanup_on_exit() {
@@ -41,6 +49,8 @@ install_package() {
     local apt_pkg="$1"
     local dnf_pkg="${2:-$apt_pkg}"
     local pacman_pkg="${3:-$apt_pkg}"
+
+    ensure_sudo || return 1
 
     if command -v apt-get >/dev/null 2>&1; then
         sudo apt-get install -y -qq "$apt_pkg" >/dev/null 2>&1 || return 1
@@ -73,7 +83,7 @@ else
     echo "MinGW cross-compiler not found. Installing..."
     # Update package lists first for apt
     if command -v apt-get >/dev/null 2>&1; then
-        sudo apt-get update -qq
+        ensure_sudo && sudo apt-get update -qq
     fi
     if ! install_package "mingw-w64" "mingw64-gcc" "mingw-w64-gcc"; then
         echo "ERROR: Cannot auto-install MinGW. Package manager not found or installation failed."
@@ -119,6 +129,7 @@ mkdir -p "$SHARED_BUILD_DIR"
 # Function to build zlib for Windows
 build_zlib() {
     echo "Building zlib for Windows..."
+    ensure_sudo || { echo "  ERROR: sudo required to install zlib"; return 1; }
     cd "$SHARED_BUILD_DIR"
 
     ZLIB_TAR="zlib-1.3.1.tar.gz"
@@ -162,6 +173,7 @@ build_zlib() {
 # Function to build libpng for Windows
 build_libpng() {
     echo "Building libpng for Windows..."
+    ensure_sudo || { echo "  ERROR: sudo required to install libpng"; return 1; }
     cd "$SHARED_BUILD_DIR"
 
     LIBPNG_TAR="libpng-1.6.43.tar.xz"
@@ -243,6 +255,7 @@ build_libpng() {
 # Function to build expat for Windows
 build_expat() {
     echo "Building expat for Windows..."
+    ensure_sudo || { echo "  ERROR: sudo required to install expat"; return 1; }
     BUILD_TMP_DIR="$SCRIPT_DIR/.mingw-build"
     mkdir -p "$BUILD_TMP_DIR"
     cd "$BUILD_TMP_DIR"
@@ -480,6 +493,7 @@ fi
 # Build SDL for Windows if not available
 if [ "$SDL_AVAILABLE" = false ]; then
     echo "Building SDL for Windows..."
+    ensure_sudo || { echo "  ERROR: sudo required to install SDL"; exit 1; }
     cd "$SHARED_BUILD_DIR"
 
     SDL_TAR="SDL-1.2.15.tar.gz"
@@ -567,6 +581,7 @@ fi
 # Build FreeType2 for Windows if not available (required by SDL_ttf)
 if [ "$FREETYPE_AVAILABLE" = false ] || [ -z "$FREETYPE_LIB" ]; then
     echo "Building FreeType2 for Windows..."
+    ensure_sudo || { echo "  ERROR: sudo required to install FreeType2"; exit 1; }
     cd "$SHARED_BUILD_DIR"
 
     FREETYPE_TAR="freetype-2.13.2.tar.xz"
@@ -725,6 +740,7 @@ fi
 # Build SDL_ttf for Windows if not available
 if [ "$SDL_TTF_AVAILABLE" = false ]; then
     echo "Building SDL_ttf for Windows..."
+    ensure_sudo || { echo "  ERROR: sudo required to install SDL_ttf"; exit 1; }
     cd "$SHARED_BUILD_DIR"
 
     SDL_TTF_TAR="SDL_ttf-2.0.11.tar.gz"
@@ -931,6 +947,7 @@ fi
 # Build SDL_image for Windows if not available
 if [ "$SDL_IMAGE_AVAILABLE" = false ]; then
     echo "Building SDL_image for Windows..."
+    ensure_sudo || { echo "  ERROR: sudo required to install SDL_image"; exit 1; }
     cd "$SHARED_BUILD_DIR"
 
     SDL_IMAGE_TAR="SDL_image-1.2.12.tar.gz"
@@ -1106,11 +1123,14 @@ for arg in "$@"; do
 done
 
 # Fix permissions on installed headers (cp from build dir may have restrictive perms)
-echo "Fixing header permissions..."
-sudo chmod 644 "${MINGW_INCLUDE}/SDL/SDL_ttf.h" 2>/dev/null || true
-sudo chmod 644 "${MINGW_INCLUDE}/SDL/SDL_image.h" 2>/dev/null || true
-sudo chmod 644 "${MINGW_INCLUDE}/png.h" 2>/dev/null || true
-sudo chmod 644 "${MINGW_INCLUDE}"/libpng16/*.h 2>/dev/null || true
+# Fix header permissions if needed (only if we have sudo and files exist)
+if [ "$SUDO_CACHED" = true ]; then
+    echo "Fixing header permissions..."
+    sudo chmod 644 "${MINGW_INCLUDE}/SDL/SDL_ttf.h" 2>/dev/null || true
+    sudo chmod 644 "${MINGW_INCLUDE}/SDL/SDL_image.h" 2>/dev/null || true
+    sudo chmod 644 "${MINGW_INCLUDE}/png.h" 2>/dev/null || true
+    sudo chmod 644 "${MINGW_INCLUDE}"/libpng16/*.h 2>/dev/null || true
+fi
 
 echo "Configuring build..."
 CONFIGURE_LOG="$(pwd)/configure.log"
@@ -1137,44 +1157,12 @@ fi
 
 echo "Building Windows client..."
 
-# Compile icon resource for Windows executable
-echo "  Compiling icon resource..."
-ICON_RC="$SCRIPT_DIR/src/client/sdl/xpilot.rc"
-ICON_RES="$SCRIPT_DIR/src/client/sdl/xpilot.res"
-ICON_FILE="$SCRIPT_DIR/src/client/NT/res/xpilot.ico"
-
-# Create res directory and copy icon if needed
-mkdir -p "$SCRIPT_DIR/src/client/sdl/res"
-if [ -f "$ICON_FILE" ]; then
-    cp "$ICON_FILE" "$SCRIPT_DIR/src/client/sdl/res/"
-fi
-
-# Create a simple RC file that windres can process
-cat > "$ICON_RC" << 'RCEOF'
-// XPilot icon resource
-1 ICON "res/xpilot.ico"
-RCEOF
-
-# Compile the resource file
-if [ -f "$SCRIPT_DIR/src/client/sdl/res/xpilot.ico" ]; then
-    ${CROSS_COMPILE}windres "$ICON_RC" -O coff -o "$ICON_RES" 2>/dev/null && \
-        echo "  Icon resource compiled successfully." || \
-        echo "  Warning: Could not compile icon resource."
-else
-    echo "  Warning: Icon file not found at $ICON_FILE"
-fi
-
 # For Windows, only build the client (not server or replay which have Unix dependencies)
 # Build common first, then client
 # Add -Werror during make (not during configure as it breaks configure tests)
 set -o pipefail
 make -C src/common V=1 CFLAGS="$CFLAGS -Werror" 2>&1 | tee "$SCRIPT_DIR/build-windows-make.log" || true
-# Add icon resource to LDADD for the client build
-ICON_LDADD=""
-if [ -f "$ICON_RES" ]; then
-    ICON_LDADD="$ICON_RES"
-fi
-make -C src/client V=1 CFLAGS="$CFLAGS -Werror" LDADD_EXTRA="$ICON_LDADD" 2>&1 | tee -a "$SCRIPT_DIR/build-windows-make.log" || true
+make -C src/client V=1 CFLAGS="$CFLAGS -Werror" 2>&1 | tee -a "$SCRIPT_DIR/build-windows-make.log" || true
 set +o pipefail
 
 # Check if client exe was built (may be in source or build directory)
