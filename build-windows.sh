@@ -462,8 +462,10 @@ export LDFLAGS="-L${MINGW_LIB}"
 # Also add build directory's src/common for generated headers like version.h
 # -DHAVE_GETTIMEOFDAY tells XPilot code that MinGW provides gettimeofday
 BUILD_DIR_ABS="${SCRIPT_DIR}/${BUILD_DIR}"
-export CPPFLAGS="-I${MINGW_INCLUDE} -I${MINGW_INCLUDE}/SDL -D_WINDOWS -DWIN32 -DHAVE_GETTIMEOFDAY -I${BUILD_DIR_ABS}/src/common"
-export CFLAGS="-I${MINGW_INCLUDE} -I${MINGW_INCLUDE}/SDL -D_WINDOWS -DWIN32 -DHAVE_GETTIMEOFDAY -I${BUILD_DIR_ABS}/src/common"
+# Override CONF_DATADIR to "data/" for Windows (Makefile.am sets it to pkgdatadir which is wrong for Windows)
+# The double backslashes escape the quotes so they're passed through to the compiler correctly
+export CPPFLAGS="-I${MINGW_INCLUDE} -I${MINGW_INCLUDE}/SDL -D_WINDOWS -DWIN32 -DHAVE_GETTIMEOFDAY -I${BUILD_DIR_ABS}/src/common -DCONF_DATADIR=\\\"data/\\\""
+export CFLAGS="-I${MINGW_INCLUDE} -I${MINGW_INCLUDE}/SDL -D_WINDOWS -DWIN32 -DHAVE_GETTIMEOFDAY -I${BUILD_DIR_ABS}/src/common -DCONF_DATADIR=\\\"data/\\\""
 # -Werror will be added during make, not configure (configure tests may have warnings)
 export LIBS="-lSDL_ttf -lSDL_image -lfreetype -lpng16 -lz"
 export PKG_CONFIG_PATH="${MINGW_LIB}/pkgconfig:${PKG_CONFIG_PATH:-}"
@@ -1175,6 +1177,12 @@ else
     echo "Build already configured (use --clean to reconfigure)..."
 fi
 
+# Remove CONF_DATADIR from Makefile AM_CPPFLAGS (we override it in CPPFLAGS/CFLAGS)
+# This prevents redefinition errors since Makefile.am sets it to pkgdatadir
+echo "  Removing CONF_DATADIR from Makefile AM_CPPFLAGS (using override from build script)..."
+find . -name "Makefile" -type f -exec sed -i 's/-DCONF_DATADIR="[^"]*"//g' {} \; 2>/dev/null || true
+find . -name "Makefile" -type f -exec sed -i 's/-DCONF_DATADIR=\\"[^\\"]*\\"//g' {} \; 2>/dev/null || true=
+
 # Embed application icon into the Windows executable (only if needed)
 ICON_SRC="$SCRIPT_DIR/src/client/NT/res/xpilot.ico"
 ICON_OBJ="src/client/sdl/xpilot_icon.o"
@@ -1226,6 +1234,68 @@ elif [ ! -f "$ICON_SRC" ]; then
 fi
 
 echo "Building Windows client..."
+
+# Check if CONF_DATADIR has changed (affects source files that use it)
+# Extract actual value from CPPFLAGS and compare to last build
+CONF_DATADIR_STAMP="$(pwd)/.conf_datadir_stamp"
+# Extract CONF_DATADIR value from CPPFLAGS (look for -DCONF_DATADIR=\"value\")
+# The value is stored as \\"data/\\" in the variable, so we need to match \\" not \"
+CURRENT_DATADIR=$(echo "$CPPFLAGS" | sed -n 's/.*-DCONF_DATADIR=\\\\"\([^\\]*\)\\\\".*/\1/p')
+if [ -z "$CURRENT_DATADIR" ]; then
+    # Fallback: if not in CPPFLAGS, check CFLAGS
+    CURRENT_DATADIR=$(echo "$CFLAGS" | sed -n 's/.*-DCONF_DATADIR=\\\\"\([^\\]*\)\\\\".*/\1/p')
+fi
+# If still not found, use default from xpconfig.h
+if [ -z "$CURRENT_DATADIR" ]; then
+    CURRENT_DATADIR="data/"  # Default for Windows
+fi
+
+LAST_DATADIR=""
+if [ -f "$CONF_DATADIR_STAMP" ]; then
+    LAST_DATADIR=$(cat "$CONF_DATADIR_STAMP" 2>/dev/null || echo "")
+fi
+
+# Check if executable exists and is older than stamp file (built before CONF_DATADIR was set correctly)
+NEED_REBUILD=false
+CLIENT_EXE_CHECK="src/client/sdl/xpilot-ng-sdl.exe"
+if [ -f "$CLIENT_EXE_CHECK" ] && [ -f "$CONF_DATADIR_STAMP" ]; then
+    if [ "$CLIENT_EXE_CHECK" -ot "$CONF_DATADIR_STAMP" ]; then
+        # Executable is older than stamp - it was built before we set CONF_DATADIR correctly
+        NEED_REBUILD=true
+    fi
+fi
+
+# If stamp doesn't exist or value changed, force rebuild of affected files
+if [ -z "$LAST_DATADIR" ] || [ "$LAST_DATADIR" != "$CURRENT_DATADIR" ] || [ "$NEED_REBUILD" = true ]; then
+    if [ -z "$LAST_DATADIR" ]; then
+        echo "  CONF_DATADIR not previously recorded (first run or --clean) - will rebuild affected files..."
+    elif [ "$NEED_REBUILD" = true ]; then
+        echo "  Executable was built before CONF_DATADIR was set correctly - forcing rebuild..."
+    else
+        echo "  CONF_DATADIR changed from '$LAST_DATADIR' to '$CURRENT_DATADIR' - forcing rebuild of affected files..."
+    fi
+    # Touch only the source files that actually use CONF_DATADIR or its derived macros
+    # (xpconfig.h is a header, so touching .c files that include it will force recompilation)
+    for f in src/common/config.c \
+             src/client/sdl/sdlinit.c \
+             src/client/sdl/main.c \
+             src/client/sdl/sdlpaint.c \
+             src/client/sdl/sdlmeta.c \
+             src/client/sdl/glwidgets.c \
+             src/client/sdl/console.c \
+             src/client/default.c; do
+        # Use source path (files are in source tree, not build tree)
+        SRC_FILE="$SCRIPT_DIR/$f"
+        if [ -f "$SRC_FILE" ]; then
+            touch "$SRC_FILE" 2>/dev/null || true
+        fi
+    done
+fi
+# Write stamp file (we should be in BUILD_DIR at this point)
+echo "$CURRENT_DATADIR" > "$CONF_DATADIR_STAMP" 2>/dev/null || {
+    # Fallback if pwd failed or we're not in build dir
+    echo "$CURRENT_DATADIR" > "$BUILD_DIR/.conf_datadir_stamp" 2>/dev/null || true
+}
 
 # For Windows, only build the client (not server or replay which have Unix dependencies)
 # Build common first, then client
