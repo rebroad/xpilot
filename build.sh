@@ -88,12 +88,20 @@ fi
 if [ ! -f "$SCRIPT_DIR/configure" ]; then
     echo "Generating configure script..."
     if [ -f "$SCRIPT_DIR/configure.ac" ]; then
-        # Run autoupdate to fix obsolete macros
-        if command -v autoupdate >/dev/null 2>&1; then
-            echo "  Running autoupdate to fix obsolete macros..."
-            autoupdate configure.ac 2>/dev/null || true
+        # Copy SDL m4 macro if not present (needed for AM_PATH_SDL)
+        if [ ! -f "$SCRIPT_DIR/sdl.m4" ]; then
+            for SDL_M4_PATH in \
+                /usr/share/aclocal/sdl.m4 \
+                /usr/local/share/aclocal/sdl.m4 \
+                /usr/x86_64-w64-mingw32/share/aclocal/sdl.m4; do
+                if [ -f "$SDL_M4_PATH" ]; then
+                    echo "  Copying sdl.m4 from $SDL_M4_PATH..."
+                    cp "$SDL_M4_PATH" "$SCRIPT_DIR/"
+                    break
+                fi
+            done
         fi
-        aclocal
+        aclocal -I . 2>/dev/null || aclocal
         autoconf
         automake --add-missing 2>/dev/null || true
     else

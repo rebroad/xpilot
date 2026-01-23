@@ -1043,14 +1043,22 @@ CONFIGURE_OPTS+=(--enable-sdl-gameloop)  # Use SDL gameloop instead of X11-optim
 # Regenerate configure from configure.ac if needed
 echo "Checking build system..."
 
-# Copy SDL m4 macro from MinGW installation if not present
+# Copy SDL m4 macro if not present (needed for AM_PATH_SDL)
 if [ ! -f "$SCRIPT_DIR/sdl.m4" ]; then
-    SDL_M4="/usr/x86_64-w64-mingw32/share/aclocal/sdl.m4"
-    if [ -f "$SDL_M4" ]; then
-        echo "  Copying sdl.m4 from MinGW installation..."
-        cp "$SDL_M4" "$SCRIPT_DIR/"
-    else
-        echo "  WARNING: sdl.m4 not found at $SDL_M4"
+    SDL_M4_FOUND=false
+    for SDL_M4_PATH in \
+        /usr/x86_64-w64-mingw32/share/aclocal/sdl.m4 \
+        /usr/share/aclocal/sdl.m4 \
+        /usr/local/share/aclocal/sdl.m4; do
+        if [ -f "$SDL_M4_PATH" ]; then
+            echo "  Copying sdl.m4 from $SDL_M4_PATH..."
+            cp "$SDL_M4_PATH" "$SCRIPT_DIR/"
+            SDL_M4_FOUND=true
+            break
+        fi
+    done
+    if [ "$SDL_M4_FOUND" = false ]; then
+        echo "  WARNING: sdl.m4 not found - AM_PATH_SDL may fail"
     fi
 fi
 
@@ -1067,13 +1075,6 @@ fi
 if [ "$NEED_REGEN" = true ]; then
     echo "  Regenerating build system (configure.ac or Makefile.am changed)..."
     cd "$SCRIPT_DIR"
-
-    # Run autoupdate to fix obsolete macros (AC_HELP_STRING -> AS_HELP_STRING, etc.)
-    if command -v autoupdate >/dev/null 2>&1; then
-        echo "  Running autoupdate to fix obsolete macros..."
-        autoupdate configure.ac 2>/dev/null || true
-    fi
-
     aclocal -I . 2>/dev/null || aclocal
     autoconf
     # Also regenerate Makefile.in files
