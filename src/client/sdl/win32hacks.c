@@ -36,11 +36,41 @@ struct {
 
 
 /* SDL client does not use MFC crap */
+/* Write trace output to a log file since Windows GUI apps have no console */
+static FILE *trace_file = NULL;
+static int trace_initialized = 0;
+
+static void init_trace_file(void)
+{
+    if (!trace_initialized) {
+        trace_initialized = 1;
+        trace_file = fopen("xpilot-debug.log", "w");
+        if (trace_file) {
+            fprintf(trace_file, "XPilot NG SDL Client Debug Log\n");
+            fprintf(trace_file, "==============================\n\n");
+            fflush(trace_file);
+        }
+    }
+}
+
 void _Trace(char *fmt, ...)
 {
-	va_list ap;
-	va_start(ap, fmt);
-    vprintf(fmt, ap);
+    va_list ap;
+    init_trace_file();
+    va_start(ap, fmt);
+    if (trace_file) {
+        vfprintf(trace_file, fmt, ap);
+        fflush(trace_file);  /* Flush immediately so we see output even on crash */
+    }
+    /* Also try OutputDebugString for debugger attachment */
+    {
+        char buf[1024];
+        va_list ap2;
+        va_start(ap2, fmt);
+        vsnprintf(buf, sizeof(buf), fmt, ap2);
+        va_end(ap2);
+        OutputDebugStringA(buf);
+    }
     va_end(ap);
 }
 

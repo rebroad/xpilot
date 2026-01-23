@@ -121,6 +121,24 @@ int Init_window(void)
     char defaultfontname[] = CONF_FONTDIR "FreeSansBoldOblique.ttf";
     bool gf_exists = true,df_exists = true,gf_init = false, mf_init = false;
     
+#ifdef _WINDOWS
+    int use_fullscreen = 1;  /* Default to fullscreen on Windows */
+    char *windowed_env;
+#endif
+
+    xpprintf("Init_window: Starting initialization...\n");
+    xpprintf("Init_window: CONF_DATADIR = %s\n", Conf_datadir());
+    xpprintf("Init_window: CONF_FONTDIR = %s\n", Conf_fontdir());
+    xpprintf("Init_window: Default font = %s\n", defaultfontname);
+
+    /* Check if required directories/files exist */
+    if (!file_exists(defaultfontname)) {
+        xpprintf("Init_window: WARNING - Default font not found: %s\n", defaultfontname);
+        error("Font file not found: %s\nMake sure the 'data' folder is in the same directory as the executable.", defaultfontname);
+    } else {
+        xpprintf("Init_window: Font file found: %s\n", defaultfontname);
+    }
+
     if (TTF_Init()) {
     	error("SDL_ttf initialization failed: %s", SDL_GetError());
     	return -1;
@@ -129,15 +147,20 @@ int Init_window(void)
 
     Conf_print();
 
+    xpprintf("Init_window: Initializing SDL video...\n");
     if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_NOPARACHUTE) < 0) {
         error("failed to initialize SDL: %s", SDL_GetError());
         return -1;
     }
+    xpprintf("Init_window: SDL video initialized\n");
 
     atexit(SDL_Quit);
 
     /* Fetch the video info */
     videoInfo = SDL_GetVideoInfo( );
+    xpprintf("Init_window: Video info: %dx%d, %d bpp\n",
+             videoInfo->current_w, videoInfo->current_h,
+             videoInfo->vfmt->BitsPerPixel);
 
     num_spark_colors=8;
 
@@ -148,7 +171,20 @@ int Init_window(void)
 #ifndef _WINDOWS
     videoFlags |= SDL_RESIZABLE;       /* Enable window resizing        */
 #else
-    videoFlags |= SDL_FULLSCREEN;
+    /* On Windows, check for XPILOT_WINDOWED environment variable to run in windowed mode */
+    /* This helps with debugging - set XPILOT_WINDOWED=1 to disable fullscreen */
+    windowed_env = getenv("XPILOT_WINDOWED");
+    if (windowed_env && (windowed_env[0] == '1' || windowed_env[0] == 'y' || windowed_env[0] == 'Y')) {
+        use_fullscreen = 0;
+        xpprintf("Init_window: Windowed mode enabled via XPILOT_WINDOWED environment variable\n");
+    }
+    if (use_fullscreen) {
+        videoFlags |= SDL_FULLSCREEN;
+        xpprintf("Init_window: Using fullscreen mode\n");
+    } else {
+        videoFlags |= SDL_RESIZABLE;
+        xpprintf("Init_window: Using windowed mode\n");
+    }
 #endif
 
     /** This checks to see if surfaces can be stored in memory */
@@ -169,13 +205,17 @@ int Init_window(void)
       if (!find_size((int*)&draw_width, (int*)&draw_height))
       	videoFlags ^= SDL_FULLSCREEN;
 
+    xpprintf("Init_window: Creating window %dx%d at %d bpp, flags=0x%x\n",
+             draw_width, draw_height, draw_depth, videoFlags);
+
     if ((MainSDLSurface = SDL_SetVideoMode(draw_width,
 			 draw_height,
 			 draw_depth,
 			 videoFlags )) == NULL) {
-      error("Could not find a valid GLX visual for your display");
-	  return -1;
+      error("Could not create window/find a valid GLX visual: %s", SDL_GetError());
+      return -1;
     }
+    xpprintf("Init_window: Window created successfully\n");
 
     SDL_GL_GetAttribute(SDL_GL_RED_SIZE, &value);
     printf("RGB bpp %d/", value);

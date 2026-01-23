@@ -48,8 +48,23 @@ int main(int argc, char *argv[])
 {
     bool auto_shutdown = false;
     int result;
+#ifdef _WINDOWS
+    char cwd[MAX_PATH];
+#endif
 
     init_error(argv[0]);
+
+#ifdef _WINDOWS
+    /* Log startup information for debugging */
+    xpprintf("XPilot NG SDL Client starting...\n");
+    xpprintf("Executable: %s\n", argv[0]);
+    if (GetCurrentDirectoryA(MAX_PATH, cwd)) {
+        xpprintf("Working directory: %s\n", cwd);
+    }
+    xpprintf("CONF_DATADIR: %s\n", Conf_datadir());
+    xpprintf("CONF_FONTDIR: %s\n", Conf_fontdir());
+    xpprintf("\n");
+#endif
 
     seedMT((unsigned)time(NULL) ^ Get_process_id());
 
