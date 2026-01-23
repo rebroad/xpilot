@@ -2,8 +2,9 @@
 # Build script for XPilot NG Windows client using MinGW cross-compiler
 # This script automatically handles all dependencies and cross-compiles the Windows client
 #
-# Usage: ./build-windows.sh [--clean]
-#   --clean    Force a clean build by removing the build directory first
+# Usage: ./build-windows.sh [--clean] [--wine-test]
+#   --clean            Force a clean build by removing the build directory first
+#   --wine-test        After building, smoke-test the generated MSI using Wine in a temporary prefix under /var/tmp (default)
 
 set -e
 
@@ -12,18 +13,403 @@ cd "$SCRIPT_DIR"
 
 # Parse command line arguments
 FORCE_CLEAN=false
+WINE_TEST=false
 for arg in "$@"; do
     case "$arg" in
         --clean)
             FORCE_CLEAN=true
             ;;
+        --wine-test)
+            WINE_TEST=true
+            ;;
         --help|-h)
-            echo "Usage: $0 [--clean]"
-            echo "  --clean    Force a clean build by removing the build directory first"
+            echo "Usage: $0 [--clean] [--wine-test]"
+            echo "  --clean            Force a clean build by removing the build directory first"
+            echo "  --wine-test        After building, smoke-test the generated MSI using Wine in a temporary prefix"
+            echo ""
+            echo "Wine prefix templating:"
+            echo "  Set XPILOT_WINE_TEMPLATE_PREFIX to reuse an existing prefix as a template."
+            echo "  Otherwise, WINEPREFIX (if set) or ~/.wine is used when present."
+            echo "Wine test location:"
+            echo "  Default base dir: /var/tmp/xpilot (fits systemd-tmpfiles cleanup when enabled for /var/tmp)"
+            echo "  Override with XPILOT_WINE_TEST_BASEDIR."
             exit 0
             ;;
     esac
 done
+
+# Wine MSI smoke test (optional)
+#
+# Behavior:
+# - Creates a disposable Wine prefix under /var/tmp/xpilot (default)
+# - Uses a cached template prefix under /var/tmp/xpilot to speed up repeated runs (fast path uses reflinks when supported)
+# - Runs: wineboot -u, then msiexec /i <msi> with verbose logging
+# - If an installed XPilot exe is found and DISPLAY is available, attempts to launch it
+wine_clone_prefix_template() {
+    local template_prefix="$1"
+    local dest_prefix="$2"
+    local label="${3:-template}"
+
+    if [ -z "$template_prefix" ] || [ ! -d "$template_prefix" ]; then
+        return 1
+    fi
+
+    echo "  Cloning Wine prefix ($label): $template_prefix"
+    mkdir -p "$dest_prefix"
+
+    # Fast copy on filesystems that support it; fall back to normal copy.
+    if cp -a --reflink=auto "$template_prefix/." "$dest_prefix/" 2>/dev/null; then
+        return 0
+    fi
+    cp -a "$template_prefix/." "$dest_prefix/"
+}
+
+wine_prepare_cached_template_prefix() {
+    local source_prefix="${1:-}"
+    local cached_prefix="$2"
+
+    # If it already exists, we assume it's good enough; this is a best-effort cache.
+    if [ -d "$cached_prefix" ]; then
+        return 0
+    fi
+
+    rm -rf "$cached_prefix" >/dev/null 2>&1 || true
+
+    if [ -n "$source_prefix" ] && [ -d "$source_prefix" ]; then
+        echo "  Creating cached Wine template prefix: $cached_prefix"
+        wine_clone_prefix_template "$source_prefix" "$cached_prefix" "source template"
+        return 0
+    fi
+
+    # Default: create a fresh, minimal prefix (avoids inheriting ~/.wine quirks/popups).
+    echo "  Creating fresh Wine template prefix: $cached_prefix"
+    mkdir -p "$cached_prefix"
+    (
+        export WINEPREFIX="$cached_prefix"
+        export WINEARCH=win64
+        export WINEDEBUG=-all
+        export WINEDLLOVERRIDES="winemenubuilder.exe=d;werfault.exe=d;wermgr.exe=d"
+        if command -v timeout >/dev/null 2>&1; then
+            timeout 90s wineboot -u >/dev/null 2>&1 || true
+        else
+            wineboot -u >/dev/null 2>&1 || true
+        fi
+    )
+    return 0
+}
+
+wine_test_msi() {
+    local msi_path="$1"
+
+    if [ -z "$msi_path" ] || [ ! -f "$msi_path" ]; then
+        echo "Wine test skipped: MSI not found: $msi_path"
+        return 0
+    fi
+
+    if ! command -v wine >/dev/null 2>&1; then
+        echo "Wine test skipped: wine not found in PATH"
+        echo "  On Ubuntu/Debian you can try: sudo apt-get install -y wine64"
+        return 0
+    fi
+
+    local tmp_prefix=""
+    local tmp_log="/tmp/xpilot-msi.$(date +%Y%m%d-%H%M%S).log"
+    local tmp_run_log="/tmp/xpilot-wine-run.$(date +%Y%m%d-%H%M%S).log"
+    local tmp_clientlogs_dir="/tmp/xpilot-wine-clientlogs.$(date +%Y%m%d-%H%M%S)"
+    local tmp_wineboot_log="/tmp/xpilot-wineboot.$(date +%Y%m%d-%H%M%S).log"
+    local tmp_wine_reg_log="/tmp/xpilot-wine-reg.$(date +%Y%m%d-%H%M%S).log"
+    local tmp_msiexec_out="/tmp/xpilot-wine-msiexec.$(date +%Y%m%d-%H%M%S).log"
+
+    wine_run_watchdog() {
+        # Run a Wine command and detect "hung waiting for UI" by lack of log output growth.
+        #
+        # Args:
+        #   label max_total_secs idle_secs out_file cmd...
+        local label="$1"
+        local max_total="$2"
+        local idle_limit="$3"
+        local out_file="$4"
+        shift 4
+
+        : >"$out_file" 2>/dev/null || true
+        "$@" >"$out_file" 2>&1 &
+        local pid=$!
+
+        local start_ts last_change_ts last_size now_ts
+        start_ts=$(date +%s)
+        last_change_ts="$start_ts"
+        last_size=0
+
+        while kill -0 "$pid" 2>/dev/null; do
+            sleep 2
+            now_ts=$(date +%s)
+
+            # If the log is still growing, consider it "progress".
+            local size=0
+            size=$(wc -c <"$out_file" 2>/dev/null || echo 0)
+            if [ "$size" -ne "$last_size" ]; then
+                last_size="$size"
+                last_change_ts="$now_ts"
+            fi
+
+            # Hard upper bound (true long-run cap).
+            if [ $((now_ts - start_ts)) -ge "$max_total" ]; then
+                echo "  WARNING: ${label} exceeded ${max_total}s; killing Wine processes..."
+                set +e
+                kill "$pid" >/dev/null 2>&1 || true
+                wineserver -k >/dev/null 2>&1 || true
+                set -e
+                wait "$pid" >/dev/null 2>&1 || true
+                return 124
+            fi
+
+            # Idle timeout: likely hung on a hidden dialog if nothing changes for a while.
+            if [ $((now_ts - last_change_ts)) -ge "$idle_limit" ]; then
+                echo "  WARNING: ${label} produced no new output for ${idle_limit}s; likely blocked on UI. Killing Wine processes..."
+                set +e
+                kill "$pid" >/dev/null 2>&1 || true
+                wineserver -k >/dev/null 2>&1 || true
+                set -e
+                wait "$pid" >/dev/null 2>&1 || true
+                return 124
+            fi
+        done
+
+        wait "$pid"
+        local rc=$?
+        if [ "$rc" -ne 0 ]; then
+            echo "  WARNING: ${label} exited with code ${rc} (details: $out_file)"
+        fi
+        return "$rc"
+    }
+
+    # Choose a source template prefix if explicitly provided (opt-in).
+    local source_template_prefix=""
+    if [ -n "${XPILOT_WINE_TEMPLATE_PREFIX:-}" ] && [ -d "$XPILOT_WINE_TEMPLATE_PREFIX" ]; then
+        source_template_prefix="$XPILOT_WINE_TEMPLATE_PREFIX"
+    fi
+
+    # Pick a base directory for the temporary prefix.
+    # Default: /var/tmp/xpilot (so systemd-tmpfiles can clean it when enabled for /var/tmp).
+    # Override with XPILOT_WINE_TEST_BASEDIR if desired.
+    local test_basedir=""
+    if [ -n "${XPILOT_WINE_TEST_BASEDIR:-}" ]; then
+        test_basedir="$XPILOT_WINE_TEST_BASEDIR"
+    else
+        test_basedir="/var/tmp/xpilot"
+    fi
+    mkdir -p "$test_basedir"
+
+    # Cache a template inside the base dir so repeated tests can be fast (reflinks work when /var/tmp
+    # is on the same filesystem as the cache and supports them).
+    local template_prefix=""
+    if [ -z "${XPILOT_WINE_DISABLE_TEMPLATE_CACHE:-}" ]; then
+        local cached_template_prefix="$test_basedir/xpilot-wine-template-prefix"
+        wine_prepare_cached_template_prefix "$source_template_prefix" "$cached_template_prefix" || true
+        if [ -d "$cached_template_prefix" ]; then
+            template_prefix="$cached_template_prefix"
+        else
+            template_prefix="$source_template_prefix"
+        fi
+    else
+        template_prefix="$source_template_prefix"
+    fi
+
+    tmp_prefix="$(mktemp -d "$test_basedir/xpilot-wine-test.XXXXXX")"
+
+    local cloned_from_template=false
+    if [ -n "$template_prefix" ]; then
+        # Create the prefix by cloning the template (to keep changes isolated)
+        rm -rf "$tmp_prefix"
+        wine_clone_prefix_template "$template_prefix" "$tmp_prefix" "cached template"
+        cloned_from_template=true
+    fi
+
+    echo ""
+    echo "=========================================="
+    echo "Wine MSI smoke test"
+    echo "=========================================="
+    echo "MSI: $msi_path"
+    echo "WINEPREFIX: $tmp_prefix"
+    echo "Log: $tmp_log"
+    echo ""
+
+    # Ensure we don't accidentally inherit a user's WINEPREFIX while running the test
+    local saved_wineprefix="${WINEPREFIX:-}"
+    local saved_winedebug="${WINEDEBUG:-}"
+    local saved_winedlloverrides="${WINEDLLOVERRIDES:-}"
+    export WINEPREFIX="$tmp_prefix"
+
+    # Heuristic: if we're running from a template, keep its arch; otherwise default to win64.
+    if [ -z "$template_prefix" ] && [ -z "${WINEARCH:-}" ]; then
+        export WINEARCH=win64
+    fi
+
+    # Unattended mode: avoid Wine background helpers popping up dialogs and blocking the script.
+    # In particular, shortcut/menu helpers and Windows Error Reporting can trigger GUI prompts.
+    export WINEDEBUG="${XPILOT_WINE_TEST_WINEDEBUG:--all}"
+    if [ -n "$saved_winedlloverrides" ]; then
+        # Also disable Mono/Gecko prompts (mscoree/mshtml) which commonly block unattended runs.
+        export WINEDLLOVERRIDES="mscoree,mshtml=;winemenubuilder.exe=d;werfault.exe=d;wermgr.exe=d;$saved_winedlloverrides"
+    else
+        export WINEDLLOVERRIDES="mscoree,mshtml=;winemenubuilder.exe=d;werfault.exe=d;wermgr.exe=d"
+    fi
+
+    # Initialize prefix (this can trigger first-run UI and/or be silent for long periods).
+    # If we cloned from a prepared template, skipping wineboot is usually faster and avoids hangs.
+    if [ "$cloned_from_template" = true ] && [ -z "${XPILOT_WINE_TEST_FORCE_WINEBOOT:-}" ]; then
+        echo "Skipping wineboot (prefix cloned from prepared template)."
+    else
+        local wineboot_max="${XPILOT_WINE_TEST_WINEBOOT_MAX:-600}"
+        local wineboot_idle="${XPILOT_WINE_TEST_WINEBOOT_IDLE:-120}"
+        echo "Initializing Wine prefix (wineboot -u, max ${wineboot_max}s, idle ${wineboot_idle}s)..."
+        echo "  wineboot log: $tmp_wineboot_log"
+        set +e
+        wine_run_watchdog "wineboot" "$wineboot_max" "$wineboot_idle" "$tmp_wineboot_log" wineboot -u
+        set -e
+    fi
+
+    # Best-effort: disable Windows Error Reporting UI inside the prefix.
+    # (This helps prevent "Do you want to view information about this issue?" dialogs.)
+    local winereg_max="${XPILOT_WINE_TEST_REG_MAX:-30}"
+    local winereg_idle="${XPILOT_WINE_TEST_REG_IDLE:-10}"
+    echo "Disabling WER UI in prefix (max ${winereg_max}s, idle ${winereg_idle}s)..."
+    set +e
+    wine_run_watchdog "wine reg add (WER Disabled)" "$winereg_max" "$winereg_idle" "$tmp_wine_reg_log" \
+        wine reg add "HKCU\\Software\\Microsoft\\Windows\\Windows Error Reporting" /v Disabled /t REG_DWORD /d 1 /f
+    wine_run_watchdog "wine reg add (WER DontShowUI)" "$winereg_max" "$winereg_idle" "$tmp_wine_reg_log" \
+        wine reg add "HKCU\\Software\\Microsoft\\Windows\\Windows Error Reporting" /v DontShowUI /t REG_DWORD /d 1 /f
+    set -e
+
+    # Always run quietly to avoid hanging on dialogs (override with XPILOT_WINE_TEST_MSI_UI=1).
+    local msiexec_args=(/i "$msi_path" DISABLEADVTSHORTCUTS=1 REBOOT=ReallySuppress /qn /norestart /l*v "$tmp_log")
+    if [ -n "${XPILOT_WINE_TEST_MSI_UI:-}" ]; then
+        msiexec_args=(/i "$msi_path" DISABLEADVTSHORTCUTS=1 REBOOT=ReallySuppress /l*v "$tmp_log")
+    fi
+
+    local msi_max="${XPILOT_WINE_TEST_MSI_MAX:-300}"
+    local msi_idle="${XPILOT_WINE_TEST_MSI_IDLE:-30}"
+    echo "Installing MSI via Wine (max ${msi_max}s, idle ${msi_idle}s)..."
+    set +e
+    wine_run_watchdog "wine msiexec" "$msi_max" "$msi_idle" "$tmp_msiexec_out" wine msiexec "${msiexec_args[@]}"
+    local msi_rc=$?
+    set -e
+
+    if [ $msi_rc -ne 0 ]; then
+        echo ""
+        echo "Wine MSI install returned non-zero exit code: $msi_rc"
+        echo "Check log: $tmp_log"
+        echo "Wine msiexec output: $tmp_msiexec_out"
+    else
+        echo ""
+        echo "Wine MSI install completed (exit code 0)."
+    fi
+
+    # Attempt to locate and launch the installed executable (best effort)
+    local exe_rel1="drive_c/Program Files/XPilot NG/xpilot-ng-sdl.exe"
+    local exe_rel2="drive_c/Program Files (x86)/XPilot NG/xpilot-ng-sdl.exe"
+    local exe_path=""
+    if [ -f "$tmp_prefix/$exe_rel1" ]; then
+        exe_path="$tmp_prefix/$exe_rel1"
+    elif [ -f "$tmp_prefix/$exe_rel2" ]; then
+        exe_path="$tmp_prefix/$exe_rel2"
+    fi
+
+    if [ -n "$exe_path" ]; then
+        echo "Installed exe: $exe_path"
+        if [ -n "${DISPLAY:-}" ] || [ -n "${WAYLAND_DISPLAY:-}" ]; then
+            # Create a marker file so we can later find any logs created during/after launch.
+            local marker="$tmp_prefix/.xpilot-wine-test.marker"
+            touch "$marker" 2>/dev/null || true
+
+            local install_dir
+            install_dir="$(dirname "$exe_path")"
+
+            echo "Launching under Wine (best effort; capturing output)..."
+            set +e
+            if command -v timeout >/dev/null 2>&1; then
+                # The Windows SDL client defaults to fullscreen; under Wine this can fail when it tries to
+                # change display settings. Force windowed mode for the smoke test.
+                (cd "$install_dir" && XPILOT_WINDOWED=1 timeout 10s wine "$exe_path" >"$tmp_run_log" 2>&1)
+            else
+                (cd "$install_dir" && XPILOT_WINDOWED=1 wine "$exe_path" >"$tmp_run_log" 2>&1 &)
+            fi
+            local run_rc=$?
+            set -e
+            echo "Wine run log: $tmp_run_log"
+
+            # Try to capture XPilot's own log file(s) from Windows %TEMP% (Wine usually maps it to C:\users\<user>\Temp\).
+            mkdir -p "$tmp_clientlogs_dir" >/dev/null 2>&1 || true
+
+            # Also capture any logs written next to the installed executable (XPilot writes xpilot-debug.log there).
+            local found_install_logs=""
+            for f in "$install_dir/xpilot-debug.log" "$install_dir/stdout.txt" "$install_dir/stderr.txt"; do
+                if [ -f "$f" ] && [ "$f" -nt "$marker" ]; then
+                    found_install_logs="${found_install_logs}${f}"$'\n'
+                fi
+            done
+            if [ -n "$found_install_logs" ]; then
+                echo "Found client log(s) next to the installed executable:"
+                while IFS= read -r f; do
+                    [ -z "$f" ] && continue
+                    echo "  - $f"
+                    cp -a "$f" "$tmp_clientlogs_dir/" 2>/dev/null || true
+                done <<< "$found_install_logs"
+                echo "Copied to: $tmp_clientlogs_dir"
+            fi
+
+            local found_client_logs=""
+            found_client_logs="$(find "$tmp_prefix/drive_c/users" -type f -newer "$marker" \
+                \( -iname '*xpilot*' -o -iname '*.log' -o -iname '*.txt' \) 2>/dev/null | head -50 || true)"
+            if [ -n "$found_client_logs" ]; then
+                echo "Found potential client log(s) created during launch:"
+                while IFS= read -r f; do
+                    [ -z "$f" ] && continue
+                    echo "  - $f"
+                    cp -a "$f" "$tmp_clientlogs_dir/" 2>/dev/null || true
+                done <<< "$found_client_logs"
+                echo "Copied to: $tmp_clientlogs_dir"
+            else
+                if [ -z "$found_install_logs" ]; then
+                    echo "No obvious client log created under the Wine prefix."
+                fi
+            fi
+
+            # Don't treat a timeout as failure; it usually means the GUI stayed open.
+            if [ "$run_rc" -ne 0 ] && [ "$run_rc" -ne 124 ]; then
+                echo "Wine client launch exited non-zero: $run_rc (details in $tmp_run_log)"
+            fi
+        else
+            echo "No graphical display detected; skipping launch."
+        fi
+    else
+        echo "Installed exe not found in expected location under the Wine prefix."
+    fi
+
+    # Restore env and cleanup
+    if [ -n "$saved_wineprefix" ]; then
+        export WINEPREFIX="$saved_wineprefix"
+    else
+        unset WINEPREFIX
+    fi
+    if [ -n "$saved_winedebug" ]; then
+        export WINEDEBUG="$saved_winedebug"
+    else
+        unset WINEDEBUG
+    fi
+    if [ -n "$saved_winedlloverrides" ]; then
+        export WINEDLLOVERRIDES="$saved_winedlloverrides"
+    else
+        unset WINEDLLOVERRIDES
+    fi
+
+    echo ""
+    echo "Keeping Wine test prefix: $tmp_prefix"
+    echo "Keeping Wine test log: $tmp_log"
+
+    # Don't fail the overall build just because Wine returned non-zero (Wine quirks are common)
+    return 0
+}
 
 echo "=========================================="
 echo "XPilot NG Windows Cross-Compilation"
@@ -1438,6 +1824,73 @@ if [ -d "$SCRIPT_DIR/lib" ]; then
     cd "$SCRIPT_DIR"
 fi
 
+# Some distros/repos may contain a corrupted FreeSansBoldOblique.ttf (seen as a bad sfnt header),
+# which makes the Windows SDL client exit immediately under Wine (SDL_ttf can't load the font).
+# If we detect an invalid font, try to replace it with a known-good system font at build time.
+fixup_windows_font() {
+    local dest_font="$INSTALLER_DIR/data/FreeSansBoldOblique.ttf"
+    if [ ! -f "$dest_font" ]; then
+        return 0
+    fi
+
+    # Validate basic sfnt header fields (fast sanity check).
+    local valid=0
+    if command -v python3 >/dev/null 2>&1; then
+        python3 - <<'PY' "$dest_font" >/dev/null 2>&1 || valid=1
+import struct, sys, pathlib, math
+p = pathlib.Path(sys.argv[1])
+d = p.read_bytes()
+if len(d) < 12:
+    raise SystemExit(1)
+sfntVersion, numTables, searchRange, entrySelector, rangeShift = struct.unpack(">IHHHH", d[:12])
+if sfntVersion not in (0x00010000, 0x4F54544F, 0x74727565, 0x74797031):  # 1.0, OTTO, true, typ1
+    raise SystemExit(1)
+if numTables == 0 or numTables > 200:
+    raise SystemExit(1)
+expected_search = 16 * (2 ** int(math.floor(math.log(numTables, 2))))
+expected_entry = int(math.log(expected_search // 16, 2))
+expected_shift = numTables * 16 - expected_search
+if searchRange != expected_search or entrySelector != expected_entry or rangeShift != expected_shift:
+    raise SystemExit(1)
+PY
+    else
+        # No python3: skip validation.
+        valid=0
+    fi
+
+    if [ "$valid" -eq 0 ]; then
+        return 0
+    fi
+
+    echo "  WARNING: Detected invalid FreeSansBoldOblique.ttf in installer data; attempting replacement..."
+    local candidates=(
+        "/usr/share/fonts/truetype/freefont/FreeSansBoldOblique.ttf"
+        "/usr/share/fonts/gnu-free/FreeSansBoldOblique.ttf"
+        "/usr/share/fonts/truetype/FreeSansBoldOblique.ttf"
+    )
+    for cand in "${candidates[@]}"; do
+        if [ -f "$cand" ]; then
+            cp -f "$cand" "$dest_font"
+            echo "  Using system font: $cand"
+            return 0
+        fi
+    done
+
+    if [ -n "${XPILOT_ALLOW_INVALID_FONT:-}" ]; then
+        echo "  WARNING: No system replacement font found; proceeding anyway because XPILOT_ALLOW_INVALID_FONT is set."
+        echo "           The resulting installer is likely to fail at runtime."
+        return 0
+    fi
+
+    echo "  ERROR: FreeSansBoldOblique.ttf appears to be invalid, and no system replacement was found."
+    echo "         Refusing to package a known-bad font."
+    echo "         Install FreeFont and retry (examples):"
+    echo "           - Debian/Ubuntu: sudo apt-get install -y fonts-freefont-ttf"
+    echo "           - Fedora:       sudo dnf install -y gnu-free-fonts"
+    exit 1
+}
+fixup_windows_font
+
 # Copy documentation (excluding Makefiles and build files)
 echo "  Copying documentation..."
 if [ -d "$SCRIPT_DIR/doc" ]; then
@@ -1774,6 +2227,16 @@ if [ -z "$INSTALLER_FILE" ]; then
     INSTALLER_TYPE="ZIP archive"
     cd "$SCRIPT_DIR"
     zip -rq "$INSTALLER_FILE" installer-windows/
+fi
+
+# Optional: smoke-test MSI in a temporary Wine prefix
+if [ "$WINE_TEST" = true ]; then
+    if [[ "$INSTALLER_FILE" == *.msi ]]; then
+        wine_test_msi "$INSTALLER_FILE"
+    else
+        echo ""
+        echo "Wine test skipped: installer is not an MSI: $INSTALLER_FILE"
+    fi
 fi
 
 INSTALLER_SIZE=$(ls -lh "$INSTALLER_FILE" 2>/dev/null | awk '{print $5}')
