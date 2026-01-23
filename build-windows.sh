@@ -1828,15 +1828,26 @@ fi
 # which makes the Windows SDL client exit immediately under Wine (SDL_ttf can't load the font).
 # If we detect an invalid font, try to replace it with a known-good system font at build time.
 fixup_windows_font() {
-    local dest_font="$INSTALLER_DIR/data/FreeSansBoldOblique.ttf"
-    if [ ! -f "$dest_font" ]; then
-        return 0
-    fi
+    # Depending on how data files are laid out in the tree, the font may be under data/ or data/fonts/.
+    local dest_fonts=(
+        "$INSTALLER_DIR/data/FreeSansBoldOblique.ttf"
+        "$INSTALLER_DIR/data/fonts/FreeSansBoldOblique.ttf"
+    )
 
-    # Validate basic sfnt header fields (fast sanity check).
-    local valid=0
-    if command -v python3 >/dev/null 2>&1; then
-        python3 - <<'PY' "$dest_font" >/dev/null 2>&1 || valid=1
+    local any_found=false
+    local any_invalid=false
+    local invalid_paths=()
+
+    for dest_font in "${dest_fonts[@]}"; do
+        if [ ! -f "$dest_font" ]; then
+            continue
+        fi
+        any_found=true
+
+        # Validate basic sfnt header fields (fast sanity check).
+        local valid=0
+        if command -v python3 >/dev/null 2>&1; then
+            python3 - <<'PY' "$dest_font" >/dev/null 2>&1 || valid=1
 import struct, sys, pathlib, math
 p = pathlib.Path(sys.argv[1])
 d = p.read_bytes()
@@ -1853,16 +1864,29 @@ expected_shift = numTables * 16 - expected_search
 if searchRange != expected_search or entrySelector != expected_entry or rangeShift != expected_shift:
     raise SystemExit(1)
 PY
-    else
-        # No python3: skip validation.
-        valid=0
-    fi
+        else
+            # No python3: skip validation.
+            valid=0
+        fi
 
-    if [ "$valid" -eq 0 ]; then
+        if [ "$valid" -ne 0 ]; then
+            any_invalid=true
+            invalid_paths+=("$dest_font")
+        fi
+    done
+
+    if [ "$any_found" != true ]; then
+        return 0
+    fi
+    if [ "$any_invalid" != true ]; then
         return 0
     fi
 
-    echo "  WARNING: Detected invalid FreeSansBoldOblique.ttf in installer data; attempting replacement..."
+    echo "  WARNING: Detected invalid FreeSansBoldOblique.ttf in installer data:"
+    for p in "${invalid_paths[@]}"; do
+        echo "    - $p"
+    done
+    echo "  Attempting replacement with a known-good system font..."
     local candidates=(
         "/usr/share/fonts/truetype/freefont/FreeSansBoldOblique.ttf"
         "/usr/share/fonts/gnu-free/FreeSansBoldOblique.ttf"
@@ -1870,7 +1894,9 @@ PY
     )
     for cand in "${candidates[@]}"; do
         if [ -f "$cand" ]; then
-            cp -f "$cand" "$dest_font"
+            for p in "${invalid_paths[@]}"; do
+                cp -f "$cand" "$p"
+            done
             echo "  Using system font: $cand"
             return 0
         fi
