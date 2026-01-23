@@ -218,6 +218,17 @@ AM_CONDITIONAL([COND_SDL_CLIENT], [test x$enable_sdl_client = xyes])
 AM_CONDITIONAL([COND_SDL_GAMELOOP], [test x$enable_sdl_gameloop = xyes])
 AM_CONDITIONAL([COND_X11_CLIENT], [test x$no_x != xyes])
 
+dnl Check if building for Windows (MinGW cross-compile or native)
+case "$host_os" in
+  mingw*|msys*|cygwin*)
+    windows_build=yes
+    ;;
+  *)
+    windows_build=no
+    ;;
+esac
+AM_CONDITIONAL([COND_WINDOWS], [test x$windows_build = xyes])
+
 dnl  Checks for header files.
 dnl AC_HEADER_STDC
 AC_HEADER_TIME

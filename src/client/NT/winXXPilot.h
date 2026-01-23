@@ -55,7 +55,7 @@ extern "C" {
 #else
 #define	WinXCreateWinDC(__w) \
 	WinXCreateWinDC_(__w)
-    extern WinXCreateWinDC_(Window w);
+    extern int WinXCreateWinDC_(Window w);
 #endif
 
     extern void WinXExit();

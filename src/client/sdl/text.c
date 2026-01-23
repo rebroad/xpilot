@@ -45,15 +45,14 @@
 /* $Id: text.c,v 1.26 2004/04/24 21:21:06 maximan Exp $ */
 /* modified for xpilot by Erik Andersson deity_at_home.se */
 
+#include "xpclient_sdl.h"
+
 #ifdef _WINDOWS
-# include <windows.h>
 # define vsnprintf _vsnprintf
 # ifndef GL_BGR
 #  define GL_BGR 0x80E0 /* OpenGL 1.2, for which I did not have headers */
 # endif
 #endif
-
-#include "xpclient_sdl.h"
 
 #include "text.h"
 

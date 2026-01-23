@@ -33,6 +33,10 @@
 #ifdef	_WINDOWS
 
 #include <winsock.h>
+/* MinGW-w64 needs ws2tcpip.h for socklen_t */
+#if defined(__MINGW32__) || defined(__MINGW64__)
+#include <ws2tcpip.h>
+#endif
 
 #ifdef	__cplusplus
 extern "C" {
@@ -40,7 +44,9 @@ extern "C" {
 
 #define	MAXHOSTNAMELEN	64
 
+#ifndef EWOULDBLOCK
 #define	EWOULDBLOCK		WSAEWOULDBLOCK
+#endif
 
     extern long alarm(long seconds, void (__cdecl * func) (int));
 

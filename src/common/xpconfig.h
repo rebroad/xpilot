@@ -26,13 +26,12 @@
 #ifndef XPCONFIG_H
 #define XPCONFIG_H
 
-#ifdef _WINDOWS
-#  /* kps - what about this ???? */
-#  define CONF_DATADIR			"lib/"
-#endif
-
 #ifndef CONF_DATADIR
-#  error "CONF_DATADIR NOT DEFINED. GIVING UP."
+#  ifdef _WINDOWS
+#    define CONF_DATADIR		"data/"
+#  else
+#    error "CONF_DATADIR NOT DEFINED. GIVING UP."
+#  endif
 #endif
 
 #ifndef CONF_LOCALGURU

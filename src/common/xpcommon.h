@@ -31,6 +31,8 @@
 #endif
 
 #ifdef _WINDOWS
+/* winsock2.h MUST be included before windows.h (which gets pulled in by stdlib.h) */
+# include <winsock2.h>
 # define HAVE_ASSERT_H 1
 # define HAVE_CTYPE_H 1
 # define HAVE_ERRNO_H 1
@@ -233,9 +235,13 @@
 #  include "../server/NT/winServer.h"
 #  include "../server/NT/winSvrThread.h"
 extern char *showtime(void);
-# elif !defined(_XPMONNT_)
+# elif !defined(_XPMONNT_) && !defined(XPCLIENT_SDL_H)
+  /* Only include legacy GDI client headers for non-SDL Windows client */
 #  include "NT/winX.h"
 #  include "../client/NT/winClient.h"
+# elif defined(XPCLIENT_SDL_H)
+  /* SDL client needs _Trace declaration (defined in win32hacks.c) */
+extern void _Trace(char *lpszFormat, ...);
 # endif
 static void Win_show_error(char *errmsg);
 # include <io.h>
@@ -252,7 +258,10 @@ static void Win_show_error(char *errmsg);
 # define write(x__, y__, z__) send(x__, y__, z__,0)
   /* Windows some more hacks: */
 # define getpid() _getpid()
+/* MinGW provides socklen_t in ws2tcpip.h, so skip for MinGW */
+# if !defined(__MINGW32__) && !defined(__MINGW64__)
 typedef int socklen_t;
+# endif
 #endif
 
 /* Common XPilot header files. */

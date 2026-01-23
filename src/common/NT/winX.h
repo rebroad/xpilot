@@ -491,103 +491,103 @@ extern "C" {
 				 unsigned int c_class, Visual * visual,
 				 unsigned long valuemask,
 				 XSetWindowAttributes * attributes);
-    extern WinXCreateWinDC_(Window w);
+    extern int WinXCreateWinDC_(Window w);
 #endif
-    extern XDestroyWindow(Display * dpy, Window w);
-    extern XUnmapWindow(Display * dpy, Window w);
-    extern XMapWindow(Display * dpy, Window w);
-    extern XMapSubwindows(Display * dpy, Window w);
-    extern XMoveWindow(Display * dpy, Window w, int x, int y);
+    extern int XDestroyWindow(Display * dpy, Window w);
+    extern int XUnmapWindow(Display * dpy, Window w);
+    extern int XMapWindow(Display * dpy, Window w);
+    extern int XMapSubwindows(Display * dpy, Window w);
+    extern int XMoveWindow(Display * dpy, Window w, int x, int y);
     extern Window DefaultRootWindow(Display * dpy);
     extern int DisplayWidth(Display * dpy, int screen_number);
     extern int DisplayHeight(Display * dpy, int screen_number);
     extern Bool XCheckIfEvent(Display * dpy, XEvent * event_return,
 			      Bool(*predicate) (), XPointer arg);
-    extern XNextEvent(Display * dpy, XEvent * event_return);
-    extern XTextWidth(XFontStruct * font, const char *string, int lenght);
-    extern XSetForeground(Display * dpy, GC gc, unsigned long foreground);
-    extern XMapRaised(Display * dpy, Window w);
-    extern XDrawRectangle(Display * dpy, Drawable d, GC gc, int x, int y,
+    extern int XNextEvent(Display * dpy, XEvent * event_return);
+    extern int XTextWidth(XFontStruct * font, const char *string, int lenght);
+    extern int XSetForeground(Display * dpy, GC gc, unsigned long foreground);
+    extern int XMapRaised(Display * dpy, Window w);
+    extern int XDrawRectangle(Display * dpy, Drawable d, GC gc, int x, int y,
 			  unsigned int w, unsigned int h);
-    extern XFillRectangle(Display * dpy, Drawable d, GC gc, int x, int y,
+    extern int XFillRectangle(Display * dpy, Drawable d, GC gc, int x, int y,
 			  unsigned int w, unsigned int h);
-    extern XFillRectangles(Display * dpy, Drawable d, GC gc,
+    extern int XFillRectangles(Display * dpy, Drawable d, GC gc,
 			   XRectangle * rects, int nrectangles);
-    extern XChangeGC(Display * dpy, GC gc, unsigned long valuemask,
+    extern int XChangeGC(Display * dpy, GC gc, unsigned long valuemask,
 		     XGCValues * values);
     extern int XGetGCValues(Display * display, GC gc,
 			    unsigned long valuemask,
 			    XGCValues * values_return);
-    extern XSetLineAttributes(Display * dpy, GC gc,
+    extern int XSetLineAttributes(Display * dpy, GC gc,
 			      unsigned int line_width, int line_style,
 			      int cap_style, int join_style);
-    extern XCopyArea(Display * dpy, Drawable src, Drawable dest, GC gc,
+    extern int XCopyArea(Display * dpy, Drawable src, Drawable dest, GC gc,
 		     int src_x, int src_y, unsigned int width,
 		     unsigned int height, int dest_x, int dest_y);
-    extern XDrawLine(Display * dpy, Drawable d, GC gc, int x1, int x2,
+    extern int XDrawLine(Display * dpy, Drawable d, GC gc, int x1, int x2,
 		     int y1, int y2);
-    extern XDrawLines(Display * dpy, Drawable d, GC gc, XPoint * points,
+    extern int XDrawLines(Display * dpy, Drawable d, GC gc, XPoint * points,
 		      int npoints, int mode);
-    extern XSetTile(Display * dpy, GC gc, Pixmap tile);
-    extern XSetTSOrigin(Display * dpy, GC gc, int ts_x_origin,
+    extern int XSetTile(Display * dpy, GC gc, Pixmap tile);
+    extern int XSetTSOrigin(Display * dpy, GC gc, int ts_x_origin,
 			int ts_y_origin);
-    extern XSetFillStyle(Display * dpy, GC gc, int fill_style);
-    extern XSetFunction(Display * dpy, GC gc, int function);
-    extern XBell(Display * dpy, int percent);
-    extern XFlush(Display * dpy);
-    extern XCreatePixmap(Display * dpy, Drawable d,
+    extern int XSetFillStyle(Display * dpy, GC gc, int fill_style);
+    extern int XSetFunction(Display * dpy, GC gc, int function);
+    extern int XBell(Display * dpy, int percent);
+    extern int XFlush(Display * dpy);
+    extern Pixmap XCreatePixmap(Display * dpy, Drawable d,
 			 unsigned int width, unsigned int height,
 			 unsigned int depth);
-    extern XFreePixmap(Display * dpy, Pixmap pixmap);
-    extern XSetPlaneMask(Display * dpy, GC gc, unsigned long plane_mask);
-    extern XClearWindow(Display * dpy, Window w);
-    extern XDrawSegments(Display * dpy, Drawable d, GC gc,
+    extern int XFreePixmap(Display * dpy, Pixmap pixmap);
+    extern int XSetPlaneMask(Display * dpy, GC gc, unsigned long plane_mask);
+    extern int XClearWindow(Display * dpy, Window w);
+    extern int XDrawSegments(Display * dpy, Drawable d, GC gc,
 			 XSegment * segments, int nsegments);
-    extern XDrawPoint(Display * dpy, Drawable d, GC gc, int x, int y);
-    extern XDrawPoints(Display * dpy, Drawable d, GC gc,
+    extern int XDrawPoint(Display * dpy, Drawable d, GC gc, int x, int y);
+    extern int XDrawPoints(Display * dpy, Drawable d, GC gc,
 		       XPoint * points, int npoints, int mode);
-    extern XDrawString(Display * dpy, Drawable d, GC gc, int x, int y,
+    extern int XDrawString(Display * dpy, Drawable d, GC gc, int x, int y,
 		       const char *string, int length);
-    extern XStoreName(Display * dpy, Window w, const char *window_name);
-    extern XSetIconName(Display * dpy, Window w, const char *icon_name);
-    extern XSetTransientForHint(Display * dpy, Window w,
+    extern int XStoreName(Display * dpy, Window w, const char *window_name);
+    extern int XSetIconName(Display * dpy, Window w, const char *icon_name);
+    extern int XSetTransientForHint(Display * dpy, Window w,
 				Window prop_window);
-    extern XDrawArc(Display * dpy, Drawable d, GC gc, int x, int y,
+    extern int XDrawArc(Display * dpy, Drawable d, GC gc, int x, int y,
 		    unsigned int width, unsigned int height, int angle1,
 		    int angle2);
-    extern XFillArc(Display * dpy, Drawable d, GC gc, int x, int y,
+    extern int XFillArc(Display * dpy, Drawable d, GC gc, int x, int y,
 		    unsigned int width, unsigned int height, int angle1,
 		    int angle2);
-    extern XDrawArcs(Display * dpy, Drawable d, GC gc, XArc * arcs,
+    extern int XDrawArcs(Display * dpy, Drawable d, GC gc, XArc * arcs,
 		     int narcs);
 
-    extern XFillPolygon(Display * dpy, Drawable d, GC gc, XPoint * points,
+    extern int XFillPolygon(Display * dpy, Drawable d, GC gc, XPoint * points,
 			int npoints, int shape, int mode);
-    extern XSetDashes(Display * dpy, GC gc, int dash_offset,
+    extern int XSetDashes(Display * dpy, GC gc, int dash_offset,
 		      const char dash_list[], int n);
-    extern XChangeWindowAttributes(Display * dpy, Window w,
+    extern int XChangeWindowAttributes(Display * dpy, Window w,
 				   unsigned long valuemask,
 				   XSetWindowAttributes * attributes);
-    extern XSetWindowBackground(Display * dpy, Window w,
+    extern int XSetWindowBackground(Display * dpy, Window w,
 				unsigned long background_pixel);
-    extern XGetWindowAttributes(Display * dpy, Window w,
+    extern int XGetWindowAttributes(Display * dpy, Window w,
 				XWindowAttributes * attributes);
 #define	NoSymbol	0L
     extern XFontStruct *XQueryFont(Display * dpy, XID font_ID);
-	extern XFreeFontInfo(char **names, XFontStruct *free_info, int count);
+    extern int XFreeFontInfo(char **names, XFontStruct *free_info, int count);
     extern XFontStruct *WinXLoadFont(const char *name);
-    extern XSetFont(Display * dpy, GC gc, Font font);
+    extern int XSetFont(Display * dpy, GC gc, Font font);
     extern GContext XGContextFromGC(GC gc);
 
-    extern XParseColor(Display * display, Colormap colormap, char *spec,
+    extern int XParseColor(Display * display, Colormap colormap, char *spec,
 		       XColor * exact_def_return);
-    extern XCreateBitmapFromData(Display * dpy, Drawable d, char *data,
+    extern int XCreateBitmapFromData(Display * dpy, Drawable d, char *data,
 				 unsigned int width, unsigned int height);
-    extern XResizeWindow(Display * dpy, Window w, unsigned int width,
+    extern int XResizeWindow(Display * dpy, Window w, unsigned int width,
 			 unsigned int height);
-    extern XMoveResizeWindow(Display * dpy, Window w, int x, int y,
+    extern int XMoveResizeWindow(Display * dpy, Window w, int x, int y,
 			     unsigned int width, unsigned int height);
-    extern XSelectInput(Display * dpy, Window w, long event_mask);
+    extern int XSelectInput(Display * dpy, Window w, long event_mask);
     extern KeySym XStringToKeysym(char *s);
     extern char *XKeysymToString(KeySym keysym);
 
@@ -598,17 +598,17 @@ extern "C" {
 			    unsigned int event_mask, int pointer_mode,
 			    int keyboard_mode, Window confine_to,
 			    Cursor cursor, Time time);
-    extern XUngrabPointer(Display * display, Time time);
-    extern XWarpPointer(Display * display, Window src_w, Window dest_w,
+    extern int XUngrabPointer(Display * display, Time time);
+    extern int XWarpPointer(Display * display, Window src_w, Window dest_w,
 			int src_x, int src_y,
 			unsigned int src_width, unsigned int src_height,
 			int dest_x, int dest_y);
-    extern XDefineCursor(Display * d, Window w, Cursor c);
+    extern int XDefineCursor(Display * d, Window w, Cursor c);
 
-    extern XClearArea(Display * d, Window w, int x, int y,
+    extern int XClearArea(Display * d, Window w, int x, int y,
 		      unsigned int width, unsigned int height,
 		      Bool exposures);
-    extern XCheckMaskEvent(Display * d, long event_mask,
+    extern int XCheckMaskEvent(Display * d, long event_mask,
 			   XEvent * event_return);
 
 #define	DefaultScreen(_dpy)		(0)
@@ -617,8 +617,8 @@ extern "C" {
 
 #define ConnectionNumber(_dpy)		(0)
 
-    extern XFlush(Display * display);
-    extern XSync(Display * display, Bool discard);
+    extern int XFlush(Display * display);
+    extern int XSync(Display * display, Bool discard);
 
 #ifdef	__cplusplus
 };

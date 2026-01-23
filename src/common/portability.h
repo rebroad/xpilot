@@ -33,7 +33,9 @@
 #undef max
 #undef min
 
+#ifndef strncasecmp
 #define	strncasecmp(__a, __b, __c)	strnicmp(__a, __b, __c)
+#endif
 
 /* there are tons of "conversion from 'double ' to 'int '", stop warning us */
 #pragma warning (disable : 4244)

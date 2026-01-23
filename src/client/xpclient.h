@@ -37,26 +37,37 @@
 #endif
 
 #ifdef _WINDOWS
-# include "NT/winBitmap.h"
-# include "NT/winConfig.h"
-# include "NT/winAudio.h"
-# include "NT/winX.h"
-# include "NT/winX_.h"
-# include "NT/winXThread.h"
-# include "NT/winXKey.h"
-# include "NT/winXXPilot.h"
+/* Only include NT (GDI) headers for the legacy Windows client, not SDL client */
+# ifndef XPCLIENT_SDL_H
+#  include "NT/winBitmap.h"
+#  include "NT/winConfig.h"
+#  include "NT/winAudio.h"
+#  include "NT/winX.h"
+#  include "NT/winX_.h"
+#  include "NT/winXThread.h"
+#  include "NT/winXKey.h"
+#  include "NT/winXXPilot.h"
+#  define printf Trace
+extern bool threadedDraw; /* default.c */
+# endif
 # include <direct.h>
 # define snprintf _snprintf
-# define printf Trace
-# define F_OK 0
-# define W_OK 2
-# define R_OK 4
-# define X_OK 0
+# ifndef F_OK
+#  define F_OK 0
+# endif
+# ifndef W_OK
+#  define W_OK 2
+# endif
+# ifndef R_OK
+#  define R_OK 4
+# endif
+# ifndef X_OK
+#  define X_OK 0
+# endif
 # define mkdir(A,B) _mkdir(A)
 typedef unsigned short uint16_t; /* e.g. in client.c */
 typedef unsigned int uint32_t;
 typedef int int32_t;
-extern bool threadedDraw; /* default.c */
 #endif
 
 /*

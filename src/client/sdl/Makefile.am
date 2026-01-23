@@ -17,6 +17,13 @@ else
   xpilot_ng_sdl_SOURCES += gameloop_x.c
 endif
 
-xpilot_ng_sdl_LDADD = $(top_builddir)/src/client/libxpclient.a  $(top_builddir)/src/common/libxpcommon.a @GL_LIBS@ @SDL_EXTRA_LIBS@ @X_LIBS@ @X_PRE_LIBS@ @X_EXTRA_LIBS@ -lX11
+# On Windows, don't link X11 - use Winsock instead
+if COND_WINDOWS
+xpilot_ng_sdl_SOURCES += win32hacks.c
+# SDL_ttf needs freetype, SDL_image needs png and zlib - must be in dependency order
+xpilot_ng_sdl_LDADD = $(top_builddir)/src/client/libxpclient.a $(top_builddir)/src/common/libxpcommon.a @GL_LIBS@ @SDL_EXTRA_LIBS@ -lfreetype -lpng -lz -lws2_32 -lwinmm
+else
+xpilot_ng_sdl_LDADD = $(top_builddir)/src/client/libxpclient.a $(top_builddir)/src/common/libxpcommon.a @GL_LIBS@ @SDL_EXTRA_LIBS@ @X_LIBS@ @X_PRE_LIBS@ @X_EXTRA_LIBS@ -lX11
+endif
 
 EXTRA_DIST = win32hacks.c xpilot.rc xpilot_sdl.dsp xpilot_sdl.dsw

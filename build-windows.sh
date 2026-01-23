@@ -23,8 +23,36 @@ if command -v sudo >/dev/null 2>&1; then
         kill -0 "$$" || exit
     done 2>/dev/null &
     SUDO_PID=$!
-    trap "kill $SUDO_PID 2>/dev/null" EXIT
 fi
+
+# Cleanup function for exit
+cleanup_on_exit() {
+    # Kill sudo keepalive
+    if [ -n "$SUDO_PID" ]; then
+        kill "$SUDO_PID" 2>/dev/null || true
+    fi
+}
+trap cleanup_on_exit EXIT
+
+# Helper function to install packages across different package managers
+# Usage: install_package <apt_pkg> [dnf_pkg] [pacman_pkg]
+# If dnf_pkg or pacman_pkg not specified, uses apt_pkg name
+install_package() {
+    local apt_pkg="$1"
+    local dnf_pkg="${2:-$apt_pkg}"
+    local pacman_pkg="${3:-$apt_pkg}"
+
+    if command -v apt-get >/dev/null 2>&1; then
+        sudo apt-get install -y -qq "$apt_pkg" >/dev/null 2>&1 || return 1
+    elif command -v dnf >/dev/null 2>&1; then
+        sudo dnf install -y -q "$dnf_pkg" >/dev/null 2>&1 || return 1
+    elif command -v pacman >/dev/null 2>&1; then
+        sudo pacman -S --noconfirm "$pacman_pkg" >/dev/null 2>&1 || return 1
+    else
+        return 1
+    fi
+    return 0
+}
 
 # Detect MinGW cross-compiler
 MINGW_CC=""
@@ -43,15 +71,12 @@ elif command -v i686-w64-mingw32-gcc >/dev/null 2>&1; then
     TARGET_ARCH="i686"
 else
     echo "MinGW cross-compiler not found. Installing..."
+    # Update package lists first for apt
     if command -v apt-get >/dev/null 2>&1; then
         sudo apt-get update -qq
-        sudo apt-get install -y mingw-w64
-    elif command -v dnf >/dev/null 2>&1; then
-        sudo dnf install -y mingw64-gcc
-    elif command -v pacman >/dev/null 2>&1; then
-        sudo pacman -S --noconfirm mingw-w64-gcc
-    else
-        echo "ERROR: Cannot auto-install MinGW. Package manager not found."
+    fi
+    if ! install_package "mingw-w64" "mingw64-gcc" "mingw-w64-gcc"; then
+        echo "ERROR: Cannot auto-install MinGW. Package manager not found or installation failed."
         exit 1
     fi
 
@@ -359,6 +384,30 @@ fi
 
 # Create build directory
 BUILD_DIR="build-windows"
+
+# Clean any leftover config in source directory FIRST (autotools complains if source is configured)
+if [ -f "$SCRIPT_DIR/config.status" ] || [ -f "$SCRIPT_DIR/Makefile" ]; then
+    echo "Cleaning leftover config in source directory..."
+    # Don't use make distclean as it might trigger configure - just remove files directly
+    rm -f "$SCRIPT_DIR/config.status" "$SCRIPT_DIR/config.log" "$SCRIPT_DIR/config.h" \
+          "$SCRIPT_DIR/Makefile" "$SCRIPT_DIR/stamp-h1" 2>/dev/null
+    # Remove generated Makefiles in subdirectories (but not in build-windows if it exists)
+    find "$SCRIPT_DIR" -name "Makefile" -type f ! -path "*/${BUILD_DIR}/*" -delete 2>/dev/null || true
+fi
+
+# Check for old in-tree build artifacts - VPATH will find these
+# Both Linux and Windows builds should use out-of-tree directories now
+if find "$SCRIPT_DIR/src" -name "*.o" -type f 2>/dev/null | head -1 | grep -q .; then
+    echo "Cleaning old in-tree build artifacts (use ./build.sh for Linux builds)..."
+    find "$SCRIPT_DIR/src" -name "*.o" -type f -delete 2>/dev/null || true
+    find "$SCRIPT_DIR/src" -name "*.a" -type f -delete 2>/dev/null || true
+    find "$SCRIPT_DIR/src" -name "*.lo" -type f -delete 2>/dev/null || true
+    find "$SCRIPT_DIR/src" -name ".libs" -type d -exec rm -rf {} + 2>/dev/null || true
+    find "$SCRIPT_DIR/src" -name ".deps" -type d -exec rm -rf {} + 2>/dev/null || true
+fi
+
+
+# Now clean/create build directory
 if [ -d "$BUILD_DIR" ]; then
     echo "Cleaning previous Windows build..."
     rm -rf "$BUILD_DIR"
@@ -378,6 +427,7 @@ export LDFLAGS="-L${MINGW_LIB}"
 BUILD_DIR_ABS="${SCRIPT_DIR}/${BUILD_DIR}"
 export CPPFLAGS="-I${MINGW_INCLUDE} -I${MINGW_INCLUDE}/SDL -D_WINDOWS -DWIN32 -DHAVE_GETTIMEOFDAY -I${BUILD_DIR_ABS}/src/common"
 export CFLAGS="-I${MINGW_INCLUDE} -I${MINGW_INCLUDE}/SDL -D_WINDOWS -DWIN32 -DHAVE_GETTIMEOFDAY -I${BUILD_DIR_ABS}/src/common"
+# -Werror will be added during make, not configure (configure tests may have warnings)
 export LIBS="-lSDL_ttf -lSDL_image -lfreetype -lpng16 -lz"
 export PKG_CONFIG_PATH="${MINGW_LIB}/pkgconfig:${PKG_CONFIG_PATH:-}"
 
@@ -551,56 +601,88 @@ if [ "$FREETYPE_AVAILABLE" = false ] || [ -z "$FREETYPE_LIB" ]; then
         }
     fi
 
-    if [ ! -f "config.status" ] || { [ ! -f "objs/.libs/libfreetype.a" ] && [ ! -f "objs/.libs/libfreetype.dll.a" ]; }; then
-        echo "  Configuring FreeType2..."
-        # FreeType2 configure needs explicit paths for cross-compilation
-        ./configure \
-            --host="${MINGW_PREFIX}" \
-            --prefix="${MINGW_PREFIX_DIR}" \
-            --includedir="${MINGW_INCLUDE}" \
-            --libdir="${MINGW_LIB}" \
-            --disable-shared \
-            --enable-static \
-            --quiet >"$SHARED_BUILD_DIR/freetype-configure.log" 2>&1 || {
-            echo "  ERROR: FreeType2 configuration failed"
-            cat "$SHARED_BUILD_DIR/freetype-configure.log" | tail -20
+    # Use meson for FreeType - it handles cross-compilation properly
+    MESON_BUILD_DIR="build-mingw"
+    if [ ! -f "$MESON_BUILD_DIR/libfreetype.a" ]; then
+        echo "  Configuring FreeType2 with meson..."
+        rm -rf "$MESON_BUILD_DIR"
+
+        # Create meson cross-file for MinGW
+        CROSS_FILE="$SHARED_BUILD_DIR/mingw-cross.txt"
+        cat > "$CROSS_FILE" << CROSSEOF
+[binaries]
+c = '${MINGW_PREFIX}-gcc'
+cpp = '${MINGW_PREFIX}-g++'
+ar = '${MINGW_PREFIX}-ar'
+strip = '${MINGW_PREFIX}-strip'
+windres = '${MINGW_PREFIX}-windres'
+
+[host_machine]
+system = 'windows'
+cpu_family = 'x86_64'
+cpu = 'x86_64'
+endian = 'little'
+CROSSEOF
+
+        # Run meson with clean environment to avoid XPilot's exported vars
+        (
+            unset CFLAGS CPPFLAGS LDFLAGS LIBS
+            meson setup "$MESON_BUILD_DIR" \
+                --cross-file="$CROSS_FILE" \
+                --prefix="${MINGW_PREFIX_DIR}" \
+                --libdir="${MINGW_LIB}" \
+                --includedir="${MINGW_INCLUDE}" \
+                --default-library=static \
+                -Dzlib=disabled \
+                -Dbzip2=disabled \
+                -Dpng=disabled \
+                -Dharfbuzz=disabled \
+                -Dbrotli=disabled
+        ) >"$SHARED_BUILD_DIR/freetype-configure.log" 2>&1
+        FT_CONFIG_STATUS=$?
+
+        if [ $FT_CONFIG_STATUS -ne 0 ]; then
+            echo "  ERROR: FreeType2 meson configuration failed"
+            cat "$SHARED_BUILD_DIR/freetype-configure.log" | tail -30
+            exit 1
+        fi
+
+        echo "  Compiling FreeType2..."
+        ninja -C "$MESON_BUILD_DIR" >"$SHARED_BUILD_DIR/freetype-build.log" 2>&1 || {
+            echo "  ERROR: FreeType2 compilation failed"
+            cat "$SHARED_BUILD_DIR/freetype-build.log" | tail -30
             exit 1
         }
 
-        echo "  Compiling FreeType2..."
-        make -j$(nproc) >"$SHARED_BUILD_DIR/freetype-build.log" 2>&1 || {
-            echo "  ERROR: FreeType2 compilation failed"
-            cat "$SHARED_BUILD_DIR/freetype-build.log" | tail -20
-            exit 1
-        }
+        # Verify the library is PE/COFF format (Windows), not ELF (Linux)
+        if [ -f "$MESON_BUILD_DIR/libfreetype.a" ]; then
+            OBJ_FORMAT=$(x86_64-w64-mingw32-objdump -a "$MESON_BUILD_DIR/libfreetype.a" 2>/dev/null | head -10)
+            if echo "$OBJ_FORMAT" | grep -q "elf64"; then
+                echo "  ERROR: FreeType2 was built with wrong compiler (ELF instead of PE/COFF)"
+                exit 1
+            else
+                echo "  FreeType2 built successfully (PE/COFF format verified)"
+            fi
+        fi
     fi
 
     echo "  Installing FreeType2..."
-    # Use DESTDIR to ensure files go to the right location
-    sudo make DESTDIR="" install >"$SHARED_BUILD_DIR/freetype-install.log" 2>&1 || {
-        # If that fails, try installing to a temp dir and copying
-        TEMP_INSTALL="$SHARED_BUILD_DIR/freetype-install-temp"
-        make DESTDIR="$TEMP_INSTALL" install >"$SHARED_BUILD_DIR/freetype-install.log" 2>&1 || {
-            echo "  ERROR: FreeType2 installation failed"
-            cat "$SHARED_BUILD_DIR/freetype-install.log" | tail -10
-            exit 1
-        }
-        # Copy files to correct location
-        if [ -d "$TEMP_INSTALL${MINGW_PREFIX_DIR}" ]; then
-            sudo cp -r "$TEMP_INSTALL${MINGW_PREFIX_DIR}"/* "${MINGW_PREFIX_DIR}/"
-        fi
+    # Install using ninja (meson build)
+    sudo ninja -C "$MESON_BUILD_DIR" install >"$SHARED_BUILD_DIR/freetype-install.log" 2>&1 || {
+        echo "  ERROR: FreeType2 installation failed"
+        cat "$SHARED_BUILD_DIR/freetype-install.log" | tail -10
+        exit 1
     }
 
-    # Verify installation - FreeType2 installs headers in include/freetype2/
-    sleep 1  # Give filesystem time to sync
-
-    # Check if installed to /usr/local (wrong location) and copy if needed
-    if [ -f "/usr/local/include/freetype2/ft2build.h" ] && [ ! -f "${MINGW_INCLUDE}/freetype2/ft2build.h" ]; then
-        echo "  Copying FreeType2 from /usr/local to MinGW prefix..."
-        sudo mkdir -p "${MINGW_INCLUDE}/freetype2" "${MINGW_LIB}"
-        sudo cp -r /usr/local/include/freetype2/* "${MINGW_INCLUDE}/freetype2/" 2>/dev/null || true
-        sudo cp /usr/local/include/freetype2/ft2build.h "${MINGW_INCLUDE}/" 2>/dev/null || true
-        sudo cp /usr/local/lib/libfreetype* "${MINGW_LIB}/" 2>/dev/null || true
+    # Verify the installed library is correct format (COFF/PE, not ELF)
+    if [ -f "${MINGW_LIB}/libfreetype.a" ]; then
+        LIB_FORMAT=$(x86_64-w64-mingw32-objdump -a "${MINGW_LIB}/libfreetype.a" 2>/dev/null | head -5)
+        if echo "$LIB_FORMAT" | grep -q "elf64"; then
+            echo "  ERROR: Installed FreeType library is in wrong format (ELF instead of PE/COFF)"
+            exit 1
+        else
+            echo "  FreeType2 installed successfully"
+        fi
     fi
 
     # FreeType2 installs to freetype2/ but some code expects freetype/
@@ -956,6 +1038,7 @@ if [ "$SDL_IMAGE_AVAILABLE" = false ]; then
 fi
 
 CONFIGURE_OPTS+=(--enable-sdl-client)
+CONFIGURE_OPTS+=(--enable-sdl-gameloop)  # Use SDL gameloop instead of X11-optimized one
 
 # Regenerate configure from configure.ac if needed
 echo "Checking build system..."
@@ -971,12 +1054,23 @@ if [ ! -f "$SCRIPT_DIR/sdl.m4" ]; then
     fi
 fi
 
-# Regenerate configure if configure.ac is newer or configure doesn't exist
-if [ ! -f "$SCRIPT_DIR/configure" ] || [ "$SCRIPT_DIR/configure.ac" -nt "$SCRIPT_DIR/configure" ]; then
-    echo "  Regenerating configure from configure.ac..."
+# Regenerate build system if configure.ac or any Makefile.am is newer
+NEED_REGEN=false
+if [ ! -f "$SCRIPT_DIR/configure" ]; then
+    NEED_REGEN=true
+elif [ "$SCRIPT_DIR/configure.ac" -nt "$SCRIPT_DIR/configure" ]; then
+    NEED_REGEN=true
+elif [ -n "$(find "$SCRIPT_DIR" -name 'Makefile.am' -newer "$SCRIPT_DIR/configure" 2>/dev/null | head -1)" ]; then
+    NEED_REGEN=true
+fi
+
+if [ "$NEED_REGEN" = true ]; then
+    echo "  Regenerating build system (configure.ac or Makefile.am changed)..."
     cd "$SCRIPT_DIR"
     aclocal -I . 2>/dev/null || aclocal
     autoconf
+    # Also regenerate Makefile.in files
+    automake --add-missing --copy 2>/dev/null || automake --add-missing 2>/dev/null || true
     cd "$BUILD_DIR_ABS"
 fi
 
@@ -986,9 +1080,14 @@ echo "Patching configure for Windows cross-compilation..."
 # Skip X11 check if SDL client is enabled (for Windows builds)
 sed -i 's/if test x\$no_x == xyes; then/if test x$no_x == xyes \&\& test x$enable_sdl_client != xyes; then/' "$SCRIPT_DIR/configure"
 
-# Fix SDL_ttf/SDL_image tests - they use main() with no args, but -Dmain=SDL_main
-# requires (int argc, char *argv[]). Replace the test's empty main with proper signature.
-sed -i 's/main ()/main (int argc, char *argv[])/' "$SCRIPT_DIR/configure"
+# Remove -Dmain=SDL_main from SDL_CFLAGS in configure - this breaks configure tests
+# because test programs use main(void) but SDL_main requires (int argc, char *argv[])
+sed -i 's/-Dmain=SDL_main//g' "$SCRIPT_DIR/configure"
+
+# Fix SDL_ttf/SDL_image tests - they use main(void) with no args
+# Replace with proper argc/argv signature as a fallback
+sed -i 's/main (void)/main (int argc, char *argv[])/g' "$SCRIPT_DIR/configure"
+sed -i 's/main ()/main (int argc, char *argv[])/g' "$SCRIPT_DIR/configure"
 
 
 # Pass through any additional configure options
@@ -1029,11 +1128,29 @@ if [ -f "src/client/Makefile" ]; then
 fi
 
 echo "Building Windows client..."
-make -j$(nproc) >/dev/null 2>&1 || {
-    echo "Build failed. Showing errors:"
-    make -j$(nproc)
+# For Windows, only build the client (not server or replay which have Unix dependencies)
+# Build common first, then client
+# Add -Werror during make (not during configure as it breaks configure tests)
+set -o pipefail
+make -C src/common V=1 CFLAGS="$CFLAGS -Werror" 2>&1 | tee "$SCRIPT_DIR/build-windows-make.log" || true
+make -C src/client V=1 CFLAGS="$CFLAGS -Werror" 2>&1 | tee -a "$SCRIPT_DIR/build-windows-make.log" || true
+set +o pipefail
+
+# Check if client exe was built (may be in source or build directory)
+CLIENT_EXE=""
+if [ -f "$SCRIPT_DIR/src/client/sdl/xpilot-ng-sdl.exe" ]; then
+    CLIENT_EXE="$SCRIPT_DIR/src/client/sdl/xpilot-ng-sdl.exe"
+elif [ -f "src/client/sdl/xpilot-ng-sdl.exe" ]; then
+    CLIENT_EXE="src/client/sdl/xpilot-ng-sdl.exe"
+fi
+
+if [ -z "$CLIENT_EXE" ]; then
+    echo ""
+    echo "Build failed! Client executable not found."
+    echo "Last 50 lines of build log:"
+    tail -50 "$SCRIPT_DIR/build-windows-make.log"
     exit 1
-}
+fi
 
 echo ""
 echo "=========================================="
@@ -1041,23 +1158,10 @@ echo "Build completed successfully!"
 echo "=========================================="
 echo ""
 
-# Find built executables
-CLIENT_EXE=""
+# CLIENT_EXE was already set above when we verified the build
+# Server and replay are not built for Windows client-only build
 SERVER_EXE=""
 REPLAY_EXE=""
-
-CLIENT_EXE=$(find . -name "xpilot-ng-*.exe" -type f | grep -E "(sdl|x11)" | head -1)
-SERVER_EXE=$(find . -name "xpilot-ng-server.exe" -type f | head -1)
-REPLAY_EXE=$(find . -name "xpilot-ng-replay.exe" -type f | head -1)
-
-if [ -z "$CLIENT_EXE" ]; then
-    CLIENT_EXE=$(find . -name "*.exe" -type f | grep -v "test" | head -1)
-fi
-
-if [ -z "$CLIENT_EXE" ]; then
-    echo "ERROR: No client executable found!"
-    exit 1
-fi
 
 echo "Built binaries:"
 [ -n "$CLIENT_EXE" ] && echo "  Client: $CLIENT_EXE"
@@ -1070,26 +1174,40 @@ echo "Creating installer package..."
 
 INSTALLER_DIR="$SCRIPT_DIR/installer-windows"
 rm -rf "$INSTALLER_DIR"
-mkdir -p "$INSTALLER_DIR/bin"
-mkdir -p "$INSTALLER_DIR/share/xpilot-ng"
+mkdir -p "$INSTALLER_DIR"
+mkdir -p "$INSTALLER_DIR/data"
 mkdir -p "$INSTALLER_DIR/doc"
 
-# Copy executables
+# Copy executables (directly to install root for Windows)
 echo "  Copying executables..."
-[ -n "$CLIENT_EXE" ] && cp "$CLIENT_EXE" "$INSTALLER_DIR/bin/"
-[ -n "$SERVER_EXE" ] && cp "$SERVER_EXE" "$INSTALLER_DIR/bin/"
-[ -n "$REPLAY_EXE" ] && cp "$REPLAY_EXE" "$INSTALLER_DIR/bin/"
+[ -n "$CLIENT_EXE" ] && cp "$CLIENT_EXE" "$INSTALLER_DIR/"
+[ -n "$SERVER_EXE" ] && cp "$SERVER_EXE" "$INSTALLER_DIR/"
+[ -n "$REPLAY_EXE" ] && cp "$REPLAY_EXE" "$INSTALLER_DIR/"
 
-# Copy data files
+# Copy data files (excluding Makefiles and build files)
 echo "  Copying data files..."
 if [ -d "$SCRIPT_DIR/lib" ]; then
-    cp -r "$SCRIPT_DIR/lib"/* "$INSTALLER_DIR/share/xpilot-ng/" 2>/dev/null || true
+    # Copy only actual data files, not build system files
+    cd "$SCRIPT_DIR/lib"
+    find . -type f \
+        ! -name "Makefile*" \
+        ! -name "*.am" \
+        ! -name "*.in" \
+        ! -name ".gitignore" \
+        -exec install -D -m 644 {} "$INSTALLER_DIR/data/{}" \;
+    cd "$SCRIPT_DIR"
 fi
 
-# Copy documentation
+# Copy documentation (excluding Makefiles and build files)
 echo "  Copying documentation..."
 if [ -d "$SCRIPT_DIR/doc" ]; then
-    cp -r "$SCRIPT_DIR/doc"/* "$INSTALLER_DIR/doc/" 2>/dev/null || true
+    cd "$SCRIPT_DIR/doc"
+    find . -type f \
+        ! -name "Makefile*" \
+        ! -name "*.am" \
+        ! -name "*.in" \
+        -exec install -D -m 644 {} "$INSTALLER_DIR/doc/{}" \;
+    cd "$SCRIPT_DIR"
 fi
 
 # Copy required DLLs
@@ -1122,7 +1240,7 @@ find_dll() {
 # Copy zlib DLL
 ZLIB_DLL=$(find_dll "zlib1.dll")
 if [ -n "$ZLIB_DLL" ] && [ -f "$ZLIB_DLL" ]; then
-    cp "$ZLIB_DLL" "$INSTALLER_DIR/bin/"
+    cp "$ZLIB_DLL" "$INSTALLER_DIR/"
 fi
 
 # Copy expat DLL (if shared)
@@ -1131,7 +1249,7 @@ if [ -z "$EXPAT_DLL" ]; then
     EXPAT_DLL=$(find_dll "libexpat.dll")
 fi
 if [ -n "$EXPAT_DLL" ] && [ -f "$EXPAT_DLL" ]; then
-    cp "$EXPAT_DLL" "$INSTALLER_DIR/bin/"
+    cp "$EXPAT_DLL" "$INSTALLER_DIR/"
 fi
 
 # Copy SDL DLLs if SDL client was built
@@ -1139,7 +1257,7 @@ if [ "$ENABLE_SDL" = true ]; then
     for sdl_dll in "SDL.dll" "SDL_ttf.dll" "SDL_image.dll"; do
         SDL_PATH=$(find_dll "$sdl_dll")
         if [ -n "$SDL_PATH" ] && [ -f "$SDL_PATH" ]; then
-            cp "$SDL_PATH" "$INSTALLER_DIR/bin/"
+            cp "$SDL_PATH" "$INSTALLER_DIR/"
         fi
     done
 fi
@@ -1152,24 +1270,155 @@ XPilot NG for Windows
 This installer contains XPilot NG for Windows.
 
 Files:
-- bin/          : Executable files
-- share/        : Game data (maps, textures, etc.)
-- doc/          : Documentation
-
-All required DLL files are included in the bin directory.
+- xpilot-ng-sdl.exe : Main game executable
+- *.dll             : Required libraries
+- data/             : Game data (maps, textures, fonts)
+- doc/              : Documentation
 
 For more information, visit: http://xpilot.sourceforge.net/
 EOF
 
-# Create installer using NSIS if available, otherwise create ZIP
-INSTALLER_NAME="xpilot-ng-windows-installer"
+# Create installer - prefer MSI (wixl), then NSIS, then ZIP
+INSTALLER_NAME="xpilot-ng-windows"
+INSTALLER_FILE=""
+INSTALLER_TYPE=""
+CLIENT_NAME=$(basename "$CLIENT_EXE")
 
-if command -v makensis >/dev/null 2>&1; then
+# Install wixl if not available (for MSI creation - preferred for Windows)
+if ! command -v wixl >/dev/null 2>&1; then
+    echo "  Installing wixl for MSI creation..."
+    install_package "wixl" "msitools" "msitools" || true
+fi
+
+# Try MSI first (wixl from msitools package) - preferred for Windows
+if command -v wixl >/dev/null 2>&1; then
+    echo "  Creating MSI installer..."
+
+    # Generate WiX XML source
+    WXS_FILE="$INSTALLER_DIR/xpilot.wxs"
+
+    # Generate unique GUIDs for the installer
+    PRODUCT_GUID=$(cat /proc/sys/kernel/random/uuid | tr '[:lower:]' '[:upper:]')
+    UPGRADE_GUID="E7D1B2A3-C4D5-6E7F-8A9B-0C1D2E3F4A5B"
+
+    cat > "$WXS_FILE" << WIXEOF
+<?xml version="1.0" encoding="utf-8"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+  <Product Id="$PRODUCT_GUID"
+           Name="XPilot NG"
+           Language="1033"
+           Version="4.6.3.0"
+           Manufacturer="XPilot NG Team"
+           UpgradeCode="$UPGRADE_GUID">
+
+    <Package InstallerVersion="200" Compressed="yes" InstallScope="perMachine"
+             Description="XPilot NG - Space Combat Game"
+             Comments="XPilot NG for Windows" />
+
+    <Media Id="1" Cabinet="xpilot.cab" EmbedCab="yes" />
+
+    <Directory Id="TARGETDIR" Name="SourceDir">
+      <Directory Id="ProgramFilesFolder">
+        <Directory Id="INSTALLDIR" Name="XPilot NG">
+          <Directory Id="DataDir" Name="data" />
+          <Directory Id="DocDir" Name="doc" />
+        </Directory>
+      </Directory>
+      <Directory Id="ProgramMenuFolder">
+        <Directory Id="ApplicationProgramsFolder" Name="XPilot NG" />
+      </Directory>
+      <Directory Id="DesktopFolder" Name="Desktop" />
+    </Directory>
+
+    <DirectoryRef Id="INSTALLDIR">
+      <Component Id="MainExecutable" Guid="*">
+        <File Id="XPilotExe" Source="$INSTALLER_DIR/$CLIENT_NAME" KeyPath="yes" />
+      </Component>
+WIXEOF
+
+    # Add DLLs to WXS
+    DLL_COMP_ID=1
+    for dll in "$INSTALLER_DIR/"*.dll; do
+        if [ -f "$dll" ]; then
+            DLL_NAME=$(basename "$dll")
+            cat >> "$WXS_FILE" << DLEOF
+      <Component Id="DLL_$DLL_COMP_ID" Guid="*">
+        <File Id="DLL_${DLL_COMP_ID}_File" Source="$dll" KeyPath="yes" />
+      </Component>
+DLEOF
+            DLL_COMP_ID=$((DLL_COMP_ID + 1))
+        fi
+    done
+
+    cat >> "$WXS_FILE" << WIXEOF2
+    </DirectoryRef>
+
+    <DirectoryRef Id="ApplicationProgramsFolder">
+      <Component Id="ApplicationShortcut" Guid="*">
+        <Shortcut Id="ApplicationStartMenuShortcut"
+                  Name="XPilot NG"
+                  Description="XPilot NG Space Combat Game"
+                  Target="[INSTALLDIR]$CLIENT_NAME"
+                  WorkingDirectory="INSTALLDIR" />
+        <RemoveFolder Id="CleanUpShortCut" On="uninstall" />
+        <RegistryValue Root="HKCU" Key="Software\\XPilotNG" Name="installed" Type="integer" Value="1" KeyPath="yes" />
+      </Component>
+    </DirectoryRef>
+
+    <DirectoryRef Id="DesktopFolder">
+      <Component Id="DesktopShortcut" Guid="*">
+        <Shortcut Id="DesktopShortcut"
+                  Name="XPilot NG"
+                  Description="XPilot NG Space Combat Game"
+                  Target="[INSTALLDIR]$CLIENT_NAME"
+                  WorkingDirectory="INSTALLDIR" />
+        <RegistryValue Root="HKCU" Key="Software\\XPilotNG" Name="desktopshortcut" Type="integer" Value="1" KeyPath="yes" />
+      </Component>
+    </DirectoryRef>
+
+    <Feature Id="ProductFeature" Title="XPilot NG" Level="1">
+      <ComponentRef Id="MainExecutable" />
+      <ComponentRef Id="ApplicationShortcut" />
+      <ComponentRef Id="DesktopShortcut" />
+WIXEOF2
+
+    # Add DLL component refs
+    for i in $(seq 1 $((DLL_COMP_ID - 1))); do
+        echo "      <ComponentRef Id=\"DLL_$i\" />" >> "$WXS_FILE"
+    done
+
+    cat >> "$WXS_FILE" << WIXEOF3
+    </Feature>
+
+  </Product>
+</Wix>
+WIXEOF3
+
+    # Run wixl to create MSI
+    cd "$INSTALLER_DIR"
+    if wixl -v -o "$SCRIPT_DIR/${INSTALLER_NAME}.msi" "$WXS_FILE" 2>"$SCRIPT_DIR/wixl.log"; then
+        INSTALLER_FILE="$SCRIPT_DIR/${INSTALLER_NAME}.msi"
+        INSTALLER_TYPE="MSI installer"
+    else
+        echo "  MSI creation failed, falling back..."
+        cat "$SCRIPT_DIR/wixl.log" | tail -10
+    fi
+    cd "$SCRIPT_DIR"
+fi
+
+# Try NSIS if MSI didn't work
+if [ -z "$INSTALLER_FILE" ]; then
+    # Install NSIS if not available
+    if ! command -v makensis >/dev/null 2>&1; then
+        echo "  Installing NSIS..."
+        install_package "nsis" || true
+    fi
+fi
+
+if [ -z "$INSTALLER_FILE" ] && command -v makensis >/dev/null 2>&1; then
     echo "  Creating NSIS installer..."
 
-    # Generate NSIS script dynamically
     NSIS_SCRIPT="$INSTALLER_DIR/installer.nsi"
-    CLIENT_NAME=$(basename "$CLIENT_EXE")
 
     cat > "$NSIS_SCRIPT" << NSISEOF
 !define PRODUCT_NAME "XPilot NG"
@@ -1183,44 +1432,37 @@ InstallDir "\$PROGRAMFILES\\XPilot NG"
 ShowInstDetails show
 
 Section "MainSection"
-  SetOutPath "\$INSTDIR\\bin"
-  File "$INSTALLER_DIR/bin/*.exe"
-  File "$INSTALLER_DIR/bin/*.dll"
+  SetOutPath "\$INSTDIR"
+  File "$INSTALLER_DIR/*.exe"
+  File "$INSTALLER_DIR/*.dll"
+  File "$INSTALLER_DIR/README.txt"
 
-  SetOutPath "\$INSTDIR\\share\\xpilot-ng"
-  File /r "$INSTALLER_DIR/share/xpilot-ng/*"
+  SetOutPath "\$INSTDIR\\data"
+  File /r "$INSTALLER_DIR/data/*"
 
   SetOutPath "\$INSTDIR\\doc"
   File /r "$INSTALLER_DIR/doc/*"
 
-  File "$INSTALLER_DIR/README.txt"
-
   CreateDirectory "\$SMPROGRAMS\\XPilot NG"
-  CreateShortCut "\$SMPROGRAMS\\XPilot NG\\XPilot NG.lnk" "\$INSTDIR\\bin\\${CLIENT_NAME}"
-  CreateShortCut "\$DESKTOP\\XPilot NG.lnk" "\$INSTDIR\\bin\\${CLIENT_NAME}"
+  CreateShortCut "\$SMPROGRAMS\\XPilot NG\\XPilot NG.lnk" "\$INSTDIR\\${CLIENT_NAME}"
+  CreateShortCut "\$DESKTOP\\XPilot NG.lnk" "\$INSTDIR\\${CLIENT_NAME}"
 SectionEnd
 NSISEOF
 
     cd "$INSTALLER_DIR"
-    makensis "$NSIS_SCRIPT" >/dev/null 2>&1
-
-    if [ -f "$SCRIPT_DIR/${INSTALLER_NAME}.exe" ]; then
+    if makensis "$NSIS_SCRIPT" >/dev/null 2>&1 && [ -f "$SCRIPT_DIR/${INSTALLER_NAME}.exe" ]; then
         INSTALLER_FILE="$SCRIPT_DIR/${INSTALLER_NAME}.exe"
         INSTALLER_TYPE="NSIS installer"
-    else
-        # Fall back to ZIP
-        INSTALLER_FILE="$SCRIPT_DIR/${INSTALLER_NAME}.zip"
-        INSTALLER_TYPE="ZIP archive"
-        cd "$SCRIPT_DIR"
-        zip -rq "$INSTALLER_FILE" installer-windows/
     fi
-else
-    echo "  Creating ZIP archive (NSIS not available)..."
-    echo "  (Install NSIS for a proper Windows installer: sudo apt-get install nsis)"
-
     cd "$SCRIPT_DIR"
+fi
+
+# Fall back to ZIP if no installer tools available
+if [ -z "$INSTALLER_FILE" ]; then
+    echo "  Creating ZIP archive (MSI/NSIS tools not available)..."
     INSTALLER_FILE="$SCRIPT_DIR/${INSTALLER_NAME}.zip"
     INSTALLER_TYPE="ZIP archive"
+    cd "$SCRIPT_DIR"
     zip -rq "$INSTALLER_FILE" installer-windows/
 fi
 
