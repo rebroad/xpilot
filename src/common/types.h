@@ -1,9 +1,9 @@
-/*
- * XPilotNG, an XPilot-like multiplayer space war game.
+/* 
+ * XPilot NG, a multiplayer space war game.
  *
  * Copyright (C) 1991-2001 by
  *
- *      Bjï¿½rn Stabell        <bjoern@xpilot.org>
+ *      Bjørn Stabell        <bjoern@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
  *      Dick Balaska         <dick@xpilot.org>
@@ -36,15 +36,13 @@ typedef unsigned char	u_byte;
  * On others bool is already a builtin type.
  * Using preprocessor macros to circumvent both situations.
  */
-#define false	0
-#define true	1
-
-#ifndef	_XPMONNT_
-#define bool	int
-/*typedef enum { false = 0, true = 1 } bool;*/
+#ifndef __cplusplus
+# define false	0
+# define true	1
+# define bool	char
 #endif
 
-typedef struct { double x, y; }		vector_t;
+typedef struct { float x, y; }		vector_t;
 typedef vector_t			position_t;
 typedef struct { int x, y; }		ivec_t;
 typedef ivec_t				ipos_t;

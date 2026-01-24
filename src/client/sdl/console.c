@@ -1,7 +1,7 @@
 /*
  * XPilotNG/SDL, an SDL/OpenGL XPilot client.
  *
- * Copyright (C) 2003-2004 Juha Lindstrï¿½m <juhal@users.sourceforge.net>
+ * Copyright (C) 2003-2004 Juha Lindström <juhal@users.sourceforge.net>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -51,7 +51,7 @@ int Console_init(void)
 	error("failed to init console window");
 	return -1;
     }
-
+    
     console = CON_Init(CONF_FONTDIR "ConsoleFont.bmp", console_window.surface, 100, cr);
     if (console == NULL) {
 	error("failed to init SDL_console");
@@ -77,13 +77,13 @@ void Console_paint(void)
     sdl_window_paint(&console_window);
     glBegin(GL_LINE_LOOP);
     glColor4ub(0, 0, 0, 0xff);
-    glVertex2i(console_window.x, console_window.y + console_window.h + 2);
+    glVertex2i(console_window.x, console_window.y + console_window.h + 2);    
     glColor4ub(0, 0x90, 0x00, 0xff);
     glVertex2i(console_window.x, console_window.y);
     glColor4ub(0, 0, 0, 0xff);
     glVertex2i(console_window.x + console_window.w, console_window.y);
     glColor4ub(0, 0x90, 0x00, 0xff);
-    glVertex2i(console_window.x + console_window.w,
+    glVertex2i(console_window.x + console_window.w, 
 	       console_window.y + console_window.h + 2);
     glEnd();
 }
@@ -113,6 +113,12 @@ int Console_process(SDL_Event *e)
     return 0;
 }
 
+void Paste_String_to_Console(char *text)
+{
+    Add_String_to_Console(text);
+    Console_refresh();
+}
+
 void Console_cleanup(void)
 {
     CON_Destroy(console);
@@ -131,5 +137,5 @@ void Console_print(const char *str, ...)
 void command_handler(ConsoleInformation *con, char *command)
 {
     Net_talk(command);
-    Console_hide();
+    Talk_set_state(false);
 }

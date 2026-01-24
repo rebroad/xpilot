@@ -1,7 +1,7 @@
-/*
+/* 
  * XPilot, a multiplayer gravity war game.  Copyright (C) 1991-2001 by
  *
- *      Bjï¿½rn Stabell        <bjoern@xpilot.org>
+ *      Bjørn Stabell        <bjoern@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
  *      Dick Balaska         <dick@xpilot.org>
@@ -168,9 +168,9 @@ XFillPolygon(Display * dpy, Drawable d, GC gc, XPoint * points,
     int px1, px2, py1, py2;	// bounding box for the polygon
     HDC hdc = xid[d].hwnd.hBmpDC;
 
-    /*
-     * As Windows 95/98/ME doesn't support textured brushes with texture size
-     * over 8x8, I'll provide my own routine for painting textured polygons.
+    /* 
+     * As Windows 95/98/ME doesn't support textured brushes with texture size 
+     * over 8x8, I'll provide my own routine for painting textured polygons. 
      * It first creates a clipping region that restricts GDI operations to the
      * area of the polygon. Then it blits the texture bitmap over the polygon
      * so that it gets fully covered.

@@ -1,9 +1,9 @@
-/*
- * XPilotNG, an XPilot-like multiplayer space war game.
+/* 
+ * XPilot NG, a multiplayer space war game.
  *
  * Copyright (C) 1991-2001 by
  *
- *      Bjï¿½rn Stabell        <bjoern@xpilot.org>
+ *      Bjørn Stabell        <bjoern@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
  *      Dick Balaska         <dick@xpilot.org>
@@ -27,7 +27,7 @@
 #define GFX2D_H
 
 extern char	*texturePath;		/* Path list of texture directories */
-
+extern char     *realTexturePath;       /* Real texture lookup path */
 
 typedef unsigned int RGB_COLOR;
 
@@ -54,8 +54,8 @@ typedef struct {
 
 /*
  * Purpose: A device/os independent structure to do keep 24bit images in.
- * an instance of xp_picture_t can contain more than 1 image,
- * This feature is  useful for structural identical bitmaps (example: items),
+ * an instance of xp_picture_t can contain more than 1 image, 
+ * This feature is  useful for structural identical bitmaps (example: items), 
  * and rotated images. When dealing with rotated images, the first image
  * in the xp_picture_t structure is used as texture for the transformation of
  * the others.

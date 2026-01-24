@@ -1,7 +1,7 @@
 /*
  * XPilotNG/SDL, an SDL/OpenGL XPilot client.
  *
- * Copyright (C) 2003-2004 Juha Lindstrï¿½m <juhal@users.sourceforge.net>
+ * Copyright (C) 2003-2004 Juha Lindström <juhal@users.sourceforge.net>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,21 +21,21 @@
 /*
 	SDL_console: An easy to use drop-down console based on the SDL library
 	Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004 Clemens Wacha
-
+	
 	This library is free software; you can redistribute it and/or
 	modify it under the terms of the GNU Library General Public
 	License as published by the Free Software Foundation; either
 	version 2 of the License, or (at your option) any later version.
-
+	
 	This library is distributed in the hope that it will be useful,
 	but WHITOUT ANY WARRANTY; without even the implied warranty of
 	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 	Library General Public License for more details.
-
+	
 	You should have received a copy of the GNU Library Generla Public
 	License along with this library; if not, write to the Free
 	Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-
+	
 	Clemens Wacha
 	reflex-2000@gmx.net
 */
@@ -43,7 +43,7 @@
 
 /*  DT_drawtext.c
  *  Written By: Garrett Banuk <mongoose@mongeese.org>
- *  Modified for xpilot: Juha Lindstrï¿½m <juhal@users.sourceforge.net>
+ *  Modified for xpilot: Juha Lindström <juhal@users.sourceforge.net>
  */
 
 #include "xpclient_sdl.h"
@@ -123,7 +123,7 @@ void DT_DrawText(const char *string, SDL_Surface *surface, int FontType, int x, 
 	if(x > surface->w || y > surface->h)
 		return;
 
-	if(strlen(string) < (surface->w - x) / CurrentFont->CharWidth)
+	if((int)strlen(string) < (surface->w - x) / CurrentFont->CharWidth)
 		characters = strlen(string);
 	else
 		characters = (surface->w - x) / CurrentFont->CharWidth;

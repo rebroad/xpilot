@@ -1,9 +1,9 @@
 /*
- * XPilotNG, an XPilot-like multiplayer space war game.
+ * XPilot NG, a multiplayer space war game.
  *
  * Copyright (C) 1991-2001 by
  *
- *      Bjørn Stabell        <bjoern@xpilot.org>
+ *      Bjï¿½rn Stabell        <bjoern@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
  *      Dick Balaska         <dick@xpilot.org>
@@ -31,10 +31,6 @@
 
 #include "xpclient.h"
 
-char audio_version[] = VERSION;
-
-#ifdef SOUND
-
 int audioDeviceInit(char *display)
 {
     printf("debug audio: init\n");
@@ -53,4 +49,12 @@ void audioDeviceEvents(void)
     /* printf("debug audio: events\n"); */
 }
 
-#endif /* SOUND */
+void audioDeviceFree(void *private)
+{
+    printf("debug audio: audioDeviceFree\n");
+}
+
+void audioDeviceClose()
+{
+    printf("debug audio: audioDeviceClose\n");
+}

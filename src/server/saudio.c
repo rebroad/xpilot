@@ -1,9 +1,9 @@
-/*
- * XPilotNG, an XPilot-like multiplayer space war game.
+/* 
+ * XPilot NG, a multiplayer space war game.
  *
  * Copyright (C) 1991-2001 by
  *
- *      Bjï¿½rn Stabell        <bjoern@xpilot.org>
+ *      Bjørn Stabell        <bjoern@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
  *      Dick Balaska         <dick@xpilot.org>
@@ -26,8 +26,6 @@
 /* This piece of code was provided by Greg Renda (greg@ncd.com). */
 
 #include "xpserver.h"
-
-char saudio_version[] = VERSION;
 
 #define SOUND_RANGE_FACTOR	0.5	/* factor to increase sound
 					 * range by */
@@ -95,12 +93,12 @@ void sound_player_on(player_t * pl, int on)
     SDBG(printf("sound_player_on %p, %d\n", pl, on));
 
     if (on) {
-	if (!BIT(pl->status, WANT_AUDIO)) {
-	    SET_BIT(pl->status, WANT_AUDIO);
+	if (!pl->want_audio) {
+	    pl->want_audio = true;
 	    sound_play_player(pl, START_SOUND);
 	}
     } else
-	CLR_BIT(pl->status, WANT_AUDIO);
+	pl->want_audio = false;
 }
 
 /*
@@ -113,7 +111,7 @@ void sound_play_player(player_t * pl, int sound_ind)
 
     SDBG(printf("sound_play_player %p, %d\n", pl, sound_ind));
 
-    if (BIT(pl->status, WANT_AUDIO))
+    if (pl->want_audio)
 	queue_audio(pl, sound_ind, 100);
 }
 
@@ -130,9 +128,9 @@ void sound_play_all(int sound_ind)
     SDBG(printf("sound_play_all %d\n", sound_ind));
 
     for (i = 0; i < NumPlayers; i++) {
-	player_t *pl_i = Players(i);
+	player_t *pl_i = Player_by_index(i);
 
-	if (BIT(pl_i->status, WANT_AUDIO))
+	if (pl_i->want_audio)
 	    sound_play_player(pl_i, sound_ind);
     }
 }
@@ -155,9 +153,9 @@ void sound_play_sensors(clpos_t pos, int sound_ind)
     SDBG(printf("sound_play_sensors %d, %d, %d\n", cx, cy, sound_ind));
 
     for (i = 0; i < NumPlayers; i++) {
-	pl = Players(i);
+	pl = Player_by_index(i);
 
-	if (!BIT(pl->status, WANT_AUDIO))
+	if (!pl->want_audio)
 	    continue;
 
 	dx = ABS(pl->pos.cx - pos.cx);

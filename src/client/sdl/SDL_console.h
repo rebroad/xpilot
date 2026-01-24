@@ -88,6 +88,7 @@ extern "C" {
 		char RCommand[CON_CHARS_PER_LINE+1];	/*! left hand side of cursor */
 		char LCommand[CON_CHARS_PER_LINE+1];	/*! right hand side of cursor */
 		char VCommand[CON_CHARS_PER_LINE+1];	/*! current visible command line */
+		char BackupCommand[CON_CHARS_PER_LINE+1];	/*! stores your started line while you check history */
 		int CursorPos;						/*! Current cursor position relative to the currently typed in command */
 		int Offset;							/*! First visible character relative to the currently typed in command (used if command is too long to fit into console) */
 		int InsMode;						/*! Boolean that tells us whether we are in Insert- or Overwrite-Mode */
@@ -153,7 +154,7 @@ extern "C" {
 		sent with CON_Events() ***Will disappear in the next major release. There is no need for such a focus model *** */
 	extern DECLSPEC void SDLCALL CON_Topmost(ConsoleInformation *console);
 	/*! Modify the prompt of the console. If you want a backslash you will have to escape it. */
-	extern DECLSPEC void SDLCALL CON_SetPrompt(ConsoleInformation *console, char* newprompt);
+	extern DECLSPEC void SDLCALL CON_SetPrompt(ConsoleInformation *console, const char* newprompt);
 	/*! Set the key, that invokes a CON_Hide() after press. default is ESCAPE and you can always hide using
 		ESCAPE and the HideKey (2 keys for hiding). compared against event->key.keysym.sym !! */
 	extern DECLSPEC void SDLCALL CON_SetHideKey(ConsoleInformation *console, int key);
@@ -206,6 +207,9 @@ extern "C" {
 	extern DECLSPEC void SDLCALL Cursor_BSpace(ConsoleInformation *console);
 	/*! Internal: Called if you type in a character (add the char to the command) */
 	extern DECLSPEC void SDLCALL Cursor_Add(ConsoleInformation *console, SDL_Event *event);
+
+	/* add string to commandline */
+	extern DECLSPEC void SDLCALL Add_String_to_Console(char *text);
 
 	/*! Internal: Called if you press Ctrl-C (deletes the commandline) */
 	extern DECLSPEC void SDLCALL Clear_Command(ConsoleInformation *console);

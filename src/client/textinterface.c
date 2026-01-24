@@ -1,5 +1,5 @@
 /*
- * XPilotNG, an XPilot-like multiplayer space war game.
+ * XPilot NG, a multiplayer space war game.
  *
  * Copyright (C) 1991-2001 by
  *
@@ -27,8 +27,6 @@
 
 #include "xpclient.h"
 
-char textinterface_version[] = VERSION;
-
 
 #define MAX_LINE	MSG_LEN	/* should not be smaller than MSG_LEN */
 
@@ -39,7 +37,7 @@ extern int		dgram_one_socket;	/* from datagram.c */
 /*
  * just like fgets() but strips newlines like gets().
  */
-static char* getline(char* buf, int len, FILE* stream)
+static char* get_line(char* buf, int len, FILE* stream)
 {
     char		*nl;
 
@@ -125,17 +123,18 @@ static int Get_contact_message(sockbuf_t *sbuf,
 		   server_version <= MAX_SERVER_VERSION) ||
 		  (server_version >= MIN_OLD_SERVER_VERSION &&
 		   server_version <= MAX_OLD_SERVER_VERSION))) {
-		printf("Incompatible version with server %s.\n",
-		       conpar->server_name);
-		printf("We run version %04x, while server is running %04x.\n",
-		       MY_VERSION, server_version);
+		warn("Incompatible version with server %s.",
+		     conpar->server_name);
+		warn("We run version %04x, while server is running %04x.",
+		     MY_VERSION, server_version);
 		if ((MY_VERSION >> 4) < (server_version >> 4))
-		    printf("Time for us to upgrade?\n");
+		    warn("Time for us to upgrade?");
 		readable = 2;
 	    } else {
 		/*
 		 * Found one which we can talk to.
 		 */
+		xpinfo("Using protocol version 0x%04x.", server_version);
 		conpar->server_version = server_version;
 		readable = 1;
 	    }
@@ -252,7 +251,7 @@ static bool Process_commands(sockbuf_t *ibuf,
 	else if (!auto_connect) {
 	    printf("*** Server on %s. Enter command> ", conpar->server_name);
 
-	    getline(linebuf, MAX_LINE, stdin);
+	    get_line(linebuf, MAX_LINE, stdin);
 	    if (feof(stdin)) {
 		puts("");
 		c = 'Q';
@@ -282,7 +281,7 @@ static bool Process_commands(sockbuf_t *ibuf,
 	    ibuf->sock.fd = SOCK_FD_INVALID;
 	}
 
-	privileged_cmd = (strchr("DKLMOR", c) != NULL) ? true : false;
+	privileged_cmd = (strchr("DKLMO", c) != NULL) ? true : false;
 	if (privileged_cmd) {
 	    if (!has_credentials) {
 		success = create_dgram_addr_socket(
@@ -339,7 +338,7 @@ static bool Process_commands(sockbuf_t *ibuf,
 	    case 'K':
 		printf("Enter name of victim: ");
 		fflush(stdout);
-		if (!getline(linebuf, MAX_LINE, stdin)) {
+		if (!get_line(linebuf, MAX_LINE, stdin)) {
 		    printf("Nothing changed.\n");
 		    continue;
 		}
@@ -350,7 +349,7 @@ static bool Process_commands(sockbuf_t *ibuf,
 	    case 'M':				/* Send a message to server. */
 		printf("Enter message: ");
 		fflush(stdout);
-		if (!getline(linebuf, MAX_LINE, stdin) || !linebuf[0]) {
+		if (!get_line(linebuf, MAX_LINE, stdin) || !linebuf[0]) {
 		    printf("No message sent.\n");
 		    continue;
 		}
@@ -365,7 +364,7 @@ static bool Process_commands(sockbuf_t *ibuf,
 	    case 'D':				/* Shutdown */
 		if (!auto_shutdown) {
 		    printf("Enter delay in seconds or return for cancel: ");
-		    getline(linebuf, MAX_LINE, stdin);
+		    get_line(linebuf, MAX_LINE, stdin);
 		    /*
 		     * No argument = cancel shutdown = arg_int=0
 		     */
@@ -376,7 +375,7 @@ static bool Process_commands(sockbuf_t *ibuf,
 			    delay = 1;
 
 		    printf("Enter reason: ");
-		    getline(linebuf, MAX_LINE, stdin);
+		    get_line(linebuf, MAX_LINE, stdin);
 		} else {
 		    strlcpy(linebuf, shutdown_reason, sizeof(linebuf));
 		    delay = 60;
@@ -389,7 +388,7 @@ static bool Process_commands(sockbuf_t *ibuf,
 	    case 'O':				/* Tune an option. */
 		printf("Enter option: ");
 		fflush(stdout);
-		if (!getline(linebuf, MAX_LINE, stdin)
+		if (!get_line(linebuf, MAX_LINE, stdin)
 		    || (len=strlen(linebuf)) == 0) {
 		    printf("Nothing changed.\n");
 		    continue;
@@ -397,7 +396,7 @@ static bool Process_commands(sockbuf_t *ibuf,
 		printf("Enter new value for %s: ", linebuf);
 		fflush(stdout);
 		strcat(linebuf, ":"); len++;
-		if (!getline(&linebuf[len], MAX_LINE-len, stdin)
+		if (!get_line(&linebuf[len], MAX_LINE-len, stdin)
 		    || linebuf[len] == '\0') {
 		    printf("Nothing changed.\n");
 		    continue;
@@ -451,7 +450,7 @@ static bool Process_commands(sockbuf_t *ibuf,
 	    case 'T':				/* Set team. */
 		printf("Enter team: ");
 		fflush(stdout);
-		if (!getline(linebuf, MAX_LINE, stdin)
+		if (!get_line(linebuf, MAX_LINE, stdin)
 		    || (len = strlen(linebuf)) == 0)
 		    printf("Nothing changed.\n");
 		else {

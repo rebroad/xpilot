@@ -1,9 +1,9 @@
-/*
- * XPilotNG, an XPilot-like multiplayer space war game.
+/* 
+ * XPilot NG, a multiplayer space war game.
  *
  * Copyright (C) 1991-2001 by
  *
- *      Bjï¿½rn Stabell        <bjoern@xpilot.org>
+ *      Bjørn Stabell        <bjoern@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
  *      Dick Balaska         <dick@xpilot.org>
@@ -79,6 +79,8 @@ typedef struct sock_s {
 	(fd_set*)(R), (fd_set*)(W), (fd_set*)(E), (T))
 #endif
 
+int sock_startup(void);
+void sock_cleanup(void);
 int sock_init(sock_t *sock);
 int sock_close(sock_t *sock);
 int sock_set_non_blocking(sock_t *sock, int flag);

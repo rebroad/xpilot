@@ -1,9 +1,9 @@
-/*
- * XPilotNG, an XPilot-like multiplayer space war game.
+/* 
+ * XPilot NG, a multiplayer space war game.
  *
  * Copyright (C) 1991-2001 by
  *
- *      Bjï¿½rn Stabell        <bjoern@xpilot.org>
+ *      Bjørn Stabell        <bjoern@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
  *      Dick Balaska         <dick@xpilot.org>
@@ -29,9 +29,6 @@
 
 #include "xpcommon.h"
 
-char portability_version[] = VERSION;
-
-
 int Get_process_id(void)
 {
 #if defined(_WINDOWS)
@@ -41,7 +38,6 @@ int Get_process_id(void)
 #endif
 }
 
-
 void Get_login_name(char *buf, size_t size)
 {
 #if defined(_WINDOWS)
@@ -50,11 +46,29 @@ void Get_login_name(char *buf, size_t size)
     buf[size - 1] = '\0';
 #else
     /* Unix */
-    struct passwd *pwent = getpwuid(geteuid());
-    strlcpy(buf, pwent->pw_name, size);
+    struct passwd *p;
+
+    setpwent();
+    if ((p = getpwuid(geteuid())) != NULL)
+	strlcpy(buf, p->pw_name, size);
+    else
+	strlcpy(buf, "nameless", size);
+    endpwent();
 #endif
 }
 
+int xpprintf(const char* fmt, ...)
+{
+    int result;
+    va_list argp;
+    va_start(argp, fmt);
+    result = vprintf(fmt, argp);
+    va_end(argp);
+#ifdef _WINDOWS
+    fflush(stdout);
+#endif
+    return result;
+}
 
 bool is_this_windows(void)
 {
@@ -76,3 +90,38 @@ double rint(double x)
 }
 #endif
 
+#ifdef NEED_GETTIMEOFDAY
+int gettimeofday(struct timeval *tv, struct timezone *tz)
+{
+    FILETIME        ft;
+    LARGE_INTEGER   li;
+    __int64         t;
+    static int      tzflag;
+
+    if (tv)
+    {
+        GetSystemTimeAsFileTime(&ft);
+        li.LowPart  = ft.dwLowDateTime;
+        li.HighPart = ft.dwHighDateTime;
+        t  = li.QuadPart;       /* In 100-nanosecond intervals */
+        t -= EPOCHFILETIME;     /* Offset to the Epoch time */
+        t /= 10;                /* In microseconds */
+        tv->tv_sec  = (long)(t / 1000000);
+        tv->tv_usec = (long)(t % 1000000);
+    }
+
+    if (tz)
+    {
+        if (!tzflag)
+        {
+            _tzset();
+            tzflag++;
+        }
+        tz->tz_minuteswest = _timezone / 60;
+        tz->tz_dsttime = _daylight;
+    }
+
+    return 0;
+
+}
+#endif

@@ -1,7 +1,7 @@
-/*
+/* 
  * XPilot, a multiplayer gravity war game.  Copyright (C) 1991-2001 by
  *
- *      Bjï¿½rn Stabell        <bjoern@xpilot.org>
+ *      Bjørn Stabell        <bjoern@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
  *      Dick Balaska         <dick@xpilot.org>
@@ -68,7 +68,7 @@ int Bitmap_create_begin(Drawable d, xp_pixmap_t * pm, int bmp)
 	return -1;
     }
     pm->bitmaps[bmp].bitmap = (Pixmap) hbm;
-    // The following hack is used to pass the dimension information
+    // The following hack is used to pass the dimension information 
     // to XFillPolygon
     SetBitmapDimensionEx(hbm, pm->width, pm->height, NULL);
     return 0;
@@ -106,9 +106,9 @@ int radar_light(int *radar, int x, int y)
 {
 /*   int light_matrix[25] ={ 0, -1, -2, -2, -3,
 			   1,  0, -1, -2, -2,
-			   2,  1,  0, -1, -2,
+			   2,  1,  0, -1, -2, 
 			   2,  2,  1,  0, -1,
-			   3,  2,  2,  1,  0
+			   3,  2,  2,  1,  0 
 			};
 */
 
@@ -120,9 +120,9 @@ int radar_light(int *radar, int x, int y)
     };
 /*   int light_matrix[25] ={ 0,  1,  -1, -1,  0,
 			   1,  2,  -1, -2, -1,
-			   2,  3,  0, -2, -2,
+			   2,  3,  0, -2, -2, 
 			   1,  2,  3,  -1, -1,
-			   0,  1,  2,  1, 0
+			   0,  1,  2,  1, 0 
 			};
 */
     int xi, yi, light;
@@ -296,8 +296,8 @@ void Block_bitmap_paint_meter(Drawable d, int type, int x, int y,
 /*
 void paintItemSymbol(unsigned char type, Drawable d, GC gc, int x, int y, int color)
 {
-    PaintBitmap(d, BM_ALL_ITEMS, x, y, WINSCALE(16), WINSCALE(16), type);
-//    PaintBitmap(d, BM_ALL_ITEMS, x, y, 16, 16, type);
+    PaintBitmap(d, BM_ALL_ITEMS, x, y, WINSCALE(16), WINSCALE(16), type); 
+//    PaintBitmap(d, BM_ALL_ITEMS, x, y, 16, 16, type); 
 }
 */
 

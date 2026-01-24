@@ -1,7 +1,7 @@
 /*
- * XPilotNG/SDL, an SDL/OpenGL XPilot client. Copyright (C) 2003-2004 by
+ * XPilotNG/SDL, an SDL/OpenGL XPilot client. Copyright (C) 2003-2004 by 
  *
- *     Juha Lindstrï¿½m <juhal@users.sourceforge.net>
+ *     Juha Lindström <juhal@users.sourceforge.net>
  *     Erik Andersson <maximan@users.sourceforge.net>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -27,5 +27,5 @@
 int Radar_init(int x, int y, int w, int h);
 void Radar_cleanup(void);
 static void Radar_paint(widget_list_t *LI);*/
-
+void Radar_update(void);
 #endif

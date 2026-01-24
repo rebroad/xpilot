@@ -1,9 +1,9 @@
-/*
- * XPilotNG, an XPilot-like multiplayer space war game.
+/* 
+ * XPilot NG, a multiplayer space war game.
  *
  * Copyright (C) 1991-2001 by
  *
- *      Bjï¿½rn Stabell        <bjoern@xpilot.org>
+ *      Bjørn Stabell        <bjoern@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
  *      Dick Balaska         <dick@xpilot.org>
@@ -37,10 +37,6 @@
 #endif
 
 #define SOCK_GETHOST_TIMEOUT	6
-
-
-char socklib_version[] = VERSION;
-
 
 static jmp_buf		env;
 
@@ -135,6 +131,29 @@ static void sock_free_lastaddr(sock_t *sock)
 	free(sock->lastaddr);
 	sock->lastaddr = NULL;
     }
+}
+
+int sock_startup()
+{
+#ifdef _WINDOWS
+
+	WORD wVersionRequested;
+	WSADATA wsaData;
+	
+	/* I have no idea which version of winsock supports
+	 * the required socket stuff. */
+	wVersionRequested = MAKEWORD( 1, 0 );
+	if (WSAStartup( wVersionRequested, &wsaData ))
+		return -1;
+#endif
+	return 0; /* socket initialization only needed for windows */
+}
+
+void sock_cleanup(void)
+{
+#ifdef _WINDOWS
+	WSACleanup();
+#endif
 }
 
 int sock_init(sock_t *sock)
@@ -471,7 +490,7 @@ int sock_receive_any(sock_t *sock, char *buf, int len)
     int			count;
     socklen_t		addrlen;
 
-    if (sock_alloc_lastaddr(sock))
+    if (sock_alloc_lastaddr(sock) == SOCK_IS_ERROR)
 	return SOCK_IS_ERROR;
     addrlen = sizeof(struct sockaddr_in);
     count = recvfrom(sock->fd, buf, len, 0,
@@ -754,22 +773,22 @@ static struct hostent *sock_get_host_by_name(const char *name)
     return hp;
 
 #else
-
+    
     /*
      * If you aren't connected to the net, then gethostbyname()
      * can take many minutes to time out.  WSACancelBlockingCall()
      * doesn't affect it.
      *
-
+    
     static char     chp[MAXGETHOSTSTRUCT+1];
     struct hostent* hp = (struct hostent*)&chp;
     HANDLE h;
     MSG msg;
     int i;
-
-    h = WSAAsyncGetHostByName(notifyWnd, WM_GETHOSTNAME, name,
+    
+    h = WSAAsyncGetHostByName(notifyWnd, WM_GETHOSTNAME, name, 
         chp, MAXGETHOSTSTRUCT);
-
+    
     for(i = 0; i < SOCK_GETHOST_TIMEOUT; i++) {
         if (PeekMessage(&msg, NULL, WM_GETHOSTNAME,
 			WM_GETHOSTNAME, PM_REMOVE))

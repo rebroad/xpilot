@@ -42,7 +42,7 @@
     slouken@libsdl.org
 */
 
-/* $Id: text.c,v 1.26 2004/04/24 21:21:06 maximan Exp $ */
+/* $Id: text.c,v 1.36 2005/09/08 11:09:05 maximan Exp $ */
 /* modified for xpilot by Erik Andersson deity_at_home.se */
 
 #ifdef _WINDOWS
@@ -271,7 +271,7 @@ void pop_projection_matrix(void)
 
 fontbounds nprintsize(font_data *ft_font, int length, const char *fmt, ...)
 {
-    unsigned int i=0,j,textlength;
+    int i=0,j,textlength;
     float len;
     fontbounds returnval;
     int start,end,toklen;
@@ -290,7 +290,7 @@ fontbounds nprintsize(font_data *ft_font, int length, const char *fmt, ...)
     	vsnprintf(text, BUFSIZE, fmt, ap);    /* And Converts Symbols To Actual Numbers */
     	va_end(ap); 	    	    /* Results Are Stored In Text */
     }
-    if (!(textlength = MIN(strlen(text),length))) {
+    if (!(textlength = MIN((int)strlen(text),length))) {
     	return returnval;
     }
 
@@ -342,42 +342,80 @@ fontbounds printsize(font_data *ft_font, const char *fmt, ...)
     	vsnprintf(text, BUFSIZE, fmt, ap);    /* And Converts Symbols To Actual Numbers */
     	va_end(ap); 	    	    /* Results Are Stored In Text */
     }
-    return nprintsize(ft_font, BUFSIZE, text);
+    return nprintsize(ft_font, BUFSIZE, "%s", text);
 }
 
 bool render_text(font_data *ft_font, const char *text, string_tex_t *string_tex)
 {
     SDL_Color white = { 0xFF, 0xFF, 0xFF, 0x00 };
     SDL_Color *forecol;
+    SDL_Surface *string_glyph = NULL;
     SDL_Surface *glyph = NULL;
+    SDL_Rect src, dest;
     GLenum gl_error;
 
     if (!(ft_font)) return false;
     if (!(ft_font->ttffont)) return false;
     if (!(string_tex)) return false;
+#if 0
     if (!strlen(text)) return false; /* something is printing an empty string each frame */
+#else
+    /* kps - fix for empty author field in cannon dodgers */
+    if (!strlen(text))
+	text = " ";
+#endif
 
     forecol = &white;
 
     string_tex->font_height = ft_font->h;
 
-    glyph = TTF_RenderText_Blended( ft_font->ttffont, text, *forecol );
+    string_glyph = TTF_RenderText_Blended( ft_font->ttffont, text, *forecol );
 
-    if(glyph) {
+    string_tex->tex_list = Arraylist_alloc(sizeof(tex_t));
 
-    	glGetError();
-    	string_tex->texture = SDL_GL_LoadTexture(glyph, &(string_tex->texcoords));
-    	if ( (gl_error = glGetError()) != GL_NO_ERROR )
-    	    printf("Warning: Couldn't create texture: 0x%x\n", gl_error);
+    string_tex->width = 0;
+    string_tex->height = string_glyph->h;
 
-    	string_tex->width = glyph->w;
-    	string_tex->height = glyph->h;
-
-    	SDL_FreeSurface(glyph);
-
-	string_tex->text = (char *)malloc(sizeof(char)*(strlen(text)+1));
+    if (string_glyph) {
+    	int i, num = 1 + string_glyph->w / 254;
+ 	string_tex->text = (char *)malloc(sizeof(char)*(strlen(text)+1));
 	sprintf(string_tex->text,"%s",text);
+   	for( i=0 ; i<num ; ++i ) {
+	    tex_t tex;
 
+	    tex.texture = 0;
+	    tex.texcoords.MinX = 0.0;
+	    tex.texcoords.MaxX = 0.0;
+	    tex.texcoords.MinY = 0.0;
+	    tex.texcoords.MaxY = 0.0;
+	    tex.width = 0;
+
+    	    src.x   = i*254;
+	    dest.x  = 0;
+    	    src.y = dest.y = 0;
+	    if (i==num-1)
+	    	dest.w = src.w = string_glyph->w - i*254;
+	    else
+	    	dest.w = src.w = 254;
+    	    src.h = dest.h = string_glyph->h;
+
+    	    glyph = SDL_CreateRGBSurface(0,dest.w,dest.h,32,0,0,0,0);
+    	    SDL_SetColorKey(glyph, SDL_SRCCOLORKEY, 0x00000000);
+    	    SDL_BlitSurface(string_glyph,&src,glyph,&dest);
+
+  	    glGetError();
+	    tex.texture = SDL_GL_LoadTexture(glyph,&(tex.texcoords));
+    	    if ( (gl_error = glGetError()) != GL_NO_ERROR )
+    	    	printf("Warning: Couldn't create texture: 0x%x\n", gl_error);
+
+    	    tex.width = dest.w;
+	    string_tex->width += dest.w;
+
+    	    SDL_FreeSurface(glyph);
+
+	    Arraylist_add(string_tex->tex_list,&tex);
+	}
+	SDL_FreeSurface(string_glyph);
     } else {
     	printf("TTF_RenderText_Blended failed for [%s]\n",text);
 	return false;
@@ -403,23 +441,15 @@ bool draw_text_fraq(font_data *ft_font, int color, int XALIGN, int YALIGN, int x
 
     if (!string_tex) {
     	remove_tex = true;
-    	string_tex = malloc(sizeof(string_tex_t));
+    	string_tex = XMALLOC(string_tex_t, 1);
     }
 
     if (render_text(ft_font,text,string_tex)) {
-
     	disp_text_fraq(string_tex, color, XALIGN, YALIGN, x, y, xstart, xstop, ystart, ystop, onHUD);
-
-    	if (!savetex || remove_tex) {
-    	    glDeleteTextures(1,&(string_tex->texture));/* IMPORTANT (?) */
-    	    string_tex->texture = 0;
-    	}
     }
 
-    if (remove_tex) {
-    	free(string_tex);
-    	string_tex = NULL;
-    }
+    if (!savetex || remove_tex)
+    	free_string_texture(string_tex);
 
     return true;
 }
@@ -436,47 +466,69 @@ void disp_text_fraq(string_tex_t *string_tex, int color, int XALIGN, int YALIGN,
     	    	    , float ystop
     	    	    , bool onHUD)
 {
+    int i,num,xpos;
+
     if (!(string_tex)) return;
     set_alphacolor(color);
-    glBindTexture(GL_TEXTURE_2D, string_tex->texture);
 
-    x -= string_tex->width/2.0f*XALIGN;
-    y += string_tex->height/2.0f*YALIGN - string_tex->height;
+    x -= (int)(string_tex->width/2.0f*XALIGN);
+    y += (int)(string_tex->height/2.0f*YALIGN - string_tex->height);
 
     if (onHUD) pushScreenCoordinateMatrix();
-    glEnable(GL_TEXTURE_2D);
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    glBegin(GL_TRIANGLE_STRIP);
-    	    glTexCoord2f(xstart*string_tex->texcoords.MaxX  , ystop*string_tex->texcoords.MaxY	);
-	    glVertex2f( x + xstart*string_tex->width	    , y  + ystart*string_tex->height 	);
 
-     	    glTexCoord2f(xstop*string_tex->texcoords.MaxX   , ystop*string_tex->texcoords.MaxY	);
-	    glVertex2f( x + xstop*string_tex->width	    , y  + ystart*string_tex->height 	);
+    xpos=x;
+    num = Arraylist_get_num_elements(string_tex->tex_list);
+    for (i=0;i<num;++i) {
+    	tex_t tex = *((tex_t *)Arraylist_get(string_tex->tex_list,i));
 
-    	    glTexCoord2f(xstart*string_tex->texcoords.MaxX  , ystart*string_tex->texcoords.MaxY );
-	    glVertex2f( x + xstart*string_tex->width	    , y + ystop*string_tex->height	);
+	glBindTexture(GL_TEXTURE_2D, tex.texture);
 
-   	    glTexCoord2f(xstop*string_tex->texcoords.MaxX   , ystart*string_tex->texcoords.MaxY );
-	    glVertex2f( x + xstop*string_tex->width 	    , y + ystop*string_tex->height	);
-    glEnd();
-    glDisable(GL_TEXTURE_2D);
+	glEnable(GL_TEXTURE_2D);
+    	glEnable(GL_BLEND);
+    	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+    	glBegin(GL_TRIANGLE_STRIP);
+    	    glTexCoord2f(   xstart*tex.texcoords.MaxX	, ystop*tex.texcoords.MaxY 	    );
+	    glVertex2f(     xpos + xstart*tex.width	, y  + ystart*string_tex->height    );
+
+     	    glTexCoord2f(   xstop*tex.texcoords.MaxX	, ystop*tex.texcoords.MaxY 	    );
+	    glVertex2f(     xpos + xstop*tex.width 	, y  + ystart*string_tex->height    );
+
+    	    glTexCoord2f(   xstart*tex.texcoords.MaxX	, ystart*tex.texcoords.MaxY	    );
+	    glVertex2f(     xpos + xstart*tex.width	, y + ystop*string_tex->height	    );
+
+   	    glTexCoord2f(   xstop*tex.texcoords.MaxX	, ystart*tex.texcoords.MaxY	    );
+	    glVertex2f(     xpos + xstop*tex.width 	, y + ystop*string_tex->height	    );
+    	glEnd();
+
+    	glDisable(GL_TEXTURE_2D);
+
+	xpos += tex.width;
+    }
+
     if (onHUD) pop_projection_matrix();
 }
 
 void free_string_texture(string_tex_t *string_tex)
 {
     if (string_tex) {
-    	glDeleteTextures(1,&(string_tex->texture));
-    	string_tex->texture = 0;
-	if (string_tex->text) free(string_tex->text);
-	string_tex->text = NULL;
+    	if (string_tex->tex_list) {
+	    int i,num = Arraylist_get_num_elements(string_tex->tex_list);
+	    for (i=0;i<num;++i) {
+	    	tex_t tex;
+	    	tex = *((tex_t *)Arraylist_get(string_tex->tex_list,i));
+		glDeleteTextures(1,&(tex.texture));
+	    }
+	    Arraylist_free(string_tex->tex_list);
+	    string_tex->tex_list = NULL;
+	}
+	XFREE(string_tex->text);
     }
 }
 
 void print(font_data *ft_font, int color, int XALIGN, int YALIGN, int x, int y, int length, const char *text, bool onHUD)
 {
-    unsigned int i=0,j,textlength;
+    int i=0,j,textlength;
     fontbounds returnval,dummy;
     float xoff = 0.0,yoff = 0.0;
     int start,end,toklen;
@@ -490,7 +542,7 @@ void print(font_data *ft_font, int color, int XALIGN, int YALIGN, int x, int y, 
 
     font=ft_font->list_base;
 
-    returnval = nprintsize(ft_font,length,text);
+    returnval = nprintsize(ft_font,length,"%s",text);
 
     yoff = (returnval.height/2.0f)*((float)YALIGN) - ft_font->h;
 
@@ -540,8 +592,8 @@ void print(font_data *ft_font, int color, int XALIGN, int YALIGN, int x, int y, 
     	Y = (int)(y - ft_font->linespacing*i + yoff);
 
     	if (color) set_alphacolor(color);
-	if (onHUD) glTranslatef(X,Y,0);
-	else glTranslatef(X*scale,Y*scale,0);
+	if (onHUD) glTranslatef(X, Y, 0);
+	else glTranslatef(X * clData.scale,Y * clData.scale, 0);
     	glMultMatrixf(modelview_matrix);
 
     	glCallLists(toklen, GL_UNSIGNED_BYTE, (GLubyte *) &text[start]);
@@ -562,7 +614,7 @@ void print(font_data *ft_font, int color, int XALIGN, int YALIGN, int x, int y, 
 
 void mapnprint(font_data *ft_font, int color, int XALIGN, int YALIGN, int x, int y, int length, const char *fmt,...)
 {
-    unsigned int textlength;
+    int textlength;
 
     char		text[BUFSIZE];  /* Holds Our String */
     va_list		ap; 	    /* Pointer To List Of Arguments */
@@ -574,7 +626,7 @@ void mapnprint(font_data *ft_font, int color, int XALIGN, int YALIGN, int x, int
     	vsnprintf(text, BUFSIZE, fmt, ap);    /* And Converts Symbols To Actual Numbers */
     	va_end(ap); 	    	    /* Results Are Stored In Text */
     }
-    if (!(textlength = MIN(strlen(text),length))) {
+    if (!(textlength = MIN((int)strlen(text),length))) {
     	return;
     }
 
@@ -585,7 +637,7 @@ void mapnprint(font_data *ft_font, int color, int XALIGN, int YALIGN, int x, int
 
 void HUDnprint(font_data *ft_font, int color, int XALIGN, int YALIGN, int x, int y, int length, const char *fmt, ...)
 {
-    unsigned int textlength;
+    int textlength;
 
     char		text[BUFSIZE];  /* Holds Our String */
     va_list		ap; 	    /* Pointer To List Of Arguments */
@@ -597,7 +649,7 @@ void HUDnprint(font_data *ft_font, int color, int XALIGN, int YALIGN, int x, int
     	vsnprintf(text, BUFSIZE, fmt, ap);    /* And Converts Symbols To Actual Numbers */
     	va_end(ap); 	    	    /* Results Are Stored In Text */
     }
-    if (!(textlength = MIN(strlen(text),length))) {
+    if (!(textlength = MIN((int)strlen(text),length))) {
     	return;
     }
 

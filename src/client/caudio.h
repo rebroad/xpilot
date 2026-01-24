@@ -1,9 +1,9 @@
-/*
- * XPilotNG, an XPilot-like multiplayer space war game.
+/* 
+ * XPilot NG, a multiplayer space war game.
  *
  * Copyright (C) 1991-2001 by
  *
- *      Bjï¿½rn Stabell        <bjoern@xpilot.org>
+ *      Bjørn Stabell        <bjoern@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
  *      Dick Balaska         <dick@xpilot.org>
@@ -29,21 +29,26 @@
  * client audio
  */
 
+#ifndef CAUDIO_H
+#define CAUDIO_H
+
 #ifdef SOUND
 
-extern	int	Handle_audio(int type, int volume);
-extern	void	audioInit(char *display);
-extern	void	audioCleanup(void);
-extern	void	audioEvents(void);
+extern char 	soundFile[PATH_MAX];	/* audio mappings */
+extern int 	maxVolume;		/* maximum volume (in percent) */
+extern bool 	sound;			/* option 'sound' */
 
-extern int audioDeviceInit(char *display);
-extern void audioDevicePlay(char *filename, int type,
-			    int volume, void **private);
-extern void audioDeviceEvents(void);
+int  Handle_audio(int type, int volume);
+void audioInit(char *display);
+void audioCleanup(void);
+void audioEvents(void);
+void audioUpdate(void);
+int  audioDeviceInit(char *display);
+void audioDevicePlay(char *filename, int type, int volume, void **priv);
+void audioDeviceEvents(void);
+void audioDeviceUpdate(void);
+void audioDeviceFree(void *priv);
+void audioDeviceClose(void);
 
 #endif
-
-
-
-
-
+#endif

@@ -1,14 +1,14 @@
-/*
- * XPilotNG, an XPilot-like multiplayer space war game.
+/* 
+ * XPilot NG, a multiplayer space war game.
  *
  * Copyright (C) 2000-2004 by
  *
  *      Uoti Urpala          <uau@users.sourceforge.net>
- *      Kristian Sï¿½derblom   <kps@users.sourceforge.net>
+ *      Kristian Söderblom   <kps@users.sourceforge.net>
  *
  * Copyright (C) 1991-2001 by
  *
- *      Bjï¿½rn Stabell        <bjoern@xpilot.org>
+ *      Bjørn Stabell        <bjoern@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
  *      Dick Balaska         <dick@xpilot.org>
@@ -32,13 +32,6 @@
 
 #include "xpserver.h"
 
-char cmdline_version[] = VERSION;
-
-
-#if 0
-char		*playerPasswordsFileName;
-int		playerPasswordsFileSizeLimit;
-#endif
 double		friction;
 double		coriolisCosine, coriolisSine;	/* cos and sin of cor. angle */
 int		roundsPlayed;		/* # of rounds played sofar. */
@@ -47,7 +40,7 @@ extern char	conf_logfile_string[];	/* Default name of log file */
 double		timeStep;		/* Game time step per frame */
 double		timePerFrame;		/* Real time elapsed per frame */
 double		ecmSizeFactor;		/* Factor for ecm size update */
-struct options options;
+struct options	options;
 
 /*
  * Two functions which can be used if an option does not have its own
@@ -57,31 +50,30 @@ struct options options;
  * The tuner_dummy can be specified if it is OK to modify the option
  * during runtime and no follow up action is needed.
  */
-void tuner_none(world_t *world)  { UNUSED_PARAM(world); }
-void tuner_dummy(world_t *world) { UNUSED_PARAM(world); }
+void tuner_none(void)  { ; }
+void tuner_dummy(void) { ; }
 
 
-static void Tune_robot_user_name(world_t *world)
+static void Tune_robot_user_name(void)
 {
-    UNUSED_PARAM(world);
     Fix_user_name(options.robotUserName);
 }
-static void Tune_robot_host_name(world_t *world)
+static void Tune_robot_host_name(void)
 {
     UNUSED_PARAM(world);
     Fix_host_name(options.robotHostName);
 }
-static void Tune_tank_user_name(world_t *world)
+static void Tune_tank_user_name(void)
 {
     UNUSED_PARAM(world);
     Fix_user_name(options.tankUserName);
 }
-static void Tune_tank_host_name(world_t *world)
+static void Tune_tank_host_name(void)
 {
     UNUSED_PARAM(world);
     Fix_host_name(options.tankHostName);
 }
-static void Tune_tagGame(world_t *world)
+static void Tune_tagGame(void)
 {
     UNUSED_PARAM(world);
     if (!options.tagGame)
@@ -89,7 +81,7 @@ static void Tune_tagGame(world_t *world)
 }
 
 
-static void Check_baseless(world_t *world);
+static void Check_baseless(void);
 
 static option_desc opts[] = {
     {
@@ -119,7 +111,7 @@ static option_desc opts[] = {
 	NULL,
 	valVoid,
 	tuner_none,
-	"Print all options with their default values in defaultsfile format.\n",
+	"Print all options and their default values in defaultsfile format.\n",
 	OPT_NONE
     },
     {
@@ -137,7 +129,7 @@ static option_desc opts[] = {
     {
 	"gravity",
 	"gravity",
-	"-0.14",
+	"0.0",
 	&options.gravity,
 	valReal,
 	Compute_gravity,
@@ -147,11 +139,7 @@ static option_desc opts[] = {
     {
 	"shipMass",
 	"shipMass",
-	"18.0",		/*
-			 * kps - "optimal" value for fps=50 and gs=12.5.
-			 * Should be changed back to 20.0 when high fps
-			 * "inertia" issue is sorted out.
-			 */
+	"20.0",
 	&options.shipMass,
 	valReal,
 	tuner_shipmass,
@@ -209,9 +197,39 @@ static option_desc opts[] = {
 	OPT_ORIGIN_ANY | OPT_VISIBLE
     },
     {
+	"treasureCollisionKills",
+	"treasureKills",
+	"true",
+	&options.treasureCollisionKills,
+	valBool,
+	tuner_dummy,
+	"Does a player die when hitting a ballarea?\n",
+	OPT_ORIGIN_ANY | OPT_VISIBLE
+    },
+    {
+	"ballCollisionFuelDrain",
+	"ballFuelDrain",
+	"50",
+	&options.ballCollisionFuelDrain,
+	valReal,
+	tuner_dummy,
+	"How much fuel does a ball collision cost?\n",
+	OPT_ORIGIN_ANY | OPT_VISIBLE
+    },
+    {
+	"playerCollisionFuelDrain",
+	"playerFuelDrain",
+	"100",
+	&options.playerCollisionFuelDrain,
+	valReal,
+	tuner_dummy,
+	"How much fuel does a player collision cost?\n",
+	OPT_ORIGIN_ANY | OPT_VISIBLE
+    },
+    {
 	"shotHitFuelDrainUsesKineticEnergy",
 	"kineticEnergyFuelDrain",
-	"yes",
+	"true",
 	&options.shotHitFuelDrainUsesKineticEnergy,
 	valBool,
 	tuner_dummy,
@@ -331,27 +349,7 @@ static option_desc opts[] = {
 	&options.robotLeaveLife,
 	valInt,
 	tuner_dummy,
-	"Max number of lives per robot (0=off).\n",
-	OPT_ORIGIN_ANY | OPT_VISIBLE
-    },
-    {
-	"robotLeaveScore",
-	"robotLeaveScore",
-	"-90.0",
-	&options.robotLeaveScore,
-	valReal,
-	tuner_dummy,
-	"Min score for robot to play (0=off).\n",
-	OPT_ORIGIN_ANY | OPT_VISIBLE
-    },
-    {
-	"robotLeaveRatio",
-	"robotLeaveRatio",
-	"-5.0",
-	&options.robotLeaveRatio,
-	valReal,
-	tuner_dummy,
-	"Min ratio for robot to play (0=off).\n",
+	"After how many deaths does a robot want to leave? (0=off).\n",
 	OPT_ORIGIN_ANY | OPT_VISIBLE
     },
     {
@@ -385,18 +383,6 @@ static option_desc opts[] = {
 	OPT_ORIGIN_ANY | OPT_VISIBLE
     },
     {
-	"robotTicksPerSecond",
-	"robotTicks",
-	"0",
-	&options.robotTicksPerSecond,
-	valInt,
-	Timing_setup,
-	"How many times per second to call robot round tick?\n"
-	"The value will be limited into the range 1 to server FPS.\n"
-	"A value of 0 means one tick per frame.\n",
-	OPT_ORIGIN_ANY | OPT_VISIBLE
-    },
-    {
 	"robotUserName",
 	"robotRealName",
 	"robot",
@@ -409,7 +395,7 @@ static option_desc opts[] = {
     {
 	"robotHostName",
 	"robotHostName",
-	"xpilot.org",
+	"xpilot.sourceforge.net",
 	&options.robotHostName,
 	valString,
 	Tune_robot_host_name,
@@ -429,7 +415,7 @@ static option_desc opts[] = {
     {
 	"tankHostName",
 	"tankHostName",
-	"tanks.org",
+	"xpilot.sourceforge.net",
 	&options.tankHostName,
 	valString,
 	Tune_tank_host_name,
@@ -517,16 +503,6 @@ static option_desc opts[] = {
 	OPT_ORIGIN_ANY | OPT_VISIBLE
     },
     {
-	"silent",
-	"silent",
-	"false",
-	&options.silent,
-	valBool,
-	tuner_dummy,
-	"Is the server really silent?\n",
-	OPT_ORIGIN_ANY | OPT_VISIBLE
-    },
-    {
 	"idleRun",
 	"rawMode",
 	"false",
@@ -585,10 +561,7 @@ static option_desc opts[] = {
 	&options.mapFileName,
 	valString,
 	tuner_none,
-	"The filename of the map to use.\n"
-	"Or \"wild\" if you want a map by The Wild Map Generator.\n"
-	"The geometry of a \"wild\" map is given by the -mapWidth\n"
-	"and the -mapHeight options.\n",
+	"The filename of the map to use.\n",
 	OPT_COMMAND | OPT_DEFAULTS
     },
     {
@@ -654,8 +627,8 @@ static option_desc opts[] = {
     {
 	"allowPlayerCrashes",
 	"allowPlayerCrashes",
-	"yes",
-	&options.crashWithPlayer,
+	"true",
+	&options.allowPlayerCrashes,
 	valBool,
 	Set_world_rules,
 	"Can players overrun other players?\n",
@@ -664,8 +637,8 @@ static option_desc opts[] = {
     {
 	"allowPlayerBounces",
 	"allowPlayerBounces",
-	"yes",
-	&options.bounceWithPlayer,
+	"true",
+	&options.allowPlayerBounces,
 	valBool,
 	Set_world_rules,
 	"Can players bounce with other players?\n",
@@ -674,8 +647,8 @@ static option_desc opts[] = {
     {
 	"allowPlayerKilling",
 	"killings",
-	"yes",
-	&options.playerKillings,
+	"true",
+	&options.allowPlayerKilling,
 	valBool,
 	Set_world_rules,
 	"Should players be allowed to kill one other?\n",
@@ -684,17 +657,17 @@ static option_desc opts[] = {
     {
 	"allowShields",
 	"shields",
-	"yes",
-	&options.playerShielding,
+	"true",
+	&options.allowShields,
 	valBool,
-	tuner_playershielding,
+	tuner_allowshields,
 	"Are shields allowed?\n",
 	OPT_ORIGIN_ANY | OPT_VISIBLE
     },
     {
 	"playerStartsShielded",
 	"playerStartShielded",
-	"yes",
+	"true",
 	&options.playerStartsShielded,
 	valBool,
 	tuner_playerstartsshielded,
@@ -704,7 +677,7 @@ static option_desc opts[] = {
     {
 	"shotsWallBounce",
 	"shotsWallBounce",
-	"no",
+	"false",
 	&options.shotsWallBounce,
 	valBool,
 	Move_init,
@@ -714,7 +687,7 @@ static option_desc opts[] = {
     {
 	"ballsWallBounce",
 	"ballsWallBounce",
-	"yes",
+	"true",
 	&options.ballsWallBounce,
 	valBool,
 	Move_init,
@@ -722,9 +695,19 @@ static option_desc opts[] = {
 	OPT_ORIGIN_ANY | OPT_VISIBLE
     },
     {
+	"ballCollisionDetaches",
+	"ballHitDetaches",
+	"false",
+	&options.ballCollisionDetaches,
+	valBool,
+	tuner_dummy,
+	"Does a ball get freed by a collision with a player?\n",
+	OPT_ORIGIN_ANY | OPT_VISIBLE
+    },
+    {
 	"ballCollisions",
 	"ballCollisions",
-	"no",
+	"false",
 	&options.ballCollisions,
 	valBool,
 	tuner_dummy,
@@ -734,7 +717,7 @@ static option_desc opts[] = {
     {
 	"ballSparkCollisions",
 	"ballSparkCollisions",
-	"yes",
+	"true",
 	&options.ballSparkCollisions,
 	valBool,
 	tuner_dummy,
@@ -744,7 +727,7 @@ static option_desc opts[] = {
     {
 	"minesWallBounce",
 	"minesWallBounce",
-	"no",
+	"false",
 	&options.minesWallBounce,
 	valBool,
 	Move_init,
@@ -754,7 +737,7 @@ static option_desc opts[] = {
     {
 	"itemsWallBounce",
 	"itemsWallBounce",
-	"yes",
+	"true",
 	&options.itemsWallBounce,
 	valBool,
 	Move_init,
@@ -764,7 +747,7 @@ static option_desc opts[] = {
     {
 	"missilesWallBounce",
 	"missilesWallBounce",
-	"no",
+	"false",
 	&options.missilesWallBounce,
 	valBool,
 	Move_init,
@@ -774,7 +757,7 @@ static option_desc opts[] = {
     {
 	"sparksWallBounce",
 	"sparksWallBounce",
-	"no",
+	"true",
 	&options.sparksWallBounce,
 	valBool,
 	Move_init,
@@ -785,7 +768,7 @@ static option_desc opts[] = {
     {
 	"debrisWallBounce",
 	"debrisWallBounce",
-	"no",
+	"false",
 	&options.debrisWallBounce,
 	valBool,
 	Move_init,
@@ -795,7 +778,7 @@ static option_desc opts[] = {
     {
 	"asteroidsWallBounce",
 	"asteroidsWallBounce",
-	"yes",
+	"true",
 	&options.asteroidsWallBounce,
 	valBool,
 	Move_init,
@@ -805,7 +788,7 @@ static option_desc opts[] = {
     {
 	"pulsesWallBounce",
 	"pulsesWallBounce",
-	"no",
+	"false",
 	&options.pulsesWallBounce,
 	valBool,
 	Move_init,
@@ -815,21 +798,11 @@ static option_desc opts[] = {
     {
 	"cloakedExhaust",
 	"cloakedExhaust",
-	"yes",
+	"true",
 	&options.cloakedExhaust,
 	valBool,
 	tuner_dummy,
 	"Do engines of cloaked ships generate exhaust?\n",
-	OPT_ORIGIN_ANY | OPT_VISIBLE
-    },
-    {
-	"cloakedShield",
-	"cloakedShield",
-	"yes",
-	&options.cloakedShield,
-	valBool,
-	tuner_dummy,
-	"Can players use shields when cloaked?\n",
 	OPT_ORIGIN_ANY | OPT_VISIBLE
     },
     {
@@ -843,9 +816,19 @@ static option_desc opts[] = {
 	OPT_ORIGIN_ANY | OPT_VISIBLE
     },
     {
+	"maxSparkWallBounceSpeed",
+	"maxSparkBounceSpeed",
+	"80.0", /* was "40.0" */
+	&options.maxSparkWallBounceSpeed,
+	valReal,
+	Move_init,
+	"The maximum allowed speed for sparks to bounce off walls.\n",
+	OPT_ORIGIN_ANY | OPT_VISIBLE
+    },
+    {
 	"maxShieldedWallBounceSpeed",
 	"maxShieldedBounceSpeed",
-	"50.0",
+	"100.0",
 	&options.maxShieldedWallBounceSpeed,
 	valReal,
 	Move_init,
@@ -855,7 +838,7 @@ static option_desc opts[] = {
     {
 	"maxUnshieldedWallBounceSpeed",
 	"maxUnshieldedBounceSpeed",
-	"20.0",
+	"90.0",
 	&options.maxUnshieldedWallBounceSpeed,
 	valReal,
 	Move_init,
@@ -863,20 +846,68 @@ static option_desc opts[] = {
 	OPT_ORIGIN_ANY | OPT_VISIBLE
     },
     {
+	"playerWallBounceType",
+	"wallBounceType",
+	"3",
+	&options.playerWallBounceType,
+	valInt,
+	tuner_playerwallbouncetype,
+	"What kind of ship wall bounces to use.\n"
+	"\n"
+	"A value of 0 gives the old XPilot wall bounces, where the ship\n"
+	"velocity in the direction perpendicular to the wall is reversed\n"
+	"after which the velocity is multiplied by the value of the\n"
+	"playerWallBounceBrakeFactor option.\n"
+	"\n"
+	"A value of 1 gives the \"separate multipliers\" implementation.\n"
+	"\n"
+	"A value of 2 causes Mara's suggestion for the speed change in the\n"
+	"direction parallel to the wall to be used.\n"
+	"Vtangent2 = (1-Vnormal1/Vtotal1*wallfriction)*Vtangent1\n"
+	"\n"
+	"A value of 3 causes Uau's suggestion to be used:\n"
+	"change the parallel one by\n"
+	"MIN(C1*perpendicular_change, C2*parallel_speed)\n"
+	"if you assume the wall has a coefficient of friction C1.\n.",
+	OPT_ORIGIN_ANY | OPT_VISIBLE
+    },
+    {
 	"playerWallBounceBrakeFactor",
 	"playerWallBrake",
-	"0.89",
-	&options.playerWallBrakeFactor,
+	"0.5",
+	&options.playerWallBounceBrakeFactor,
 	valReal,
 	Move_init,
-	"Factor to slow down players when they hit the wall (0 to 1).\n",
+	"Factor to slow down ship in direction perpendicular to the wall\n"
+	"when a wall is hit (0 to 1).\n",
+	OPT_ORIGIN_ANY | OPT_VISIBLE
+    },
+    {
+	"playerBallBounceBrakeFactor",
+	"playerBallBrake",
+	"0.7",
+	&options.playerBallBounceBrakeFactor,
+	valReal,
+	Move_init,
+	"Elastic or inelastic properties of the player-ball collision\n"
+	"1 means fully elastic, 0 fully inelastic.\n",
+	OPT_ORIGIN_ANY | OPT_VISIBLE
+    },
+    {
+	"playerWallFriction",
+	"wallFriction",
+	"0.5",
+	&options.playerWallFriction,
+	valReal,
+	Move_init,
+	"Player-wall friction (0 to 1).\n",
 	OPT_ORIGIN_ANY | OPT_VISIBLE
     },
     {
 	"objectWallBounceBrakeFactor",
 	"objectWallBrake",
 	"0.95",
-	&options.objectWallBrakeFactor,
+	&options.objectWallBounceBrakeFactor,
 	valReal,
 	Move_init,
 	"Factor to slow down objects when they hit the wall (0 to 1).\n",
@@ -893,13 +924,13 @@ static option_desc opts[] = {
 	OPT_ORIGIN_ANY | OPT_VISIBLE
     },
     {
-	"wallBounceFuelDrainMult",
-	"wallBounceDrain",
+	"afterburnerPowerMult",
+	"afterburnerPower",
 	"1.0",
-	&options.wallBounceFuelDrainMult,
+	&options.afterburnerPowerMult,
 	valReal,
-	Move_init,
-	"Multiplication factor for player wall bounce fuel cost.\n",
+	tuner_dummy,
+	"Multiplication factor for afterburner power.\n",
 	OPT_ORIGIN_ANY | OPT_VISIBLE
     },
     {
@@ -916,7 +947,7 @@ static option_desc opts[] = {
     {
 	"reportToMetaServer",
 	"reportMeta",
-	"yes",
+	"true",
 	&options.reportToMetaServer,
 	valBool,
 	tuner_none,
@@ -924,9 +955,19 @@ static option_desc opts[] = {
 	OPT_COMMAND | OPT_DEFAULTS | OPT_VISIBLE
     },
     {
+	"metaUpdateMaxSize",
+	"metaUpdateMaxSize",
+	"4096",
+	&options.metaUpdateMaxSize,
+	valInt,
+	Meta_update_max_size_tuner,
+	"Maximum size of meta update messages.\n",
+	OPT_ORIGIN_ANY | OPT_VISIBLE
+    },
+    {
 	"searchDomainForXPilot",
 	"searchDomainForXPilot",
-	"no",
+	"false",
 	&options.searchDomainForXPilot,
 	valBool,
 	tuner_none,
@@ -947,7 +988,7 @@ static option_desc opts[] = {
     {
 	"limitedVisibility",
 	"limitedVisibility",
-	"no",
+	"false",
 	&options.limitedVisibility,
 	valBool,
 	Set_world_rules,
@@ -977,7 +1018,7 @@ static option_desc opts[] = {
     {
 	"limitedLives",
 	"limitedLives",
-	"no",
+	"false",
 	&options.limitedLives,
 	valBool,
 	tuner_none,
@@ -998,7 +1039,7 @@ static option_desc opts[] = {
     {
 	"reset",
 	"reset",
-	"yes",
+	"true",
 	&options.endOfRoundReset,
 	valBool,
 	tuner_dummy,
@@ -1038,14 +1079,14 @@ static option_desc opts[] = {
     {
 	"allowAlliances",
 	"alliances",
-	"yes",
+	"true",
 	&options.allowAlliances,
 	valBool,
 	tuner_allowalliances,
 	"Are alliances between players allowed?\n"
 	"Alliances are like teams, except they can be formed and dissolved\n"
-	"at any time. Notably, teamImmunity and teamShareScore work for\n"
-	"alliances too. To manage alliances, use the '/ally' talk command:\n"
+	"at any time. Notably, teamImmunity works for alliances too.\n"
+	"To manage alliances, use the '/ally' talk command:\n"
 	"'/ally invite <player name>' to invite another player to join you.\n"
 	"'/ally cancel' to cancel such an invitation.\n"
 	"'/ally refuse <player name>' to decline an invitation from a player.\n"
@@ -1060,7 +1101,7 @@ static option_desc opts[] = {
     {
 	"announceAlliances",
 	"announceAlliances",
-	"no",
+	"false",
 	&options.announceAlliances,
 	valBool,
 	tuner_announcealliances,
@@ -1073,7 +1114,7 @@ static option_desc opts[] = {
     {
 	"teamPlay",
 	"teams",
-	"no",
+	"false",
 	&options.teamPlay,
 	valBool,
 	tuner_none,
@@ -1094,7 +1135,7 @@ static option_desc opts[] = {
     {
 	"teamFuel",
 	"teamFuel",
-	"no",
+	"false",
 	&options.teamFuel,
 	valBool,
 	tuner_dummy,
@@ -1104,7 +1145,7 @@ static option_desc opts[] = {
     {
 	"teamCannons",
 	"teamCannons",
-	"no",
+	"false",
 	&options.teamCannons,
 	valBool,
 	tuner_teamcannons,
@@ -1122,35 +1163,23 @@ static option_desc opts[] = {
 	"1: default (random direction),\n"
 	"2: good (small error),\n"
 	"3: accurate (aims at predicted player position).\n"
-	"Also influences use of weapons if cannonsUseItems is on.\n",
+	"Also influences use of weapons.\n",
 	OPT_ORIGIN_ANY | OPT_VISIBLE
     },
     {
-	"cannonsUseItems",
 	"cannonsPickupItems",
-	"no",
-	&options.cannonsUseItems,
+	"cannonsPickupItems",
+	"false",
+	&options.cannonsPickupItems,
 	valBool,
-	tuner_cannonsuseitems,
-	"Do cannons use items?\n",
-	OPT_ORIGIN_ANY | OPT_VISIBLE
-    },
-    {
-	"cannonsDefend",
-	"cannonsDefend",
-	"yes",
-	&options.cannonsDefend,
-	valBool,
-	tuner_none,
-	"Do cannons actively use defensive items like emergency shields and\n"
-	"phasing devices?\n"
-	"This only works if cannons are actually allowed to use items.\n",
+	Move_init,
+	"Do cannons pick up items?\n",
 	OPT_ORIGIN_ANY | OPT_VISIBLE
     },
     {
 	"cannonFlak",
 	"cannonAAA",
-	"yes",
+	"true",
 	&options.cannonFlak,
 	valBool,
 	tuner_dummy,
@@ -1169,9 +1198,253 @@ static option_desc opts[] = {
 	OPT_ORIGIN_ANY | OPT_VISIBLE
     },
     {
+	"cannonShotSpeed",
+	"cannonShotSpeed",
+	"21.0",
+	&options.cannonShotSpeed,
+	valReal,
+	tuner_dummy,
+	"Speed of cannon shots.\n",
+	OPT_ORIGIN_ANY | OPT_VISIBLE
+    },
+    {
+	"minCannonShotLife",
+	"minCannonShotLife",
+	"8.0",
+	&options.minCannonShotLife,
+	valReal,
+	tuner_mincannonshotlife,
+	"Minimum life of cannon shots, measured in ticks.\n"
+	"If this is set to a value greater than maxCannonShotLife, then\n"
+	"maxCannonShotLife will be set to that same value.\n",
+	OPT_ORIGIN_ANY | OPT_VISIBLE
+    },
+    {
+	"maxCannonShotLife",
+	"maxCannonShotLife",
+	"32.0",
+	&options.maxCannonShotLife,
+	valReal,
+	tuner_maxcannonshotlife,
+	"Maximum life of cannon shots, measured in ticks.\n"
+	"If this is set to a value less than minCannonShotLife, then\n"
+	"minCannonShotLife will be set to that same value.\n",
+	OPT_ORIGIN_ANY | OPT_VISIBLE
+    },
+    {
+	"cannonInitialFuel",
+	"cannonInitialFuel",
+	"0",
+	&World.items[ITEM_FUEL].cannon_initial,
+	valInt,
+	Set_initial_resources,
+	"How much fuel cannons start with.\n",
+	OPT_ORIGIN_ANY | OPT_VISIBLE
+    },
+    {
+	"cannonInitialTanks",
+	"cannonInitialTanks",
+	"0",
+	&World.items[ITEM_TANK].cannon_initial,
+	valInt,
+	Set_initial_resources,
+	"How many tanks cannons start with.\n",
+	OPT_ORIGIN_ANY | OPT_VISIBLE
+    },
+    {
+	"cannonInitialECMs",
+	"cannonInitialECMs",
+	"0",
+	&World.items[ITEM_ECM].cannon_initial,
+	valInt,
+	Set_initial_resources,
+	"How many ECMs cannons start with.\n",
+	OPT_ORIGIN_ANY | OPT_VISIBLE
+    },
+    {
+	"cannonInitialArmor",
+	"cannonInitialArmors",
+	"0",
+	&World.items[ITEM_ARMOR].cannon_initial,
+	valInt,
+	Set_initial_resources,
+	"How much armor cannons start with.\n",
+	OPT_ORIGIN_ANY | OPT_VISIBLE
+    },
+    {
+	"cannonInitialMines",
+	"cannonInitialMines",
+	"0",
+	&World.items[ITEM_MINE].cannon_initial,
+	valInt,
+	Set_initial_resources,
+	"How many mines cannons start with.\n",
+	OPT_ORIGIN_ANY | OPT_VISIBLE
+    },
+    {
+	"cannonInitialMissiles",
+	"cannonInitialMissiles",
+	"0",
+	&World.items[ITEM_MISSILE].cannon_initial,
+	valInt,
+	Set_initial_resources,
+	"How many missiles cannons start with.\n",
+	OPT_ORIGIN_ANY | OPT_VISIBLE
+    },
+    {
+	"cannonInitialCloaks",
+	"cannonInitialCloaks",
+	"0",
+	&World.items[ITEM_CLOAK].cannon_initial,
+	valInt,
+	Set_initial_resources,
+	"How many cloaks cannons start with.\n",
+	OPT_ORIGIN_ANY | OPT_VISIBLE
+    },
+    {
+	"cannonInitialSensors",
+	"cannonInitialSensors",
+	"0",
+	&World.items[ITEM_SENSOR].cannon_initial,
+	valInt,
+	Set_initial_resources,
+	"How many sensors cannons start with.\n",
+	OPT_ORIGIN_ANY | OPT_VISIBLE
+    },
+    {
+	"cannonInitialWideangles",
+	"cannonInitialWideangles",
+	"0",
+	&World.items[ITEM_WIDEANGLE].cannon_initial,
+	valInt,
+	Set_initial_resources,
+	"How many wideangles cannons start with.\n",
+	OPT_ORIGIN_ANY | OPT_VISIBLE
+    },
+    {
+	"cannonInitialRearshots",
+	"cannonInitialRearshots",
+	"0",
+	&World.items[ITEM_REARSHOT].cannon_initial,
+	valInt,
+	Set_initial_resources,
+	"How many rearshots cannons start with.\n",
+	OPT_ORIGIN_ANY | OPT_VISIBLE
+    },
+    {
+	"cannonInitialAfterburners",
+	"cannonInitialAfterburners",
+	"0",
+	&World.items[ITEM_AFTERBURNER].cannon_initial,
+	valInt,
+	Set_initial_resources,
+	"How many afterburners cannons start with.\n",
+	OPT_ORIGIN_ANY | OPT_VISIBLE
+    },
+    {
+	"cannonInitialTransporters",
+	"cannonInitialTransporters",
+	"0",
+	&World.items[ITEM_TRANSPORTER].cannon_initial,
+	valInt,
+	Set_initial_resources,
+	"How many transporters cannons start with.\n",
+	OPT_ORIGIN_ANY | OPT_VISIBLE
+    },
+    {
+	"cannonInitialMirrors",
+	"cannonInitialMirrors",
+	"0",
+	&World.items[ITEM_MIRROR].cannon_initial,
+	valInt,
+	Set_initial_resources,
+	"How many mirrors cannons start with.\n",
+	OPT_ORIGIN_ANY | OPT_VISIBLE
+    },
+    {
+	"cannonInitialDeflectors",
+	"cannonInitialDeflectors",
+	"0",
+	&World.items[ITEM_DEFLECTOR].cannon_initial,
+	valInt,
+	Set_initial_resources,
+	"How many deflectors cannons start with.\n",
+	OPT_ORIGIN_ANY | OPT_VISIBLE
+    },
+    {
+	"cannonInitialHyperJumps",
+	"cannonInitialHyperJumps",
+	"0",
+	&World.items[ITEM_HYPERJUMP].cannon_initial,
+	valInt,
+	Set_initial_resources,
+	"How many hyperjumps cannons start with.\n",
+	OPT_ORIGIN_ANY | OPT_VISIBLE
+    },
+    {
+	"cannonInitialPhasings",
+	"cannonInitialPhasings",
+	"0",
+	&World.items[ITEM_PHASING].cannon_initial,
+	valInt,
+	Set_initial_resources,
+	"How many phasing devices cannons start with.\n",
+	OPT_ORIGIN_ANY | OPT_VISIBLE
+    },
+    {
+	"cannonInitialLasers",
+	"cannonInitialLasers",
+	"0",
+	&World.items[ITEM_LASER].cannon_initial,
+	valInt,
+	Set_initial_resources,
+	"How many lasers cannons start with.\n",
+	OPT_ORIGIN_ANY | OPT_VISIBLE
+    },
+    {
+	"cannonInitialEmergencyThrusts",
+	"cannonInitialEmergencyThrusts",
+	"0",
+	&World.items[ITEM_EMERGENCY_THRUST].cannon_initial,
+	valInt,
+	Set_initial_resources,
+	"How many emergency thrusts cannons start with.\n",
+	OPT_ORIGIN_ANY | OPT_VISIBLE
+    },
+    {
+	"cannonInitialTractorBeams",
+	"cannonInitialTractorBeams",
+	"0",
+	&World.items[ITEM_TRACTOR_BEAM].cannon_initial,
+	valInt,
+	Set_initial_resources,
+	"How many tractor/pressor beams cannons start with.\n",
+	OPT_ORIGIN_ANY | OPT_VISIBLE
+    },
+    {
+	"cannonInitialAutopilots",
+	"cannonInitialAutopilots",
+	"0",
+	&World.items[ITEM_AUTOPILOT].cannon_initial,
+	valInt,
+	Set_initial_resources,
+	"How many autopilots cannons start with.\n",
+	OPT_ORIGIN_ANY | OPT_VISIBLE
+    },
+    {
+	"cannonInitialEmergencyShields",
+	"cannonInitialEmergencyShields",
+	"0",
+	&World.items[ITEM_EMERGENCY_SHIELD].cannon_initial,
+	valInt,
+	Set_initial_resources,
+	"How many emergency shields cannons start with.\n",
+	OPT_ORIGIN_ANY | OPT_VISIBLE
+    },
+    {
 	"keepShots",
 	"keepShots",
-	"no",
+	"false",
 	&options.keepShots,
 	valBool,
 	tuner_dummy,
@@ -1181,7 +1454,7 @@ static option_desc opts[] = {
     {
 	"teamImmunity",
 	"teamImmunity",
-	"yes",
+	"true",
 	&options.teamImmunity,
 	valBool,
 	Team_immunity_init,
@@ -1190,20 +1463,9 @@ static option_desc opts[] = {
 	OPT_ORIGIN_ANY | OPT_VISIBLE
     },
     {
-	"teamShareScore",
-	"teamShareScore",
-	"no",
-	&options.teamShareScore,
-	valBool,
-	tuner_dummy,
-	"Are points gained or lost divided equally over all team members?\n"
-	"This works for alliances too.\n",
-	OPT_ORIGIN_ANY | OPT_VISIBLE
-    },
-    {
 	"ecmsReprogramMines",
 	"ecmsReprogramMines",
-	"yes",
+	"true",
 	&options.ecmsReprogramMines,
 	valBool,
 	tuner_dummy,
@@ -1213,7 +1475,7 @@ static option_desc opts[] = {
     {
 	"ecmsReprogramRobots",
 	"ecmsReprogramRobots",
-	"yes",
+	"true",
 	&options.ecmsReprogramRobots,
 	valBool,
 	tuner_dummy,
@@ -1223,7 +1485,7 @@ static option_desc opts[] = {
     {
 	"targetKillTeam",
 	"targetKillTeam",
-	"no",
+	"false",
 	&options.targetKillTeam,
 	valBool,
 	tuner_dummy,
@@ -1233,7 +1495,7 @@ static option_desc opts[] = {
     {
 	"targetTeamCollision",
 	"targetCollision",
-	"yes",
+	"true",
 	&options.targetTeamCollision,
 	valBool,
 	Target_init,
@@ -1243,7 +1505,7 @@ static option_desc opts[] = {
     {
 	"targetSync",
 	"targetSync",
-	"no",
+	"false",
 	&options.targetSync,
 	valBool,
 	tuner_dummy,
@@ -1264,7 +1526,7 @@ static option_desc opts[] = {
     {
 	"treasureKillTeam",
 	"treasureKillTeam",
-	"no",
+	"false",
 	&options.treasureKillTeam,
 	valBool,
 	tuner_dummy,
@@ -1274,7 +1536,7 @@ static option_desc opts[] = {
     {
 	"captureTheFlag",
 	"ctf",
-	"no",
+	"false",
 	&options.captureTheFlag,
 	valBool,
 	tuner_dummy,
@@ -1283,9 +1545,20 @@ static option_desc opts[] = {
 	OPT_ORIGIN_ANY | OPT_VISIBLE
     },
     {
+	"specialBallTeam",
+	"specialBall",
+	"-1",
+	&options.specialBallTeam,
+	valInt,
+	tuner_dummy,
+	"Balls that belong to this team are 'special' balls that score\n"
+	"against all other teams.\n",
+	OPT_ORIGIN_ANY | OPT_VISIBLE
+    },
+    {
 	"treasureCollisionDestroys",
 	"treasureCollisionDestroy",
-	"yes",
+	"true",
 	&options.treasureCollisionDestroys,
 	valBool,
 	tuner_dummy,
@@ -1295,7 +1568,7 @@ static option_desc opts[] = {
     {
 	"ballConnectorSpringConstant",
 	"ballConnectorSpringConstant",
-	"1500.0",
+	"1650.0", /* legacy value was 1500 */
 	&options.ballConnectorSpringConstant,
 	valReal,
 	tuner_dummy,
@@ -1335,7 +1608,7 @@ static option_desc opts[] = {
     {
 	"connectorIsString",
 	"connectorIsString",
-	"no",
+	"false",
 	&options.connectorIsString,
 	valBool,
 	tuner_dummy,
@@ -1355,10 +1628,19 @@ static option_desc opts[] = {
 	"a radius of 10 pixels.\n",
 	OPT_ORIGIN_ANY | OPT_VISIBLE
     },
+    {   "multipleConnectors",
+	"multipleBallConnectors",
+	"true",
+	&options.multipleConnectors,
+	valBool,
+	tuner_dummy,
+	"Can a player connect to multiple balls or just to one?\n",
+	OPT_ORIGIN_ANY | OPT_VISIBLE
+    },
     {
 	"treasureCollisionMayKill",
 	"treasureUnshieldedCollisionKills",
-	"no",
+	"false",
 	&options.treasureCollisionMayKill,
 	valBool,
 	tuner_dummy,
@@ -1368,7 +1650,7 @@ static option_desc opts[] = {
     {
 	"wreckageCollisionMayKill",
 	"wreckageUnshieldedCollisionKills",
-	"no",
+	"false",
 	&options.wreckageCollisionMayKill,
 	valBool,
 	tuner_dummy,
@@ -1378,7 +1660,7 @@ static option_desc opts[] = {
     {
 	"asteroidCollisionMayKill",
 	"asteroidUnshieldedCollisionKills",
-	"yes",
+	"true",
 	&options.asteroidCollisionMayKill,
 	valBool,
 	tuner_dummy,
@@ -1398,7 +1680,7 @@ static option_desc opts[] = {
     {
 	"tagGame",
  	"tag",
- 	"no",
+ 	"false",
  	&options.tagGame,
  	valBool,
  	Tune_tagGame,
@@ -1432,7 +1714,7 @@ static option_desc opts[] = {
     {
 	"timing",
 	"race",
-	"no",
+	"false",
 	&options.timing,
 	valBool,
 	tuner_none,
@@ -1464,7 +1746,7 @@ static option_desc opts[] = {
     {
 	"edgeWrap",
 	"edgeWrap",
-	"no",
+	"false",
 	&options.edgeWrap,
 	valBool,
 	tuner_none,
@@ -1474,7 +1756,7 @@ static option_desc opts[] = {
     {
 	"edgeBounce",
 	"edgeBounce",
-	"yes",
+	"true",
 	&options.edgeBounce,
 	valBool,
 	tuner_dummy,
@@ -1484,7 +1766,7 @@ static option_desc opts[] = {
     {
 	"extraBorder",
 	"extraBorder",
-	"no",
+	"false",
 	&options.extraBorder,
 	valBool,
 	tuner_none,
@@ -1589,8 +1871,7 @@ static option_desc opts[] = {
 	&options.wormholeStableTicks,
 	valReal,
 	tuner_wormhole_stable_ticks,
-	"Number of ticks wormholes will remain stable.\n"
-	"Replaces option wormTime.\n",
+	"Number of ticks wormholes will keep the same destination.\n",
 	OPT_ORIGIN_ANY | OPT_VISIBLE
     },
     {
@@ -1679,6 +1960,16 @@ static option_desc opts[] = {
 	OPT_COMMAND | OPT_DEFAULTS
     },
     {
+	"rankWebpageCSS",
+	"rankCSS",
+	NULL,
+	&options.rankWebpageCSS,
+	valString,
+	tuner_none,
+	"The URL of an optional style sheet for the ranking webpage.\n",
+	OPT_COMMAND | OPT_DEFAULTS
+    },
+    {
 	"framesPerSecond",
 	"FPS",
 	"50",
@@ -1695,17 +1986,15 @@ static option_desc opts[] = {
 	&options.gameSpeed,
 	valReal,
 	Timing_setup,
-	"Rate at which game events happen. Allows using higher\n"
-	"FPS without making the game too fast.\n"
-	"A game speed of X means the game proceeds as fast as on an old\n"
-	"server running at X FPS. A value of 0 means the value of game\n"
-	"speed is the same as that of FPS.\n",
+	"Rate at which game events happen. The gameSpeed specifies how\n"
+	"many ticks of game time elapse each second. A value of 0 means\n"
+	"that the value of gameSpeed should be equal to the value of FPS.\n",
 	OPT_ORIGIN_ANY | OPT_VISIBLE
     },
     {
 	"allowSmartMissiles",
 	"allowSmarts",
-	"True",
+	"true",
 	&options.allowSmartMissiles,
 	valBool,
 	tuner_dummy,
@@ -1715,7 +2004,7 @@ static option_desc opts[] = {
     {
 	"allowHeatSeekers",
 	"allowHeats",
-	"True",
+	"true",
 	&options.allowHeatSeekers,
 	valBool,
 	tuner_dummy,
@@ -1725,7 +2014,7 @@ static option_desc opts[] = {
     {
 	"allowTorpedoes",
 	"allowTorps",
-	"True",
+	"true",
 	&options.allowTorpedoes,
 	valBool,
 	tuner_dummy,
@@ -1735,7 +2024,7 @@ static option_desc opts[] = {
     {
 	"allowNukes",
 	"nukes",
-	"False",
+	"false",
 	&options.allowNukes,
 	valBool,
 	tuner_modifiers,
@@ -1745,7 +2034,7 @@ static option_desc opts[] = {
     {
 	"allowClusters",
 	"clusters",
-	"False",
+	"false",
 	&options.allowClusters,
 	valBool,
 	tuner_modifiers,
@@ -1755,7 +2044,7 @@ static option_desc opts[] = {
     {
 	"allowModifiers",
 	"modifiers",
-	"False",
+	"false",
 	&options.allowModifiers,
 	valBool,
 	tuner_modifiers,
@@ -1765,7 +2054,7 @@ static option_desc opts[] = {
     {
 	"allowLaserModifiers",
 	"lasermodifiers",
-	"False",
+	"false",
 	&options.allowLaserModifiers,
 	valBool,
 	tuner_modifiers,
@@ -1775,7 +2064,7 @@ static option_desc opts[] = {
     {
 	"allowShipShapes",
 	"ShipShapes",
-	"True",
+	"true",
 	&options.allowShipShapes,
 	valBool,
 	tuner_dummy,
@@ -1785,7 +2074,7 @@ static option_desc opts[] = {
     {
 	"playersOnRadar",
 	"playersRadar",
-	"True",
+	"true",
 	&options.playersOnRadar,
 	valBool,
 	tuner_dummy,
@@ -1795,7 +2084,7 @@ static option_desc opts[] = {
     {
 	"missilesOnRadar",
 	"missilesRadar",
-	"True",
+	"true",
 	&options.missilesOnRadar,
 	valBool,
 	tuner_dummy,
@@ -1805,7 +2094,7 @@ static option_desc opts[] = {
     {
 	"minesOnRadar",
 	"minesRadar",
-	"False",
+	"false",
 	&options.minesOnRadar,
 	valBool,
 	tuner_dummy,
@@ -1815,7 +2104,7 @@ static option_desc opts[] = {
     {
 	"nukesOnRadar",
 	"nukesRadar",
-	"True",
+	"true",
 	&options.nukesOnRadar,
 	valBool,
 	tuner_dummy,
@@ -1825,7 +2114,7 @@ static option_desc opts[] = {
     {
 	"treasuresOnRadar",
 	"treasuresRadar",
-	"False",
+	"false",
 	&options.treasuresOnRadar,
 	valBool,
 	tuner_dummy,
@@ -1835,7 +2124,7 @@ static option_desc opts[] = {
     {
 	"asteroidsOnRadar",
 	"asteroidsRadar",
-	"False",
+	"false",
 	&options.asteroidsOnRadar,
 	valBool,
 	tuner_dummy,
@@ -1845,7 +2134,7 @@ static option_desc opts[] = {
     {
 	"distinguishMissiles",
 	"distinguishMissiles",
-	"True",
+	"true",
 	&options.distinguishMissiles,
 	valBool,
 	tuner_dummy,
@@ -1875,7 +2164,7 @@ static option_desc opts[] = {
     {
 	"identifyMines",
 	"identifyMines",
-	"True",
+	"true",
 	&options.identifyMines,
 	valBool,
 	tuner_dummy,
@@ -1885,7 +2174,7 @@ static option_desc opts[] = {
     {
 	"shieldedItemPickup",
 	"shieldItem",
-	"False",
+	"false",
 	&options.shieldedItemPickup,
 	valBool,
 	tuner_dummy,
@@ -1895,7 +2184,7 @@ static option_desc opts[] = {
     {
 	"shieldedMining",
 	"shieldMine",
-	"False",
+	"false",
 	&options.shieldedMining,
 	valBool,
 	tuner_dummy,
@@ -1905,7 +2194,7 @@ static option_desc opts[] = {
     {
 	"laserIsStunGun",
 	"stunGun",
-	"False",
+	"false",
 	&options.laserIsStunGun,
 	valBool,
 	tuner_dummy,
@@ -2026,123 +2315,123 @@ static option_desc opts[] = {
 	OPT_ORIGIN_ANY | OPT_VISIBLE
     },
     {
-        "torpedoKillScoreMult",
-        "torpedoKillScoreMult",
-        "1.0",
-        &options.torpedoKillScoreMult,
-        valReal,
-        tuner_dummy,
-        "Multiplication factor to scale score for torpedo kills.\n",
+	"torpedoKillScoreMult",
+	"torpedoKillScoreMult",
+	"1.0",
+	&options.torpedoKillScoreMult,
+	valReal,
+	tuner_dummy,
+	"Multiplication factor to scale score for torpedo kills.\n",
 	OPT_ORIGIN_ANY | OPT_VISIBLE
     },
     {
-        "smartKillScoreMult",
-        "smartKillScoreMult",
-        "1.0",
-        &options.smartKillScoreMult,
-        valReal,
-        tuner_dummy,
-        "Multiplication factor to scale score for smart missile kills.\n",
+	"smartKillScoreMult",
+	"smartKillScoreMult",
+	"1.0",
+	&options.smartKillScoreMult,
+	valReal,
+	tuner_dummy,
+	"Multiplication factor to scale score for smart missile kills.\n",
 	OPT_ORIGIN_ANY | OPT_VISIBLE
     },
     {
-        "heatKillScoreMult",
-        "heatKillScoreMult",
-        "1.0",
-        &options.heatKillScoreMult,
-        valReal,
-        tuner_dummy,
-        "Multiplication factor to scale score for heatseeker kills.\n",
+	"heatKillScoreMult",
+	"heatKillScoreMult",
+	"1.0",
+	&options.heatKillScoreMult,
+	valReal,
+	tuner_dummy,
+	"Multiplication factor to scale score for heatseeker kills.\n",
 	OPT_ORIGIN_ANY | OPT_VISIBLE
     },
     {
-        "clusterKillScoreMult",
-        "clusterKillScoreMult",
-        "1.0",
-        &options.clusterKillScoreMult,
-        valReal,
-        tuner_dummy,
-        "Multiplication factor to scale score for cluster debris kills.\n",
+	"clusterKillScoreMult",
+	"clusterKillScoreMult",
+	"1.0",
+	&options.clusterKillScoreMult,
+	valReal,
+	tuner_dummy,
+	"Multiplication factor to scale score for cluster debris kills.\n",
 	OPT_ORIGIN_ANY | OPT_VISIBLE
     },
     {
-        "laserKillScoreMult",
-        "laserKillScoreMult",
-        "1.0",
-        &options.laserKillScoreMult,
-        valReal,
-        tuner_dummy,
-        "Multiplication factor to scale score for laser kills.\n",
+	"laserKillScoreMult",
+	"laserKillScoreMult",
+	"1.0",
+	&options.laserKillScoreMult,
+	valReal,
+	tuner_dummy,
+	"Multiplication factor to scale score for laser kills.\n",
 	OPT_ORIGIN_ANY | OPT_VISIBLE
     },
     {
-        "tankKillScoreMult",
-        "tankKillScoreMult",
-        "0.44",
-        &options.tankKillScoreMult,
-        valReal,
-        tuner_dummy,
-        "Multiplication factor to scale score for tank kills.\n",
+	"tankKillScoreMult",
+	"tankKillScoreMult",
+	"0.44",
+	&options.tankKillScoreMult,
+	valReal,
+	tuner_dummy,
+	"Multiplication factor to scale score for tank kills.\n",
 	OPT_ORIGIN_ANY | OPT_VISIBLE
     },
     {
-        "runoverKillScoreMult",
-        "runoverKillScoreMult",
-        "0.33",
-        &options.runoverKillScoreMult,
-        valReal,
-        tuner_dummy,
-        "Multiplication factor to scale score for player runovers.\n",
+	"runoverKillScoreMult",
+	"runoverKillScoreMult",
+	"0.33",
+	&options.runoverKillScoreMult,
+	valReal,
+	tuner_dummy,
+	"Multiplication factor to scale score for player runovers.\n",
 	OPT_ORIGIN_ANY | OPT_VISIBLE
     },
     {
-        "ballKillScoreMult",
-        "ballKillScoreMult",
-        "1.0",
-        &options.ballKillScoreMult,
-        valReal,
-        tuner_dummy,
-        "Multiplication factor to scale score for ball kills.\n",
+	"ballKillScoreMult",
+	"ballKillScoreMult",
+	"1.0",
+	&options.ballKillScoreMult,
+	valReal,
+	tuner_dummy,
+	"Multiplication factor to scale score for ball kills.\n",
 	OPT_ORIGIN_ANY | OPT_VISIBLE
     },
     {
-        "explosionKillScoreMult",
-        "explosionKillScoreMult",
-        "0.33",
-        &options.explosionKillScoreMult,
-        valReal,
-        tuner_dummy,
-        "Multiplication factor to scale score for explosion kills.\n",
+	"explosionKillScoreMult",
+	"explosionKillScoreMult",
+	"0.33",
+	&options.explosionKillScoreMult,
+	valReal,
+	tuner_dummy,
+	"Multiplication factor to scale score for explosion kills.\n",
 	OPT_ORIGIN_ANY | OPT_VISIBLE
     },
     {
-        "shoveKillScoreMult",
-        "shoveKillScoreMult",
-        "0.5",
-        &options.shoveKillScoreMult,
-        valReal,
-        tuner_dummy,
-        "Multiplication factor to scale score for shove kills.\n",
+	"shoveKillScoreMult",
+	"shoveKillScoreMult",
+	"0.5",
+	&options.shoveKillScoreMult,
+	valReal,
+	tuner_dummy,
+	"Multiplication factor to scale score for shove kills.\n",
 	OPT_ORIGIN_ANY | OPT_VISIBLE
     },
     {
-        "crashScoreMult",
-        "crashScoreMult",
-        "0.33",
-        &options.crashScoreMult,
-        valReal,
-        tuner_dummy,
-        "Multiplication factor to scale score for player crashes.\n",
+	"crashScoreMult",
+	"crashScoreMult",
+	"0.33",
+	&options.crashScoreMult,
+	valReal,
+	tuner_dummy,
+	"Multiplication factor to scale score for player crashes.\n",
 	OPT_ORIGIN_ANY | OPT_VISIBLE
     },
     {
-        "mineScoreMult",
-        "mineScoreMult",
-        "0.17",
-        &options.mineScoreMult,
-        valReal,
-        tuner_dummy,
-        "Multiplication factor to scale score for mine hits.\n",
+	"mineScoreMult",
+	"mineScoreMult",
+	"0.17",
+	&options.mineScoreMult,
+	valReal,
+	tuner_dummy,
+	"Multiplication factor to scale score for mine hits.\n",
 	OPT_ORIGIN_ANY | OPT_VISIBLE
     },
     {
@@ -2177,43 +2466,13 @@ static option_desc opts[] = {
 	OPT_ORIGIN_ANY | OPT_VISIBLE
     },
     {
-	"asteroidPoints",
-	"asteroidPoints",
-	"1.0",
-	&options.asteroidPoints,
+	"cannonKillScoreMult",
+	"cannonKillScoreMult",
+	"0.25",
+	&options.cannonKillScoreMult,
 	valReal,
 	tuner_dummy,
-	"Points awarded for breaking an asteroid.\n",
-	OPT_ORIGIN_ANY | OPT_VISIBLE
-    },
-    {
-	"cannonPoints",
-	"cannonPoints",
-	"1.0",
-	&options.cannonPoints,
-	valReal,
-	tuner_dummy,
-	"Points awarded for killing a cannon.\n",
-	OPT_ORIGIN_ANY | OPT_VISIBLE
-    },
-    {
-	"asteroidMaxScore",
-	"asteroidMaxScore",
-	"100.0",
-	&options.asteroidMaxScore,
-	valReal,
-	tuner_dummy,
-	"Maximum score to receive points for breaking an asteroid.\n",
-	OPT_ORIGIN_ANY | OPT_VISIBLE
-    },
-    {
-	"cannonMaxScore",
-	"cannonMaxScore",
-	"100.0",
-	&options.cannonMaxScore,
-	valReal,
-	tuner_dummy,
-	"Maximum score to receive points for killing a cannon.\n",
+	"Multiplication factor to scale score for being killed by cannons.\n",
 	OPT_ORIGIN_ANY | OPT_VISIBLE
     },
     {
@@ -2315,7 +2574,7 @@ static option_desc opts[] = {
 	&options.maxItemDensity,
 	valReal,
 	Tune_item_probs,
-	"Maximum density [0.0-1.0] for items (max items per block).\n",
+	"Maximum density for items (max items per block).\n",
 	OPT_ORIGIN_ANY | OPT_VISIBLE
     },
     {
@@ -2345,13 +2604,10 @@ static option_desc opts[] = {
 	&options.itemConcentratorRadius,
 	valReal,
 	Set_misc_item_limits,
-	"The maximum distance from an item concentator for items to appear in.\n"
-	"Sensible values are in the range 1.0 to 20.0.\n"
-	"If no item concentators are defined in a map then items can popup anywhere.\n"
-	"If any are any then items popup in the vicinity of an item concentrator\n"
-	"with probability itemConcentratorProb and anywhere the remainder of the time.\n"
-	"An item concentrator is drawn on screen as three rotating triangles.\n"
-	"The map symbol is the percentage symbol '%'.\n",
+	"Range within which an item concentrator can create an item.\n"
+	"Sensible values are in the range 1.0 to 20.0 (unit is 35 pixels).\n"
+	"If there are no item concentrators, items might popup anywhere.\n"
+	"Some clients draw item concentrators as three rotating triangles.\n",
 	OPT_ORIGIN_ANY | OPT_VISIBLE
     },
     {
@@ -2361,9 +2617,9 @@ static option_desc opts[] = {
 	&options.itemConcentratorProb,
 	valReal,
 	Set_misc_item_limits,
-	"The probability, if any item concentrators are present, that they will be\n"
-	"used.  This proportion of items will be placed near item concentrators,\n"
-	"within itemConcentratorRadius.\n",
+	"The chance for an item to appear near an item concentrator.\n"
+	"If this is less than 1.0 or there are no item concentrators,\n"
+	"items may also popup where there is no concentrator nearby.\n",
 	OPT_ORIGIN_ANY | OPT_VISIBLE
     },
     {
@@ -2373,14 +2629,10 @@ static option_desc opts[] = {
 	&options.asteroidConcentratorRadius,
 	valReal,
 	Tune_asteroid_prob,
-	"The maximum distance from an asteroid concentrator for asteroids to\n"
-	"appear in.  Sensible values are in the range 1.0 to 20.0.\n"
-	"If no asteroid concentrators are defined in a map then asteroids can\n"
-	"popup anywhere.  If any are then asteroids popup in the vicinity of an\n"
-	"asteroid concentrator with probability asteroidConcentratorProb and anywhere\n"
-	"the remainder of the time.  An asteroid concentrator is drawn on the\n"
-	"screen as three rotating squares.  The map symbol is the ampersand\n"
-	"'&'.\n",
+	"Range within which an asteroid concentrator can create an asteroid.\n"
+	"Sensible values are in the range 1.0 to 20.0 (unit is 35 pixels).\n"
+	"If there are no such concentrators, asteroids can popup anywhere.\n"
+	"Some clients draw these concentrators as three rotating squares.\n",
 	OPT_ORIGIN_ANY | OPT_VISIBLE
     },
     {
@@ -2390,9 +2642,9 @@ static option_desc opts[] = {
 	&options.asteroidConcentratorProb,
 	valReal,
 	Tune_asteroid_prob,
-	"The probability, if any asteroid concentrators are present, that they will\n"
-	"be used.  This proportion of asteroids will be placed near asteroid\n"
-	"concentrators, within asteroidConcentratorRadius.\n",
+	"The chance for an asteroid to appear near an asteroid concentrator.\n"
+	"If this is less than 1.0 or there are no asteroid concentrators,\n"
+	"asteroids may also appear where there is no concentrator nearby.\n",
 	OPT_ORIGIN_ANY | OPT_VISIBLE
     },
     {
@@ -2402,7 +2654,7 @@ static option_desc opts[] = {
 	&options.rogueHeatProb,
 	valReal,
 	tuner_dummy,
-	"Probability that unclaimed missile packs will go rogue.",
+	"Probability that unclaimed missile packs will go rogue.\n",
 	OPT_ORIGIN_ANY | OPT_VISIBLE
     },
     {
@@ -2412,7 +2664,7 @@ static option_desc opts[] = {
 	&options.rogueMineProb,
 	valReal,
 	tuner_dummy,
-	"Probability that unclaimed mine items will activate.",
+	"Probability that unclaimed mine items will activate.\n",
 	OPT_ORIGIN_ANY | OPT_VISIBLE
     },
     {
@@ -2628,11 +2880,11 @@ static option_desc opts[] = {
     {
 	"initialFuel",
 	"initialFuel",
-	"1000",
+	"300", /* was 1000 */
 	&World.items[ITEM_FUEL].initial,
 	valInt,
 	Set_initial_resources,
-	"How much fuel players start with, or the minimum after being killed.\n",
+	"How much fuel players start with.\n",
 	OPT_ORIGIN_ANY | OPT_VISIBLE
     },
     {
@@ -3067,6 +3319,17 @@ static option_desc opts[] = {
  	OPT_ORIGIN_ANY | OPT_VISIBLE
     },
     {
+	"survivalScore",
+	"survivalScore",
+	"0.0",
+	&options.survivalScore,
+	valReal,
+	tuner_dummy,
+	"Multiplicator for quadratic score increase over time \n"
+	"survived with lowered shield",
+ 	OPT_ORIGIN_ANY | OPT_VISIBLE
+    },
+    {
 	"pauseTax",
 	"pauseTax",
 	"0.0",
@@ -3151,6 +3414,18 @@ static option_desc opts[] = {
 	OPT_ORIGIN_ANY | OPT_VISIBLE
     },
     {
+	"useDebris",
+	"useDebris",
+	"true",
+	&options.useDebris,
+	valBool,
+	tuner_dummy,
+	"Are debris particles created where appropriate?\n"
+	"Value affect ship exhaust sparks and cluster debris.\n"
+	"To disallow cluster weapons but not sparks, set allowClusters off.\n",
+	OPT_ORIGIN_ANY | OPT_VISIBLE
+    },
+    {
 	"useWreckage",
 	"useWreckage",
 	"true",
@@ -3192,16 +3467,6 @@ static option_desc opts[] = {
     },
     {
 	"roundsToPlay",
-	"roundsToPlay",
-	"0",
-	&options.roundsToPlay,
-	valInt,
-	tuner_dummy,
-	"The number of rounds to play.  Unlimited if 0.\n",
-	OPT_ORIGIN_ANY | OPT_VISIBLE
-    },
-    {
-	"numberOfRounds",
 	"numRounds",
 	"0",
 	&options.roundsToPlay,
@@ -3244,6 +3509,7 @@ static option_desc opts[] = {
 	"Does the server send sound events to players that request sound.\n",
 	OPT_ORIGIN_ANY | OPT_VISIBLE
     },
+#ifndef SELECT_SCHED
     {
 	"timerResolution",
 	"timerResolution",
@@ -3256,6 +3522,7 @@ static option_desc opts[] = {
 	"a new frame FPS times out of every timerResolution signals.\n",
 	OPT_COMMAND | OPT_DEFAULTS | OPT_VISIBLE
     },
+#endif
     {
 	"password",
 	"password",
@@ -3264,7 +3531,7 @@ static option_desc opts[] = {
 	valString,
 	tuner_dummy,
 	"The password needed to obtain operator privileges.\n"
-        "If specified on the command line, on many systems other\n"
+	"If specified on the command line, on many systems other\n"
 	"users will be able to see the password.  Therefore, using\n"
 	"the password file instead is recommended.",
 	OPT_COMMAND | OPT_DEFAULTS | OPT_PASSWORD
@@ -3292,7 +3559,7 @@ static option_desc opts[] = {
     {
 	"maxPauseTime",
 	"maxPauseTime",
-	"3600",		/* can pause 1 hour by default */
+	"14400",	/* can pause 4 hours by default */
 	&options.maxPauseTime,
 	valInt,
 	tuner_dummy,
@@ -3328,39 +3595,6 @@ static option_desc opts[] = {
 	"address can join.\n",
 	OPT_COMMAND | OPT_DEFAULTS | OPT_VISIBLE
     },
-#if 0
-    {
-	"playerPasswordsFileName",
-	"playerPasswordsFile",
-	NULL,
-	&playerPasswordsFileName,
-	valString,
-	tuner_none,
-	"The filename of the player passwords file to read when authenticating.\n",
-	OPT_COMMAND | OPT_DEFAULTS
-    },
-    {
-	"playerPasswordsFileSizeLimit",
-	"playerPasswordsLimit",
-	"1000000",
-	&playerPasswordsFileSizeLimit,
-	valInt,
-	tuner_none,
-	"Maximum size of player passwords file in bytes (may become bigger\n"
-	"if players change passwords!).\n",
-	OPT_COMMAND | OPT_DEFAULTS
-    },
-    {
-	"allowPlayerPasswords",
-	"PlayerPasswords",
-	"False",
-	&allowPlayerPasswords,
-	valBool,
-	tuner_dummy,
-	"May players protect their nicks with a password?\n",
-	OPT_ORIGIN_ANY | OPT_VISIBLE
-    },
-#endif
     {
 	"playerLimit",
 	"playerLimit",
@@ -3416,7 +3650,7 @@ static option_desc opts[] = {
     {
 	"constantScoring",
 	"constantScoring",
-	"no",
+	"false",
 	&options.constantScoring,
 	valBool,
 	tuner_dummy,
@@ -3424,9 +3658,19 @@ static option_desc opts[] = {
 	OPT_ORIGIN_ANY | OPT_VISIBLE
     },
     {
+	"zeroSumScoring",
+	"zeroSum",
+	"false",
+	&options.zeroSumScoring,
+	valBool,
+	tuner_dummy,
+	"Use Zero sum scoring?\n",
+	OPT_COMMAND | OPT_VISIBLE
+    },
+    {
 	"elimination",
 	"elimination",
-	"no",
+	"false",
 	&options.eliminationRace,
 	valBool,
 	tuner_dummy,
@@ -3456,28 +3700,110 @@ static option_desc opts[] = {
 	OPT_ORIGIN_ANY | OPT_VISIBLE
     },
     {
-	"maraTurnqueue",
-	"maraTurnqueue",
+	"fastAim",
+	"fastAim",
 	"false",
-	&options.maraTurnqueue,
+	&options.fastAim,
 	valBool,
 	tuner_dummy,
-	"This is a temporary option to test Mara's \"turnqueue\" hack.\n"
-	"The idea is that if a ship is turning when it hits the wall,\n"
-	"the turn will be completed after the bounce.\n",
+	"When calculating a frame, turn the ship before firing.\n"
+	"This means you can change aim one frame faster.\n"
+	"Added this option to see how much difference changing the order\n"
+	"would make.\n",
 	OPT_ORIGIN_ANY | OPT_VISIBLE
     },
     {
 	"ngControls",
 	"ngControls",
-	"true",
+	"false",
 	&options.ngControls,
 	valBool,
 	tuner_dummy,
 	"Enable improved precision steering and aiming of main gun.\n",
 	OPT_ORIGIN_ANY | OPT_VISIBLE
     },
-    { /* kps - temp hack to disable ball styles during runtime */
+    {
+	"legacyMode",
+	"legacyMode",
+	"false",
+	&options.legacyMode,
+	valBool,
+	tuner_dummy,
+	"Try to emulate classic xpilot behavior.\n",
+	OPT_ORIGIN_ANY | OPT_VISIBLE
+    },
+    {
+	"constantSpeed",
+	"oldThrust",
+	"0.88",
+	&options.constantSpeed,
+	valReal,
+	tuner_dummy,
+	"Make ship move forward at a constant speed when thrust key is held\n"
+	"down, in addition to the normal acceleration. The constant speed\n"
+	"is proportional to the product of the acceleration of the ship\n"
+	"(varying with ship mass and afterburners) and the value of this\n"
+	"option. Note that this option is quite unphysical and can using it\n"
+	"can cause weird effects (with bounces for example).\n"
+	"Low values close to 0.5 (maybe in the range 0.3 to 1) for this\n"
+	"option can be used if you want to increase ship agility without\n"
+	"increasing speeds otherwise. This can improve gameplay for example\n"
+	"on the Blood's Music map. Higher values make the ship behaviour\n"
+	"visibly weird.\n",
+	OPT_ORIGIN_ANY | OPT_VISIBLE
+    },
+    {
+	"turnPushPersistence",
+	"pushPersist",
+	"0.0",
+	&options.turnPushPersistence,
+	valReal,
+	tuner_dummy,
+	"How much of the turnpush to remain as player velocity. (0.0-1.0)\n",
+	OPT_ORIGIN_ANY | OPT_VISIBLE
+    },
+    {
+	"turnGrip",
+	"turnPushGrip",
+	"0.0",
+	&options.turnGrip,
+	valReal,
+	tuner_dummy,
+	"How much of of the turnPush should pull the ship sideways by\n"
+	"gripping to the friction of the wall?. (0.0-1.0)\n",
+	OPT_ORIGIN_ANY | OPT_VISIBLE
+    },
+    {
+	"thrustWidth",
+	"sprayWidth",
+	"0.25", /* was "1.0" */
+	&options.thrustWidth,
+	valReal,
+	tuner_dummy,
+	"Width of thrust spark spray 0.0-1.0 where 1.0 means 180 degrees.\n",
+	OPT_ORIGIN_ANY | OPT_VISIBLE
+    },
+    {
+	"thrustMass",
+	"sparkWeight",
+	"0.0435", /* was "0.7" */
+	&options.thrustMass,
+	valReal,
+	tuner_dummy,
+	"Weight of thrust sparks.\n",
+	OPT_ORIGIN_ANY | OPT_VISIBLE
+    },
+    {
+	"sparkSpeed",
+	"sparkVel",
+	"30.0", /* was "1.0" */
+	&options.sparkSpeed,
+	valReal,
+	tuner_dummy,
+	"Multiplier affecting avg. speed (relative ship) of thrust sparks.\n",
+	OPT_ORIGIN_ANY | OPT_VISIBLE
+    },
+    {
 	"ballStyles",
 	"ballStyles",
 	"true",
@@ -3519,43 +3845,73 @@ static option_desc opts[] = {
 	&options.waitingFPS,
 	valInt,
 	tuner_dummy,
-	"Maximum FPS shown to players waiting for a new round to start.\n"
-	"0 means full framerate. Can be used to limit bandwidth used.\n",
+	"Maximum FPS shown to players in waiting state.\n"
+	"0 means full framerate. Can be used to limit bandwidth used.\n"
+	"Waiting players are those that have just joined a game and have to\n"
+	"wait until next round starts. Note that in clients, a W is shown\n"
+	"next to waiting players' names in the score list.\n",
 	OPT_ORIGIN_ANY | OPT_VISIBLE
     },
-    /* options.teamcup related options */
+    {
+	"deadFramesPerSecond",
+	"deadFPS",
+	"0",
+	&options.deadFPS,
+	valInt,
+	tuner_dummy,
+	"Maximum FPS shown to players in dead state.\n"
+	"0 means full framerate. Can be used to limit bandwidth used.\n"
+	"This option should only be used if pausedFPS and waitingFPS\n"
+	"options don't limit bandwidth usage enough.\n"
+	"Dead players are those that have played this round but have run\n"
+	"out of lives. Note that in clients, a D is shown next to dead\n"
+	"players' names in the score list.\n",
+	OPT_ORIGIN_ANY | OPT_VISIBLE
+    },
+    /* teamcup related options */
     {
 	"teamcup",
 	"teamcup",
 	"false",
 	&options.teamcup,
 	valBool,
-	tuner_dummy,
+	tuner_none,
 	"Is this a teamcup match?.\n",
-	OPT_ORIGIN_ANY | OPT_VISIBLE
+	OPT_ORIGIN_ANY 
     },
     {
-	"teamcupStatServer",
-	"statServer",
-	"shell.e.kth.se",
-	&options.teamcupStatServer,
+	"teamcupName",
+	"teamcupName",
+	"",
+	&options.teamcupName,
+ 	valString,
+	tuner_none,
+	"The name of the teamcup (used only if teamcup is true).\n",
+	OPT_ORIGIN_ANY
+    },
+    {
+	"teamcupMailAddress",
+	"teamcupMailAddress",
+	"",
+	&options.teamcupMailAddress,
 	valString,
-	tuner_dummy,
-	"Teamcup status server to report to.\n",
-	OPT_COMMAND | OPT_VISIBLE
+	tuner_none,
+	"The mail address where players should send match results.\n",
+	OPT_ORIGIN_ANY
     },
     {
-	"teamcupStatPort",
-	"statPort",
-	TEAMCUP_STATUS_PORTSTR,
-	&options.teamcupStatPort,
-	valInt,
-	tuner_dummy,
-	"Port of the teamcup status server.\n",
-	OPT_COMMAND | OPT_VISIBLE
-    },
-    {
-	"teamcupMatchNumber",
+	"teamcupScoreFileNamePrefix",
+	"teamcupScoreFileNamePrefix",
+	"",
+	&options.teamcupScoreFileNamePrefix,
+	valString,
+	tuner_none,
+	"First part of file name for teamcup score files.\n"
+	"The whole filename will be this followed by the match number.\n",
+	OPT_ORIGIN_ANY
+     },
+     {
+ 	"teamcupMatchNumber",
 	"match",
 	"0",
 	&options.teamcupMatchNumber,
@@ -3563,8 +3919,28 @@ static option_desc opts[] = {
 	tuner_dummy,
 	"The number of the teamcup match.\n",
 	OPT_COMMAND | OPT_VISIBLE
-    }
-    /* end of options.teamcup related options */
+    },
+    {
+	"mainLoopTime",
+	"mainLoopTime",
+	"0",
+	&options.mainLoopTime,
+	valReal,
+	tuner_none,
+	"Duration of last Main_loop() function call (in milliseconds).\n"
+	"This option is read only.\n",
+	OPT_COMMAND | OPT_VISIBLE
+    },
+    {
+	"cellGetObjectsThreshold",
+	"cellThreshold",
+	"500",
+	&options.cellGetObjectsThreshold,
+	valInt,
+	tuner_dummy,
+	"Use Cell_get_objects if there is this many objects or more.\n",
+	OPT_ORIGIN_ANY | OPT_VISIBLE
+    },
 };
 
 
@@ -3583,7 +3959,7 @@ option_desc* Get_option_descs(int *count_ptr)
 
 static void Init_default_options(void)
 {
-    option_desc*	desc;
+    option_desc *desc;
 
     if ((desc = Find_option_by_name("mapFileName")) == NULL)
 	dumpcore("Could not find map file option");
@@ -3609,8 +3985,7 @@ static void Init_default_options(void)
 
 bool Init_options(void)
 {
-    int			i;
-    int			option_count = NELEM(opts);
+    int i, option_count = NELEM(opts);
 
     if (options_inited)
 	dumpcore("Can't init options twice.");
@@ -3630,15 +4005,15 @@ bool Init_options(void)
 
 void Free_options(void)
 {
-    int			i;
-    int			option_count = NELEM(opts);
+    int i, option_count = NELEM(opts);
 
-    if (options_inited == true) {
+    if (options_inited) {
 	options_inited = false;
 	for (i = 0; i < option_count; i++) {
 	    if (opts[i].type == valString) {
 		char **str_ptr = (char **)opts[i].variable;
 		char *str = *str_ptr;
+
 		if (str != NULL && str != opts[i].defaultValue) {
 		    free(str);
 		    *str_ptr = NULL;
@@ -3649,10 +4024,9 @@ void Free_options(void)
 }
 
 
-option_desc* Find_option_by_name(const char* name)
+option_desc *Find_option_by_name(const char* name)
 {
-    int			j;
-    int			option_count = NELEM(opts);
+    int j, option_count = NELEM(opts);
 
     for (j = 0; j < option_count; j++) {
 	if (!strcasecmp(opts[j].commandLineOption, name)
@@ -3663,42 +4037,32 @@ option_desc* Find_option_by_name(const char* name)
 }
 
 
-void Check_playerlimit(world_t *world)
+void Check_playerlimit(void)
 {
     if (options.playerLimit == 0)
-	options.playerLimit = world->NumBases + 10;
+	options.playerLimit = Num_bases() + 10;
 
     if (options.playerLimit_orig == 0)
 	options.playerLimit_orig = MAX(options.playerLimit,
-				       world->NumBases + 10);
+				       Num_bases() + 10);
 
     if (options.playerLimit > options.playerLimit_orig)
 	options.playerLimit = options.playerLimit_orig;
 }
 
-static void Check_baseless(world_t *world)
+static void Check_baseless(void)
 {
     if (!BIT(world->rules->mode, TEAM_PLAY))
 	options.baselessPausing = false;
 }
 
-void Timing_setup(world_t *world)
+void Timing_setup(void)
 {
-    if (FPS > 100)
-	FPS = 100;
-    if (FPS < 1)
-	FPS = 1;
-
-    if (options.timerResolution > 100)
-	options.timerResolution = 100;
-    if (options.timerResolution < 0)
-	options.timerResolution = 0;
-
-    if (options.gameSpeed > FPS)
-	options.gameSpeed = FPS;
-    if (options.gameSpeed < 0.0)
-	options.gameSpeed = 0.0;
-
+    LIMIT(FPS, 1, MAX_SERVER_FPS);
+    LIMIT(options.gameSpeed, 0.0, FPS);
+#ifndef SELECT_SCHED
+    LIMIT(options.timerResolution, 0, 100);
+#endif
     if (options.gameSpeed == 0.0)
 	options.gameSpeed = FPS;
     if (options.gameSpeed < FPS / 50.)
@@ -3730,8 +4094,8 @@ void Timing_setup(world_t *world)
 
 	LIMIT(options.blockFriction, -1.0, 1.0);
 
-	for (i = 0; i < world->NumFrictionAreas; i++) {
-	    friction_area_t *fa = FrictionAreas(world, i);
+	for (i = 0; i < Num_frictionAreas(); i++) {
+	    friction_area_t *fa = FrictionArea_by_index(i);
 	    double fric;
 
 	    /*
@@ -3762,10 +4126,10 @@ void Timing_setup(world_t *world)
 	coriolisSine = sin(cor_angle / timeStep);
     }
 
-    if (options.robotTicksPerSecond == 0)
-	options.robotTicksPerSecond = FPS;
-    LIMIT(options.robotTicksPerSecond, 1, FPS);
-
+#ifdef SELECT_SCHED
+    install_timer_tick(NULL, FPS);
+#else
     install_timer_tick(NULL, options.timerResolution ? options.timerResolution
 		       : FPS);
+#endif
 }

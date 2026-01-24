@@ -1,9 +1,9 @@
-/*
- * XPilotNG, an XPilot-like multiplayer space war game.
+/* 
+ * XPilot NG, a multiplayer space war game.
  *
  * Copyright (C) 1991-2001 by
  *
- *      Bjï¿½rn Stabell        <bjoern@xpilot.org>
+ *      Bjørn Stabell        <bjoern@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
  *      Dick Balaska         <dick@xpilot.org>
@@ -24,82 +24,6 @@
  */
 
 #include "xpclient.h"
-
-#ifdef _WINDOWS
-
-
-/*
- * Defines gettimeofday
- *
- * Based on timeval.h by Wu Yongwei
- *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
- *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- */
-#ifndef __GNUC__
-#define EPOCHFILETIME (116444736000000000i64)
-#else
-#define EPOCHFILETIME (116444736000000000LL)
-#endif
-
-struct timezone {
-    int tz_minuteswest; /* minutes W of Greenwich */
-    int tz_dsttime;     /* type of dst correction */
-};
-
-
-#ifndef HAVE_GETTIMEOFDAY
-__inline int gettimeofday(struct timeval *tv, struct timezone *tz)
-{
-    FILETIME        ft;
-    LARGE_INTEGER   li;
-    __int64         t;
-    static int      tzflag;
-
-    if (tv)
-    {
-        GetSystemTimeAsFileTime(&ft);
-        li.LowPart  = ft.dwLowDateTime;
-        li.HighPart = ft.dwHighDateTime;
-        t  = li.QuadPart;       /* In 100-nanosecond intervals */
-        t -= EPOCHFILETIME;     /* Offset to the Epoch time */
-        t /= 10;                /* In microseconds */
-        tv->tv_sec  = (long)(t / 1000000);
-        tv->tv_usec = (long)(t % 1000000);
-    }
-
-    if (tz)
-    {
-        if (!tzflag)
-        {
-            _tzset();
-            tzflag++;
-        }
-        tz->tz_minuteswest = _timezone / 60;
-        tz->tz_dsttime = _daylight;
-    }
-
-    return 0;
-
-#endif /* HAVE_GETTIMEOFDAY */
-}
-
-
-
-#endif
-
-char meta_version[] = VERSION;
 
 static struct Meta metas[NUM_METAS] = {
     {META_HOST,     META_IP,     META_INIT_SOCK, MetaConnecting},
@@ -407,7 +331,6 @@ void Meta_connect(int *connections_ptr, int *maxfd_ptr)
     int status;
     int connections = 0;
     int max = -1;
-    char buf[MSG_LEN];
 
     for (i = 0; i < NUM_METAS; i++) {
 	if (metas[i].sock.fd != SOCK_FD_INVALID)
@@ -417,7 +340,7 @@ void Meta_connect(int *connections_ptr, int *maxfd_ptr)
 						      metas[i].addr,
 						      META_PROG_PORT);
 	if (status == SOCK_IS_ERROR) {
-	  error(metas[i].addr);
+	    error("%s\n", metas[i].addr);
 	} else {
 	    connections++;
 	    if (metas[i].sock.fd > max)
@@ -468,7 +391,7 @@ void Ping_servers(void)
     unsigned reply_magic;
     unsigned char reply_serial, reply_status;
     int outstanding;
-
+    
     if (sock_open_udp(&sock, NULL, 0) == -1) {
 	return;
     }
@@ -577,7 +500,7 @@ void Ping_servers(void)
 
 		if (reply_serial != it_sip->serial)
 		    /* replied to an old ping, alive but
-		     * slower than `interval' at least
+		     * slower than 'interval' at least
 		     */
 		    it_sip->pingtime = MIN(it_sip->pingtime, PING_SLOW);
 		else {
@@ -654,7 +577,7 @@ int Get_meta_data(char *errorstr)
     fd_set rset_out, wset_out;
     struct timeval tv;
     char *newline;
-
+ 
     /*
      * Buffer to hold data from a socket connection to a Meta.
      * The ptr points to the first byte of the unprocessed data.
@@ -667,7 +590,7 @@ int Get_meta_data(char *errorstr)
     };
     struct MetaData md[NUM_METAS];
 
-
+    
     /* lookup addresses. */
     Meta_dns_lookup();
 

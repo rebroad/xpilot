@@ -1,9 +1,9 @@
-/*
- * XPilotNG, an XPilot-like multiplayer space war game.
+/* 
+ * XPilot NG, a multiplayer space war game.
  *
  * Copyright (C) 1991-2001 by
  *
- *      Bjï¿½rn Stabell        <bjoern@xpilot.org>
+ *      Bjørn Stabell        <bjoern@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
  *      Dick Balaska         <dick@xpilot.org>
@@ -24,8 +24,6 @@
  */
 
 #include "xpclient.h"
-
-char paintmap_version[] = VERSION;
 
 
 static double 	hrLimitTime = 0.0;
@@ -69,12 +67,12 @@ void Paint_vdecor(void)
 {
     int	i;
     bool last, more_y;
-
+    
     if (num_vdecor > 0) {
 	for (i = 0; i < num_vdecor; i++) {
 	    last = (i + 1 == num_vdecor);
 	    more_y = (vdecor_ptr[i].yi != vdecor_ptr[i + 1].yi);
-	    Gui_paint_decor(vdecor_ptr[i].x, vdecor_ptr[i].y,
+	    Gui_paint_decor(vdecor_ptr[i].x, vdecor_ptr[i].y, 
 			    vdecor_ptr[i].xi, vdecor_ptr[i].yi,
 			    vdecor_ptr[i].type, last, more_y);
 	}
@@ -88,30 +86,30 @@ static void Paint_background_dots(void)
     int xi, yi;
     ipos_t min, max, count;
 
-    if (map_point_distance == 0)
+    if (backgroundPointDist == 0)
 	return;
 
-    count.x = Setup->width / (BLOCK_SZ * map_point_distance);
-    count.y = Setup->height / (BLOCK_SZ * map_point_distance);
+    count.x = Setup->width / (BLOCK_SZ * backgroundPointDist);
+    count.y = Setup->height / (BLOCK_SZ * backgroundPointDist);
 
     dx = (double)Setup->width / count.x;
     dy = (double)Setup->height / count.y;
 
-    min.x = world.x / dx;
+    min.x = (int)(world.x / dx);
     if (world.x > 0)
 	min.x++;
-    min.y = world.y / dy;
+    min.y = (int)(world.y / dy);
     if (world.y > 0)
 	min.y++;
 
-    max.x = (world.x + ext_view_width) / dx;
-    max.y = (world.y + ext_view_height) / dy;
+    max.x = (int)((world.x + ext_view_width) / dx);
+    max.y = (int)((world.y + ext_view_height) / dy);
 
     for (yi = min.y; yi <= max.y; yi++) {
         for (xi = min.x; xi <= max.x; xi++) {
             Gui_paint_decor_dot((int)(xi * dx - BLOCK_SZ / 2),
 				(int)(yi * dy - BLOCK_SZ / 2),
-				map_point_size);
+				backgroundPointSize);
         }
     }
 }
@@ -120,17 +118,18 @@ static void Paint_background_dots(void)
 
 static void Compute_bounds(ipos_t *min, ipos_t *max, const irec_t *b)
 {
-    if (BIT(Setup->mode, WRAP_PLAY)) {
-	min->x = (world.x - (b->x + b->w)) / Setup->width;
-	if (world.x > b->x + b->w) min->x++;
-	max->x = (world.x + ext_view_width - b->x) / Setup->width;
-	if (world.x + ext_view_width < b->x) max->x--;
-	min->y = (world.y - (b->y + b->h)) / Setup->height;
-	if (world.y > b->y + b->h) min->y++;
-	max->y = (world.y + ext_view_height - b->y) / Setup->height;
-	if (world.y + ext_view_height < b->y) max->y--;
-    } else
-	min->x = min->y = max->x = max->y = 0;
+    min->x = (world.x - (b->x + b->w)) / Setup->width;
+    if (world.x > b->x + b->w) min->x++;
+    max->x = (world.x + ext_view_width - b->x) / Setup->width;
+    if (world.x + ext_view_width < b->x) max->x--;
+    min->y = (world.y - (b->y + b->h)) / Setup->height;
+    if (world.y > b->y + b->h) min->y++;
+    max->y = (world.y + ext_view_height - b->y) / Setup->height;
+    if (world.y + ext_view_height < b->y) max->y--;
+    if (!BIT(Setup->mode, WRAP_PLAY)) {
+	if (min->x <= max->x) min->x = max->x = 0;
+	if (min->y <= max->y) min->y = max->y = 0;
+    }
 }
 
 
@@ -210,12 +209,12 @@ void Paint_objects(void)
  *     How does filled mode work?
  *     It's cunning.  It scans from left to right across an area 1 block deep.
  *     Say the map is :
- *
+ *     
  *     space       wall    space  w  s w
  *             /        |        / \  | |
  *            /         |        |  \ | |     <- Scanning this line
  *           /          |        |   \| |
- *
+ *     
  *     It starts from the left and determines if it's in wall or outside wall.
  *     If it is it sets tl and bl (top left and bottom left) to the left hand
  *     side of the window.
@@ -342,8 +341,8 @@ void Paint_world(void)
 		switch (type) {
 
 		case SETUP_FILLED_NO_DRAW:
-		    if ((instruments.showFilledWorld
-			 || instruments.showTexturedWalls)
+		    if ((instruments.filledWorld
+			 || instruments.texturedWalls)
 			&& fill_top_left == -1 && oldServer)
 			fill_top_left = fill_bottom_left = x;
 		    break;
@@ -416,7 +415,7 @@ void Paint_world(void)
 		case SETUP_DECOR_DOT_RD:
 		case SETUP_DECOR_DOT_LU:
 		case SETUP_DECOR_DOT_LD:
-		    Gui_paint_decor_dot(x, y, map_point_size);
+		    Gui_paint_decor_dot(x, y, backgroundPointSize);
 		    break;
 
 		case SETUP_BASE_UP:
@@ -486,8 +485,8 @@ void Paint_world(void)
 		}
 	    }
 	    else if (oldServer) {
-		if (!(instruments.showFilledWorld
-		      || instruments.showTexturedWalls)) {
+		if (!(instruments.filledWorld
+		      || instruments.texturedWalls)) {
 		    Gui_paint_walls(x, y, type);
 
 		    if ((type & BLUE_FUEL) == BLUE_FUEL)

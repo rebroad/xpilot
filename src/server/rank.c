@@ -1,10 +1,10 @@
-/*
- * XPilotNG, an XPilot-like multiplayer space war game.
+/* 
+ * XPilot NG, a multiplayer space war game.
  *
  * Copyright (C) 1999-2004 by
  *
  *      Marcus Sundberg      <mackan@stacken.kth.se>
- *      Kristian Sï¿½derblom   <kps@users.sourceforge.net>
+ *      Kristian Söderblom   <kps@users.sourceforge.net>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,18 +23,8 @@
 
 #include "xpserver.h"
 
-char rank_version[] = VERSION;
-
 /* MAX_SCORES = how many players we remember */
-#define MAX_SCORES 250
-
-#define RANKING_SERVER		"Ranking server"
-
-#define PAGEHEAD \
-/* Head of page */ \
-"<h1>XPilot @ " RANKING_SERVER "</h1>" \
-"<a href=\"previous_ranks.html\">Previous rankings</a> " \
-"<a href=\"rank_explanation.html\">How does the ranking work?</a><hr>\n"
+#define MAX_SCORES 300
 
 static bool Rank_parse_rankfile(FILE *file);
 
@@ -76,23 +66,44 @@ static int rank_cmp(const void *p1, const void *p2)
     return 0;
 }
 
-static char *rank_showtime(void)
+static char *rank_showtime(const time_t t)
 {
-    time_t now;
-    struct tm *tmp;
-    static char month_names[13][4] = {
-	"Jan", "Feb", "Mar", "Apr", "May", "Jun",
-	"Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
-	"Bug"
-    };
     static char buf[80];
 
-    time(&now);
-    tmp = localtime(&now);
-    sprintf(buf, "%02d\xA0%s\xA0%02d:%02d:%02d",
-	    tmp->tm_mday, month_names[tmp->tm_mon],
-	    tmp->tm_hour, tmp->tm_min, tmp->tm_sec);
+    strftime(buf, sizeof(buf), "%d\xA0%b\xA0%Y\xA0%H:%M\xA0UTC",
+	gmtime(&t));
     return buf;
+}
+
+/*
+ * Encode 'str' for XML (xml set to nonzero) or HTML (xml set to zero).
+ */
+static char *encode(const char *str, int xml)
+{
+    static char result[MAX_CHARS];
+    char c;
+
+    result[0] = '\0';
+    while ((c = *str++) != '\0') {
+	if (c == '<')
+	    strlcat(result, "&lt;", sizeof(result));
+	else if (c == '>')
+	    strlcat(result, "&gt;", sizeof(result));
+	else if (c == '&')
+	    strlcat(result, "&amp;", sizeof(result));
+	else if (c == '\'' && xml)
+	    strlcat(result, "&apos;", sizeof(result));
+	else if (c == '"')
+	    strlcat(result, "&quot;", sizeof(result));
+	else {
+	    char tmp[2];
+
+	    sprintf(tmp, "%c", c);
+	    strlcat(result, tmp, sizeof(result));
+	}
+    }
+
+    return result;
 }
 
 /* Here's where we calculate the ranks. Figure it out yourselves! */
@@ -174,6 +185,7 @@ static void SortRankings(void)
     highKR -= lowKR;
     highHF -= lowHF;
 
+
     {
 	const double factorSC = (highSC != 0.0) ? (100.0 / highSC) : 0.0;
 	const double factorKD = (highKD != 0.0) ? (100.0 / highKD) : 0.0;
@@ -203,47 +215,84 @@ static void SortRankings(void)
 	    rkr = (kr - lowKR) * factorKR;
 	    rhf = (hf - lowHF) * factorHF;
 
-	    rank_base[i].ratio
-		= 0.20 * rsc + 0.30 * rkd + 0.30 * rkr + 0.20 * rhf;
-	}
+	    rank_base[i].ratio = 0.20 * rsc + 0.30 * rkd + 0.30 * rkr + 0.20 * rhf;
+
+	    /* KHS: maximum survived time serves as factor */
+	    if(options.survivalScore != 0.0){
+		rank_base[i].ratio=rank->max_survival_time;
+	    }
+	} 
+	  
 
 	/* And finally we sort the ranks, wheee! */
 	qsort(rank_base, MAX_SCORES, sizeof(rank_t), rank_cmp);
     }
 }
 
-#define TABLEHEAD \
-"<table><tr><td></td>" /* First column is the position */ \
-"<td align=left><h1><u><b>Player</b></u></h1></td>" \
-"<td align=right><h1><u><b>Score</b></u></h1></td>" \
-"<td align=right><h1><u><b>Kills</b></u></h1></td>" \
-"<td align=right><h1><u><b>Deaths</b></u></h1></td>" \
-"<td align=right><h1><u><b>Rounds</b></u></h1></td>" \
-"<td align=right><h1><u><b>Shots</b></u></h1></td>" \
-"<td align=center><h1><u><b>Balls</b></u></h1></td>" \
-"<td align=right><h1><u><b>Ratio</b></u></h1></td>" \
-"<td align=right><h1><u><b>User</b></u></h1></td>" \
-"<td align=left><h1><u><b>Host</b></u></h1></td>" \
-"<td align=center><h1><u><b>Logout</b></u></h1></td>" \
-"</tr>\n"
+static const char *Rank_get_logout_message(ranknode_t *rank)
+{
+    static char msg[MSG_LEN];
+    player_t *pl;
+
+    assert(strlen(rank->name) > 0);
+    pl = Get_player_by_name(rank->name, NULL, NULL);
+    if (pl) {
+	if (Player_is_paused(pl))
+	    snprintf(msg, sizeof(msg), "paused");
+	else
+	    snprintf(msg, sizeof(msg), "playing");
+    }
+    else
+	snprintf(msg, sizeof(msg), "%s", rank_showtime(rank->timestamp));
+
+    return msg;
+}
 
 /* Sort the ranks and save them to the webpage. */
 void Rank_write_webpage(void)
 {
-    static const char headernojs[] =
-	"<html><head><title>XPilot @ " RANKING_SERVER "</title>\n"
-	"</head><body>\n" PAGEHEAD TABLEHEAD;
-
-    static const char footer[] = "</table>"
-	"<i>Explanation for ballstats</i>:<br>"
-	"The numbers are c/s/w/l/b, where<br>"
-	"c = The number of enemy balls you have cashed.<br>"
-	"s = The number of your own balls you have returned.<br>"
-	"w = The number of enemy balls your team has cashed.<br>"
-	"l = The number of your own balls you have lost.<br>"
-	"b = The fastest ballrun you have made.<br>"
-	"<hr>%s<BR>\n\n"	/* <-- Insert time here. */
-	"</body></html>";
+    static const char stdcss[] =
+	"  <style type=\"text/css\">\n"
+	"    body {\n"
+	"      font-family: sans-serif;\n"
+	"      color: #000000;\n"
+	"      background-color: #ffffff;\n"
+	"    }\n"
+	"    table {\n"
+	"      font-size: small;\n"
+	"      border-collapse: collapse;\n"
+	"      border-spacing: 0;\n"
+	"    }\n"
+	"    tr.odd {\n"
+	"      color: #000000;\n"
+	"      background-color: #d0d8e0;\n"
+	"    }\n"
+	"    tr.even {\n"
+	"      color: #000000;\n"
+	"      background-color: #e0e8f0;\n"
+	"    }\n"
+	"    th, td {\n"
+	"      padding: 0.2em 0.5em;\n"
+	"    }\n"
+	"    th {\n"
+	"      color: #000000;\n"
+	"      background-color: #ffffff;\n"
+	"      border: solid #808890;\n"
+	"      border-width: 1px 0 1px 0;\n"
+	"      font-weight: bold;\n"
+	"    }\n"
+	"    td.player {\n"
+	"      font-weight: bold;\n"
+	"    }\n"
+	"    a:link {\n"
+	"      color: #0000c0;\n"
+	"      background-color: #ffffff;\n"
+	"    }\n"
+	"    a:visited {\n"
+	"      color: #c000c0;\n"
+	"      background-color: #ffffff;\n"
+	"    }\n"
+	"  </style>\n";
 
     char *filename;
     FILE *file;
@@ -261,7 +310,36 @@ void Rank_write_webpage(void)
 	return;
     }
 
-    fprintf(file, "%s", headernojs);
+    fprintf(file,
+	"<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01//EN\"\n"
+	"    \"http://www.w3.org/TR/HTML4/strict.dtd\">\n"
+	"<html lang=\"en\">\n"
+	"<head>\n"
+	"  <title>%s @ %s</title>\n"
+	"  <meta http-equiv=\"Content-Type\" "
+	    "content=\"text/html; charset=ISO-8859-1\">\n",
+	options.mapName, Server.host);
+
+    if (options.rankWebpageCSS != NULL)
+	fprintf(file,
+	    "  <link rel=\"StyleSheet\" type=\"text/css\" href=\"%s\" />\n",
+	    options.rankWebpageCSS);
+    else
+	fprintf(file, "%s", stdcss);
+
+    fprintf(file,
+	"</head>\n"
+	"\n"
+	"<body>\n"
+	"  <h1>%s @ %s</h1>\n"  /* mapname @ servername */
+	"\n"
+	"  <p>\n"
+	"    <a href=\"http://xpilot.sourceforge.net/rank-info.html\">"
+	    "How does the ranking work?</a>\n"
+	"  </p>\n"
+	"\n"
+	"  <table>\n",
+	options.mapName, Server.host);
 
     for (i = 0; i < MAX_SCORES; i++) {
 	ranknode_t *rank = &ranknodes[rank_base[i].ind];
@@ -269,47 +347,99 @@ void Rank_write_webpage(void)
 	if (strlen(rank->name) == 0)
 	    continue;
 
+	if (i % 20 == 0)
+	    fprintf(file,
+		"    <tr>\n"
+		"      <th class=\"rank\" align=\"left\">Rank</th>\n"
+		"      <th class=\"player\" align=\"left\">Player</th>\n"
+		"      <th class=\"score\" align=\"left\">Score</th>\n"
+		"      <th class=\"kills\" align=\"left\">Kills</th>\n"
+		"      <th class=\"deaths\" align=\"left\">Deaths</th>\n"
+		"      <th class=\"rounds\" align=\"left\">Rounds</th>\n"
+		"      <th class=\"shots\" align=\"left\">Shots</th>\n"
+		"      <th class=\"deadliest\" align=\"left\">Deadliest</th>\n"
+		"      <th class=\"balls\" align=\"left\">Balls</th>\n"
+		"      <th class=\"ratio\" align=\"left\">Ratio</th>\n"
+		"      <th class=\"user\" align=\"right\">User</th>\n"
+		"      <th class=\"host\" align=\"left\">Host</th>\n"
+		"      <th class=\"logout\" align=\"left\">Logout</th>\n"
+		"    </tr>\n");
+
 	fprintf(file,
-		"<tr><td align=left><tt>%d</tt>"
-		"<td align=left><b>%s</b>"
-		"<td align=right>%.1f"
-		"<td align=right>%u"
-		"<td align=right>%u"
-		"<td align=right>%u"
-		"<td align=right>%u"
-		"<td align=center>%u/%u/%u/%u/%.2f"
-		"<td align=right>%.2f"
-		"<td align=right>%s"
-		"<td align=left>%s"
-		"<td align=center>%s\n"
-		"</tr>\n",
-		i + 1,
-		rank->name, rank->score,
-		rank->kills, rank->deaths,
-		rank->rounds, rank->shots,
-		rank->ballsCashed, rank->ballsSaved,
-		rank->ballsWon, rank->ballsLost,
-		rank->bestball,
-		rank_base[i].ratio,
-		rank->user, rank->host,
-		rank->logout);
+	    "    <tr class=\"%s\">\n"
+	    "      <td class=\"rank\" align=\"right\">%d</td>\n"
+	    "      <td class=\"player\" align=\"left\">%s</td>\n",
+	    i % 2 == 0 ? "odd" : "even",  /* sic */
+	    i + 1,
+	    encode(rank->name, 0));
+
+	fprintf(file,
+	    "      <td class=\"score\" align=\"right\">%.1f</td>\n"
+	    "      <td class=\"kills\" align=\"right\">%u</td>\n"
+	    "      <td class=\"deaths\" align=\"right\">%u</td>\n"
+	    "      <td class=\"rounds\" align=\"right\">%u</td>\n"
+	    "      <td class=\"shots\" align=\"right\">%u</td>\n"
+	    "      <td class=\"deadliest\" align=\"right\">%u</td>\n"
+	    "      <td class=\"balls\" align=\"left\">%u/%u/%u/%u/%.2f</td>\n"
+	    "      <td class=\"ratio\" align=\"right\">%.2f</td>\n"
+	    "      <td class=\"user\" align=\"right\">%s</td>\n",
+	    rank->score,
+	    rank->kills, rank->deaths,
+	    rank->rounds, rank->shots,
+	    rank->deadliest,
+	    rank->ballsCashed, rank->ballsSaved,
+	    rank->ballsWon, rank->ballsLost,
+	    rank->bestball,
+	    rank_base[i].ratio,
+	    encode(rank->user, 0));
+
+	fprintf(file,
+		"      <td class=\"host\" align=\"left\">%s</td>\n"
+		"      <td class=\"logout\" align=\"left\">%s</td>\n"
+		"    </tr>\n",
+		encode(rank->host, 0),
+		Rank_get_logout_message(rank));
     }
-    fprintf(file, footer, rank_showtime());
+
+    fprintf(file,
+	"  </table>\n"
+	"\n"
+	"  <p>\n"
+	"    <em>Explanation for ballstats</em>:<br>\n"
+	"    The numbers are c/s/w/l/b, where<br>\n"
+	"    c = The number of enemy balls you have cashed.<br>\n"
+	"    s = The number of your own balls you have returned.<br>\n"
+	"    w = The number of enemy balls your team has cashed.<br>\n"
+	"    l = The number of your own balls you have lost.<br>\n"
+	"    b = The fastest ballrun you have made.<br>\n"
+	"  </p>\n"
+	"\n"
+	"  <p>\n"
+	"    Page generated by " PACKAGE_STRING " on %s\n"
+	"  </p>\n"
+	"</body>\n"
+	"</html>\n",
+	rank_showtime(time(NULL)));
+
     fclose(file);
 }
 
-/* Return a line with the ranking status of the specified player. */
-void Rank_get_stats(player_t * pl, char *buf)
-{
-    ranknode_t *rank = pl->rank;
 
-    sprintf(buf, "%-15s  %4d/%4d, R: %3d, S: %5d, %d/%d/%d/%d/%.2f",
-	    pl->name,
-	    rank->kills, rank->deaths,
-	    rank->rounds, rank->shots,
-	    rank->ballsCashed, rank->ballsSaved,
-	    rank->ballsWon, rank->ballsLost,
-	    rank->bestball);
+bool Rank_get_stats(const char *name, char *buf, size_t size)
+{
+    ranknode_t *r = Rank_get_by_name(name);
+
+    if (r == NULL)
+	return false;
+
+    snprintf(buf, size,
+	     "%-15s  SC: %7.1f  K/D: %5d/%5d  R: %4d  SH: %6d  Dl: %d "
+	     "B: %d/%d/%d/%d/%.2f TM: %.2f",
+	     r->name, r->score, r->kills, r->deaths, r->rounds, r->shots, r->deadliest,
+	     r->ballsCashed, r->ballsSaved, r->ballsWon, r->ballsLost,
+	     r->bestball,r->max_survival_time);
+
+    return true;
 }
 
 
@@ -340,10 +470,6 @@ void Rank_show_ranks(void)
     strlcat(msg, ".", sizeof(msg));
     Set_message(msg);
 
-    /* let's not show top rankings if playing teamcup */
-    if (options.teamcup)
-	return;
-
     /* show a few best ranks */
     snprintf(msg, sizeof(msg), " < Top %d ranks: ",
 	     numranks < 3 ? numranks : 3);
@@ -356,7 +482,9 @@ void Rank_show_ranks(void)
 
 	if (num > 0)
 	    strlcat(msg, ", ", sizeof(msg));
-	snprintf(tmpbuf, sizeof(tmpbuf), "%d. %s (%.2f)",
+	snprintf(tmpbuf, sizeof(tmpbuf), 
+		 (options.survivalScore == 0.0) ? 
+		 "%d. %s (%.2f)" : "%d. %s (%.1f)",
 		 num + 1, rank->name, rank_base[i].ratio);
 	strlcat(msg, tmpbuf, sizeof(msg));
 	num++;
@@ -370,7 +498,6 @@ void Rank_show_ranks(void)
     return;
 }
 
-
 static void Init_ranknode(ranknode_t *rank,
 			  const char *name, const char *user, const char *host)
 {
@@ -381,9 +508,12 @@ static void Init_ranknode(ranknode_t *rank,
 }
 
 
-ranknode_t *Rank_get_by_name(char *name)
+ranknode_t *Rank_get_by_name(const char *name)
 {
     int i;
+    player_t *pl;
+
+    assert(name != NULL);
 
     for (i = 0; i < MAX_SCORES; i++) {
 	ranknode_t *rank = &ranknodes[i];
@@ -392,16 +522,17 @@ ranknode_t *Rank_get_by_name(char *name)
 	    return rank;
     }
 
+    /*
+     * If name doesn't equal any nick in the ranking list (ignoring case),
+     * let's see if it could be an abbreviation of the nick of some player
+     * who is currently playing.
+     */
+    pl = Get_player_by_name(name, NULL, NULL);
+    if (pl && pl->rank)
+	return pl->rank;
+
     return NULL;
 }
-
-
-void Rank_nuke_score(ranknode_t *rank)
-{
-    Init_ranknode(rank, "", "", "");
-    assert(rank->timestamp == 0);
-}
-
 
 /* Read scores from disk, and zero-initialize the ones that are not used.
    Call this on startup. */
@@ -436,7 +567,8 @@ void Rank_init_saved_scores(void)
 
     file = fopen(options.rankFileName, "r");
     if (!file) {
-	error("Couldn't open rank file \"%s\"", options.rankFileName);
+	if (errno != ENOENT)
+	    error("Couldn't open rank file \"%s\"", options.rankFileName);
 	return;
     }
 
@@ -465,19 +597,18 @@ void Rank_get_saved_score(player_t * pl)
 	    if (rank->pl == NULL) {
 		/* Ok, found it. */
 		rank->pl = pl;
-		pl->score = rank->score;
+		Player_set_score(pl,rank->score);
 		pl->rank = rank;
-		Rank_set_logout_message(pl, "playing");
 	    } else {
 		/* That ranknode is already in use by another player! */
-		pl->score = 0;
+		Player_set_score(pl,0);
 		pl->rank = NULL;
 	    }
 	    return;
 	}
     }
 
-    /* find unused nick */
+    /* find unused rank node */
     for (i = 0; i < MAX_SCORES; i++) {
 	rank = &ranknodes[i];
 
@@ -510,9 +641,8 @@ void Rank_get_saved_score(player_t * pl)
     Init_ranknode(rank, pl->name, pl->username, pl->hostname);
     rank->pl = pl;
     rank->timestamp = time(NULL);
-    pl->score = 0;
+    Player_set_score(pl,0);
     pl->rank = rank;
-    Rank_set_logout_message(pl, "playing");
 }
 
 /* A player has quit, save his info and mark him as not playing. */
@@ -520,8 +650,7 @@ void Rank_save_score(player_t * pl)
 {
     ranknode_t *rank = pl->rank;
 
-    rank->score = pl->score;
-    Rank_set_logout_message(pl, rank_showtime());
+    rank->score =  Get_Score(pl);
     rank->pl = NULL;
     rank->timestamp = time(NULL);
 }
@@ -546,10 +675,10 @@ void Rank_write_rankfile(void)
 
     if (fprintf(file,
 		"<?xml version=\"1.0\"?>\n"
-		"<XPilotNGRank version=\"0.0\">\n"
+		"<XPilotNGRank version=\"1.0\">\n"
 		"<Players>\n") < 0)
 	goto writefailed;
-
+    
 
     for (i = 0; i < rank_entries; i++) {
 	ranknode_t *rank = &ranknodes[rank_base[i].ind];
@@ -557,10 +686,16 @@ void Rank_write_rankfile(void)
 	if (strlen(rank->name) == 0)
 	    continue;
 
+	if (fprintf(file, "<Player "
+		    "name=\"%s\" ", encode(rank->name, 1)) < 0)
+	    goto writefailed;
+
 	if (fprintf(file,
-		    "<Player "
-		    "name=\"%s\" user=\"%s\" host=\"%s\" ",
-		    rank->name, rank->user, rank->host) < 0)
+		    "user=\"%s\" ", encode(rank->user, 1)) < 0)
+	    goto writefailed;
+
+	if (fprintf(file,
+		    "host=\"%s\" ", encode(rank->host, 1)) < 0)
 	    goto writefailed;
 
 	if (rank->score != 0.0
@@ -583,6 +718,10 @@ void Rank_write_rankfile(void)
 	    && fprintf(file, "shots=\"%d\" ", rank->shots) < 0)
 	    goto writefailed;
 
+	if (rank->deadliest > 0
+	    && fprintf(file, "deadliest=\"%d\" ", rank->deadliest) < 0)
+	    goto writefailed;
+
 	if (rank->ballsCashed > 0
 	    && fprintf(file, "ballscashed=\"%d\" ", rank->ballsCashed) < 0)
 	    goto writefailed;
@@ -603,18 +742,23 @@ void Rank_write_rankfile(void)
 	    && fprintf(file, "bestball=\"%.2f\" ", rank->bestball) < 0)
 	    goto writefailed;
 
-	if (fprintf(file, "timestamp=\"%u\" ", (unsigned)rank->timestamp) < 0)
+        if (rank->max_survival_time > 0
+            && fprintf(file, "max_survival_time=\"%.2f\" ", 
+            rank->max_survival_time) < 0)
 	    goto writefailed;
 
+	if (fprintf(file, "timestamp=\"%u\" ", (unsigned)rank->timestamp) < 0)
+	    goto writefailed;
+	
 	if (fprintf(file, "/>\n") < 0)
 	    goto writefailed;
     }
-
+    
     if (fprintf(file,
 		"</Players>\n"
 		"</XPilotNGRank>\n") < 0)
 	goto writefailed;
-
+    
 
     if (fclose(file) != 0) {
 	error("Close temporary file \"%s\"", tmp_file);
@@ -664,9 +808,7 @@ static void tagstart(void *data, const char *el, const char **attr)
 		version = atof(*(attr + 1));
 	    attr += 2;
 	}
-	if (version == 0.0)
-	    warn("Rank file version is 0.0.");
-	else if (version > 0.0) {
+	if (version > 1.0) {
 	    warn("Rank file has newer version than this server recognizes.");
 	    warn("The file might use unsupported features.");
 	}
@@ -706,6 +848,8 @@ static void tagstart(void *data, const char *el, const char **attr)
 		rank->rounds = atoi(*(attr + 1));
 	    if (!strcasecmp(*attr, "shots"))
 		rank->shots = atoi(*(attr + 1));
+	    if (!strcasecmp(*attr, "deadliest"))
+		rank->deadliest = atoi(*(attr + 1));
 	    if (!strcasecmp(*attr, "ballssaved"))
 		rank->ballsSaved = atoi(*(attr + 1));
 	    if (!strcasecmp(*attr, "ballslost"))
@@ -716,6 +860,8 @@ static void tagstart(void *data, const char *el, const char **attr)
 		rank->ballsCashed = atoi(*(attr + 1));
 	    if (!strcasecmp(*attr, "bestball"))
 		rank->bestball = atof(*(attr + 1));
+	    if (!strcasecmp(*attr, "max_survival_time"))
+	        rank->max_survival_time = atof(*(attr + 1));
 	    if (!strcasecmp(*attr, "timestamp"))
 		rank->timestamp = atoi(*(attr + 1));
 
@@ -734,7 +880,6 @@ static void tagstart(void *data, const char *el, const char **attr)
     return;
 }
 
-
 static void tagend(void *data, const char *el)
 {
     UNUSED_PARAM(data);
@@ -745,12 +890,9 @@ static void tagend(void *data, const char *el)
     return;
 }
 
-
-
-
 static bool Rank_parse_rankfile(FILE *file)
 {
-    char buff[8192];
+    char buf[8192];
     int len, fd;
     XML_Parser p = XML_ParserCreate(NULL);
 
@@ -764,12 +906,12 @@ static bool Rank_parse_rankfile(FILE *file)
     }
     XML_SetElementHandler(p, tagstart, tagend);
     do {
-	len = read(fd, buff, 8192);
+	len = read(fd, buf, sizeof(buf));
 	if (len < 0) {
 	    error("Error reading rankfile!");
 	    return false;
 	}
-	if (!XML_Parse(p, buff, len, !len)) {
+	if (!XML_Parse(p, buf, len, !len)) {
 	    warn("Parse error reading rankfile at line %d:\n%s\n",
 		  XML_GetCurrentLineNumber(p),
 		  XML_ErrorString(XML_GetErrorCode(p)));

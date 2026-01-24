@@ -1,7 +1,7 @@
-/*
+/* 
  * XPilot, a multiplayer gravity war game.  Copyright (C) 1991-98 by
  *
- *      Bjï¿½rn Stabell        <bjoern@xpilot.org>
+ *      Bjørn Stabell        <bjoern@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
  *      Dick Balaska         <dick@xpilot.org>
@@ -43,7 +43,7 @@ void Colors_free_bitmaps(void)
 }
 
 /*
- * Converts the RGB colors used by polygon and edge styles
+ * Converts the RGB colors used by polygon and edge styles 
  * to device colors.
  */
 void Colors_init_style_colors(void)
@@ -74,7 +74,7 @@ void Colors_init_style_colors(void)
 
 
 /*
- * Returns the index of the given rgb color in the current
+ * Returns the index of the given rgb color in the current 
  * palette. If the palette doesn't contain it, a new entry
  * will be added to myLogPal.
  */

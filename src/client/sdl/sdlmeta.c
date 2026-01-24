@@ -3,7 +3,7 @@
  *
  * Copyright (C) 2003-2004 by
  *
- *      Juha Lindstrï¿½m       <juhal@users.sourceforge.net>
+ *      Juha Lindström       <juhal@users.sourceforge.net>
  *      Darel Cullen         <darelcullen@users.sourceforge.net>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -109,8 +109,6 @@ typedef struct {
     char     *players_str;
 } PlayerListWidget;
 
-extern GLWidget *FindGLWidgeti( GLWidget *widget, Uint16 x, Uint16 y );
-
 
 static void Scroll_PlayerListWidget(GLfloat pos, void *data)
 {
@@ -118,7 +116,7 @@ static void Scroll_PlayerListWidget(GLfloat pos, void *data)
     GLWidget *widget, *row;
     SDL_Rect b;
     int y;
-
+    
     widget = (GLWidget*)data;
     if (widget->WIDGET != PLAYERLISTWIDGET) {
 	error("expected PLAYERLISTWIDGET got [%d]", widget->WIDGET);
@@ -175,13 +173,13 @@ static void SetBounds_PlayerListWidget(GLWidget *widget, SDL_Rect *b)
     }
 
     if (list_height > b->h) {
-	info->scrollbar =
-	    Init_ScrollbarWidget(false, 0.0f, ((GLfloat)b->h) / list_height,
+	info->scrollbar = 
+	    Init_ScrollbarWidget(false, 0.0f, ((GLfloat)b->h) / list_height, 
 				 SB_VERTICAL, Scroll_PlayerListWidget, widget);
 	if (info->scrollbar != NULL) {
 	    wb = &(widget->bounds);
 	    sb.x = wb->x + wb->w - 10;
-	    sb.y = wb->y + ROW_HEIGHT;
+	    sb.y = wb->y + ROW_HEIGHT; 
 	    sb.w = 10;
 	    sb.h = wb->h - ROW_HEIGHT;
 	    SetBounds_GLWidget(info->scrollbar, &sb);
@@ -207,13 +205,13 @@ static list_t create_player_list(char *players_str)
 
     if (!(players = List_new())) return NULL;
     for (t = strtok(players_str, ","); t; t = strtok(NULL, ","))
-	if (!(List_push_back(players, t)))
+	if (!(List_push_back(players, t))) 
 	    break;
-
+    
     return players;
 }
 
-static void Close_PlayerListWidget(GLWidget *widget)
+static void Close_PlayerListWidget(GLWidget *widget) 
 {
     PlayerListWidget *info;
 
@@ -221,7 +219,7 @@ static void Close_PlayerListWidget(GLWidget *widget)
 	error("expected PLAYERLISTWIDGET got [%d]", widget->WIDGET);
 	return;
     }
-
+    
     info = (PlayerListWidget*)widget->wid_info;
     if (info->players_str) free(info->players_str);
     if (info->players) List_delete(info->players);
@@ -271,10 +269,10 @@ static GLWidget *Init_PlayerListWidget(server_info_t *sip)
 	free(tmp);
 	return NULL;
     }
-    if (!(header =
-	  Init_LabelWidget("Players",
+    if (!(header = 
+	  Init_LabelWidget("Players", 
 			   &(info->header_fg),
-			   &(info->header_bg),
+			   &(info->header_bg), 
 			   CENTER,CENTER))) {
 	error("failed to create header for player list");
 	free(players_str);
@@ -299,8 +297,8 @@ static GLWidget *Init_PlayerListWidget(server_info_t *sip)
     tmp->Draw           = Paint_PlayerListWidget;
     tmp->Close          = Close_PlayerListWidget;
 
-    for (iter = List_begin(players);
-	 iter != List_end(players);
+    for (iter = List_begin(players); 
+	 iter != List_end(players); 
 	 LI_FORWARD(iter)) {
 	player = (char*)SI_DATA(iter);
 	row = Init_LabelWidget(player,
@@ -346,10 +344,10 @@ static void SetBounds_StatusWidget(GLWidget *widget, SDL_Rect *wb)
     int col_xoff[4];
     SDL_Rect b;
     GLWidget *w;
-
+    
     widget->bounds = *wb;
     compute_layout(wb, col_width, col_xoff);
-
+    
     for (c = 0, w = widget->children; w; w = w->next) c++;
 
     rowc = STATUS_ROWS;
@@ -367,24 +365,24 @@ static void SetBounds_StatusWidget(GLWidget *widget, SDL_Rect *wb)
     }
 }
 
-static void add_status_entry(char *name, char *value, GLWidget *parent)
+static void add_status_entry(const char *name, char *value, GLWidget *parent)
 {
     GLWidget *name_label, *value_label;
     StatusWidget *info;
 
     info = (StatusWidget*)parent->wid_info;
-
-    if ((name_label =
-	 Init_LabelWidget(name,
+    
+    if ((name_label = 
+	 Init_LabelWidget(name, 
 			  &(info->name_fg),
-			  &(info->name_bg),
+			  &(info->name_bg), 
 			  LEFT,CENTER))) {
 	AppendGLWidgetList(&(parent->children), name_label);
     }
-    if ((value_label =
-	 Init_LabelWidget(value,
+    if ((value_label = 
+	 Init_LabelWidget(value, 
 			  &(info->value_fg),
-			  &(info->value_bg),
+			  &(info->value_bg), 
 			  LEFT,CENTER))) {
 	AppendGLWidgetList(&(parent->children), value_label);
     }
@@ -525,7 +523,7 @@ static void SetBounds_MetaRowWidget(GLWidget *row, SDL_Rect *rb)
     free_width = MAX(rb->w - (VERSION_WIDTH + COUNT_WIDTH), 0);
 
     if (!(col = row->children)) return;
-    cb.x = rb->x;
+    cb.x = rb->x; 
     cb.w = free_width / 2;
     cb.y = rb->y; cb.h = rb->h;
     SetBounds_GLWidget(col, &cb);
@@ -548,7 +546,7 @@ static void SetBounds_MetaRowWidget(GLWidget *row, SDL_Rect *rb)
     SetBounds_GLWidget(col, &cb);
 }
 
-static void Button_MetaRowWidget(Uint8 button, Uint8 state, Uint16 x,
+static void Button_MetaRowWidget(Uint8 button, Uint8 state, Uint16 x, 
 				 Uint16 y, void *data)
 {
     GLWidget *widget;
@@ -556,6 +554,7 @@ static void Button_MetaRowWidget(Uint8 button, Uint8 state, Uint16 x,
     SDL_Event evt;
 
     if (state != SDL_PRESSED) return;
+    if (button != 1) return;
 
     widget = (GLWidget*)data;
     if (widget->WIDGET != METAROWWIDGET) {
@@ -603,8 +602,8 @@ static void Button_MetaRowWidget(Uint8 button, Uint8 state, Uint16 x,
     }
 }
 
-static GLWidget *Init_MetaRowWidget(server_info_t *sip,
-				    MetaTableWidget *table,
+static GLWidget *Init_MetaRowWidget(server_info_t *sip, 
+				    MetaTableWidget *table, 
 				    bool is_selected,
 				    unsigned int bg)
 {
@@ -677,7 +676,7 @@ static GLWidget *Init_MetaHeaderWidget(void)
     HEADER("Pl");
 #undef COLUMN
 
-    return tmp;
+    return tmp;    
 }
 
 static void Scroll_MetaTableWidget(GLfloat pos, void *data)
@@ -686,7 +685,7 @@ static void Scroll_MetaTableWidget(GLfloat pos, void *data)
     GLWidget *widget, *row;
     SDL_Rect b;
     int y;
-
+    
     widget = (GLWidget*)data;
     if (widget->WIDGET != METATABLEWIDGET) {
 	error("expected METATABLEWIDGET got [%d]", widget->WIDGET);
@@ -743,13 +742,13 @@ static void SetBounds_MetaTableWidget(GLWidget *widget, SDL_Rect *b)
     }
 
     if (table_height > b->h) {
-	info->scrollbar =
-	    Init_ScrollbarWidget(false, 0.0f, ((GLfloat)b->h) / table_height,
+	info->scrollbar = 
+	    Init_ScrollbarWidget(false, 0.0f, ((GLfloat)b->h) / table_height, 
 				 SB_VERTICAL, Scroll_MetaTableWidget, widget);
 	if (info->scrollbar != NULL) {
 	    wb = &(widget->bounds);
 	    sb.x = wb->x + wb->w - 10;
-	    sb.y = wb->y + ROW_HEIGHT;
+	    sb.y = wb->y + ROW_HEIGHT; 
 	    sb.w = 10;
 	    sb.h = wb->h - ROW_HEIGHT;
 	    SetBounds_GLWidget(info->scrollbar, &sb);
@@ -795,14 +794,14 @@ static GLWidget *Init_MetaTableWidget(GLWidget *meta, list_t servers)
     tmp->wid_info       = info;
     tmp->WIDGET     	= METATABLEWIDGET;
     tmp->SetBounds      = SetBounds_MetaTableWidget;
-
-    for (iter = List_begin(servers);
-	 iter != List_end(servers);
+    
+    for (iter = List_begin(servers); 
+	 iter != List_end(servers); 
 	 LI_FORWARD(iter)) {
 	sip = SI_DATA(iter);
 	row = Init_MetaRowWidget(sip, info, false, bg ? ROW_BG1 : ROW_BG2);
 	if (!row) break;
-	if (info->first_row == NULL)
+	if (info->first_row == NULL) 
 	    info->first_row = (MetaRowWidget*)row->wid_info;
 	AppendGLWidgetList(&(tmp->children), row);
 	bg = !bg;
@@ -827,20 +826,20 @@ static void Paint_MetaWidget(GLWidget *widget)
     }
     info = (MetaWidget*)widget->wid_info;
     if (info->texture == 0) return;
-
+    
     b = &(widget->bounds);
     glColor4ub(255, 255, 255, 255);
     glBindTexture(GL_TEXTURE_2D, info->texture);
     glEnable(GL_TEXTURE_2D);
 
     glBegin(GL_QUADS);
-    glTexCoord2f(info->txc.MinX, info->txc.MinY);
+    glTexCoord2f(info->txc.MinX, info->txc.MinY); 
     glVertex2i(b->x, b->y);
-    glTexCoord2f(info->txc.MaxX, info->txc.MinY);
+    glTexCoord2f(info->txc.MaxX, info->txc.MinY); 
     glVertex2i(b->x + b->w , b->y);
-    glTexCoord2f(info->txc.MaxX, info->txc.MaxY);
+    glTexCoord2f(info->txc.MaxX, info->txc.MaxY); 
     glVertex2i(b->x + b->w , b->y + b->h);
-    glTexCoord2f(info->txc.MinY, info->txc.MaxY);
+    glTexCoord2f(info->txc.MinY, info->txc.MaxY); 
     glVertex2i(b->x, b->y + b->h);
     glEnd();
 
@@ -957,11 +956,11 @@ static bool join_server(Connect_param_t *conpar, server_info_t *sip)
     return false;
 }
 
-void handleKeyPress(GLWidget *meta, SDL_keysym *keysym )
+static void handleKeyPress(GLWidget *meta, SDL_keysym *keysym )
 {
     /*static unsigned int row = 1;*/
     SDL_Event evt;
-
+    
     switch ( keysym->sym )
     {
     case SDLK_ESCAPE:
@@ -974,19 +973,20 @@ void handleKeyPress(GLWidget *meta, SDL_keysym *keysym )
 	 * this toggles fullscreen mode
 	 */
 #ifndef _WINDOWS
-	SDL_WM_ToggleFullScreen(MainSDLSurface);
+		/* This segfaults */
+		/* SDL_WM_ToggleFullScreen(MainSDLSurface); */
 #endif
 	break;
-    case SDLK_UP:
+    case SDLK_UP: 
 	/* move the cursor up */
 	break;
-    case SDLK_DOWN:
+    case SDLK_DOWN: 
 	/* move the curor down */
 	break;
     default:
 	break;
     }
-
+    
     return;
 }
 
@@ -998,20 +998,19 @@ int Meta_window(Connect_param_t *conpar)
     GLWidget *btn, *root, *meta, *target = NULL;
     SDL_Event evt;
     server_info_t *server = NULL;
-
+    
     if (!server_list ||
 	List_size(server_list) < 10 ||
 	server_list_creation_time + 5 < time(NULL)) {
-
+	
 	Delete_server_list();
 	if ((num_serv = Get_meta_data(err)) <= 0) {
-	    fprintf(stderr, "Error: couldnt get meta list\n");
+	    error("Couldn't get meta list.");
 	    return -1;
-	} else {
-	    printf("xpilot_sdl: Got %d servers\n",num_serv);
-	}
+	} else
+	    warn("Got %d servers.", num_serv);
     }
-
+    
     if (Welcome_sort_server_list() == -1) {
 	Delete_server_list();
 	error("out of memory");
@@ -1034,8 +1033,8 @@ int Meta_window(Connect_param_t *conpar)
 
     btn_x = (draw_width - META_WIDTH) / 2 - 80;
     btn_y = (draw_height - META_HEIGHT) / 2 + 60;
-    btn = Init_ImageButtonWidget("Join",
-				 "metabtnup.png",
+    btn = Init_ImageButtonWidget("Join", 
+				 "metabtnup.png", 
 				 "metabtndown.png",
 				 BUTTON_BG,
 				 BUTTON_FG,
@@ -1047,8 +1046,8 @@ int Meta_window(Connect_param_t *conpar)
 	btn_y += btn_h + 5;
 	AppendGLWidgetList(&(root->children), btn);
     }
-    btn = Init_ImageButtonWidget("Refresh",
-				 "metabtnup.png",
+    btn = Init_ImageButtonWidget("Refresh", 
+				 "metabtnup.png", 
 				 "metabtndown.png",
 				 BUTTON_BG,
 				 BUTTON_FG,
@@ -1060,8 +1059,8 @@ int Meta_window(Connect_param_t *conpar)
 	btn_y += btn_h + 5;
 	AppendGLWidgetList(&(root->children), btn);
     }
-    btn = Init_ImageButtonWidget("Quit",
-				 "metabtnup.png",
+    btn = Init_ImageButtonWidget("Quit", 
+				 "metabtnup.png", 
 				 "metabtndown.png",
 				 BUTTON_BG,
 				 BUTTON_FG,
@@ -1073,14 +1072,14 @@ int Meta_window(Connect_param_t *conpar)
 	btn_y += btn_h + 5;
 	AppendGLWidgetList(&(root->children), btn);
     }
-
+    
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
     gluOrtho2D(0, draw_width, draw_height, 0);
     glDisable(GL_BLEND);
-
+    
     while(1) {
 
 	set_alphacolor(blackRGBA);
@@ -1094,14 +1093,14 @@ int Meta_window(Connect_param_t *conpar)
 	DrawGLWidgetsi(meta, 0, 0, draw_width, draw_height);
 	glDisable(GL_SCISSOR_TEST);
 	SDL_GL_SwapBuffers();
-
+	
 	SDL_WaitEvent(&evt);
 	do {
-
+	    
 	    switch(evt.type) {
-	    case SDL_QUIT:
+	    case SDL_QUIT: 
 		return -1;
-
+		
 	    case SDL_USEREVENT:
 		if (evt.user.code == EVENT_JOIN) {
 		    server = (server_info_t*)evt.user.data1;
@@ -1130,16 +1129,16 @@ int Meta_window(Connect_param_t *conpar)
 	    case SDL_MOUSEBUTTONDOWN:
 		target = FindGLWidgeti(meta, evt.button.x, evt.button.y);
 		if (target && target->button)
-		    target->button(evt.button.button,
+		    target->button(evt.button.button, 
 				   evt.button.state,
 				   evt.button.x,
 				   evt.button.y,
 				   target->buttondata);
 		break;
-
+		
 	    case SDL_MOUSEBUTTONUP:
 		if (target && target->button) {
-		    target->button(evt.button.button,
+		    target->button(evt.button.button, 
 				   evt.button.state,
 				   evt.button.x,
 				   evt.button.y,
@@ -1147,7 +1146,7 @@ int Meta_window(Connect_param_t *conpar)
 		    target = NULL;
 		}
 		break;
-
+		
 	    case SDL_MOUSEMOTION:
 		if (target && target->motion)
 		    target->motion(evt.motion.xrel,
@@ -1170,5 +1169,5 @@ int Meta_window(Connect_param_t *conpar)
 		break;
 	    }
 	} while (SDL_PollEvent(&evt));
-    }
+    }	
 }

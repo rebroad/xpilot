@@ -1,9 +1,9 @@
-/*
- * XPilotNG, an XPilot-like multiplayer space war game.
+/* 
+ * XPilot NG, a multiplayer space war game.
  *
  * Copyright (C) 1991-2001 by
  *
- *      Bjï¿½rn Stabell        <bjoern@xpilot.org>
+ *      Bjørn Stabell        <bjoern@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
  *      Dick Balaska         <dick@xpilot.org>
@@ -143,6 +143,7 @@ typedef enum {
     KEY_TOGGLE_MESSAGES,
     KEY_POINTER_CONTROL,
     KEY_TOGGLE_RECORD,
+    KEY_TOGGLE_SOUND, /* no ifdef SOUND here */
     KEY_PRINT_MSGS_STDOUT,
     KEY_TALK_CURSOR_LEFT,
     KEY_TALK_CURSOR_RIGHT,
@@ -155,6 +156,9 @@ typedef enum {
     KEY_INCREASE_TURNSPEED,
     KEY_DECREASE_TURNSPEED,
     KEY_TOGGLE_FULLSCREEN,
+    KEY_EXIT,
+    KEY_YES,
+    KEY_NO,
     NUM_CLIENT_KEYS	/* The number of keys really used by the client. */
 #endif
 } keys_t;

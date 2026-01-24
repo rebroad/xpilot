@@ -1,7 +1,7 @@
 /*
  * XPilotNG/SDL, an SDL/OpenGL XPilot client.
  *
- * Copyright (C) 2003-2004 Juha Lindstrï¿½m <juhal@users.sourceforge.net>
+ * Copyright (C) 2003-2004 Juha Lindström <juhal@users.sourceforge.net>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,20 +23,10 @@
 #include "sdlinit.h"
 #include "sdlmeta.h"
 
-#ifdef _WINDOWS
-/* from win32hacks.c */
-extern int Winsock_init();
-extern void Winsock_cleanup();
-#endif
-
-
 static void Main_shutdown(void)
 {
     Net_cleanup();
     Client_cleanup();
-#ifdef _WINDOWS
-	Winsock_cleanup();
-#endif
 }
 
 static void sigcatch(int signum)
@@ -80,12 +70,10 @@ int main(int argc, char *argv[])
     /* CLIENTRANK */
     Init_saved_scores();
 
-#ifdef _WINDOWS
-    if (Winsock_init()) {
-	error("failed to initialize windows networking");
+    if (sock_startup()) {
+	error("failed to initialize networking");
 	exit(1);
     }
-#endif
 
     if (xpArgs.text || xpArgs.auto_connect || argv[1]) {
 	if (!Contact_servers(argc - 1, &argv[1],
@@ -115,27 +103,27 @@ int main(int argc, char *argv[])
      * stuff initialized in Client_setup. */
 
     if (Client_init(connectParam.server_name, connectParam.server_version)) {
-	error("failed to initialize client");
+	error("failed to initialize client"); 
 	exit(1);
     }
 
-
+    
     if (Net_init(connectParam.server_addr, connectParam.login_port)) {
-	error("failed to initialize networking");
+	error("failed to initialize networking"); 
 	exit(1);
     }
-    if (Net_verify(connectParam.user_name,
-		   connectParam.nick_name,
+    if (Net_verify(connectParam.user_name, 
+		   connectParam.nick_name, 
 		   connectParam.disp_name)) {
-	error("failed to verify networking");
+	error("failed to verify networking"); 
 	exit(1);
     }
     if (Net_setup()) {
-	error("failed to setup networking");
+	error("failed to setup networking"); 
 	exit(1);
     }
     if (Client_setup()) {
-	error("failed to setup client");
+	error("failed to setup client"); 
 	exit(1);
     }
 
@@ -144,12 +132,12 @@ int main(int argc, char *argv[])
 
     if (Net_start()) {
 	Main_shutdown();
-	error("failed to start networking");
+	error("failed to start networking"); 
 	exit(1);
     }
     if (Client_start()) {
 	Main_shutdown();
-	error("failed to start client");
+	error("failed to start client"); 
 	exit(1);
     }
     Game_loop();

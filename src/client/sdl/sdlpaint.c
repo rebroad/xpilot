@@ -1,15 +1,15 @@
 /*
  * XPilotNG/SDL, an SDL/OpenGL XPilot client.
  *
- * Copyright (C) 2003-2004 by
+ * Copyright (C) 2003-2004 by 
  *
- *      Juha Lindstrï¿½m       <juhal@users.sourceforge.net>
+ *      Juha Lindström       <juhal@users.sourceforge.net>
  *      Erik Andersson       <deity_at_home.se>
  *      Darel Cullen         <darelcullen@users.sourceforge.net>
  *
  * Copyright (C) 1991-2002 by
  *
- *      Bjï¿½rn Stabell        <bjoern@xpilot.org>
+ *      Bjørn Stabell        <bjoern@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
  *      Dick Balaska         <dick@xpilot.org>
@@ -39,61 +39,22 @@
 #include "sdlwindow.h"
 #include "text.h"
 #include "glwidgets.h"
+#include "radar.h"
 
 #define SCORE_BORDER 5
-
-char sdlpaint_version[] = VERSION;
 
 /*
  * Globals.
  */
-static double       time_counter = 0.0;
 static TTF_Font     *scoreListFont;
-static char         *scoreListFontName = CONF_FONTDIR "VeraMoBd.ttf";
+static const char   *scoreListFontName = CONF_FONTDIR "VeraMoBd.ttf";
 static sdl_window_t scoreListWin;
 static SDL_Rect     scoreEntryRect; /* Bounds for the last painted score entry */
 static bool         scoreListMoving;
 
-double scale;              /* The opengl scale factor */
 int paintSetupMode;
 
 GLWidget *MainWidget = NULL;
-
-/* function to reset our viewport after a window resize */
-int Resize_Window( int width, int height )
-{
-    extern int videoFlags;
-    SDL_Rect b = {0,0,0,0};
-
-    b.w = draw_width = width;
-    b.h = draw_height = height;
-
-    SetBounds_GLWidget(MainWidget,&b);
-
-    if (!SDL_SetVideoMode( width,
-			   height,
-			   draw_depth,
-			   videoFlags ))
-	return -1;
-
-
-    /* change to the projection matrix and set our viewing volume. */
-    glMatrixMode( GL_PROJECTION );
-
-    glLoadIdentity( );
-
-    gluOrtho2D(0, draw_width, 0, draw_height);
-
-    /* Make sure we're chaning the model view and not the projection */
-    glMatrixMode( GL_MODELVIEW );
-
-    /* Reset The View */
-    glLoadIdentity( );
-
-    /* Setup our viewport. */
-    glViewport( 0, 0, ( GLint )draw_width, ( GLint )draw_height );
-    return 0;
-}
 
 static void Scorelist_button(Uint8 button, Uint8 state, Uint16 x, Uint16 y, void *data)
 {
@@ -109,7 +70,7 @@ static void Scorelist_button(Uint8 button, Uint8 state, Uint16 x, Uint16 y, void
 	    	PrependGLWidgetList( widget->list, widget );
 	}
     }
-
+    
     if (state == SDL_RELEASED) {
     	if (button == 1)
 	    scoreListMoving = false;
@@ -150,7 +111,7 @@ static void Scorelist_paint(GLWidget *widget)
 			      + 2 * SCORE_BORDER);
 	    /* Unfortunately the resize loses the surface
 	     * so I have to repaint it */
-	    scoresChanged = 1;
+	    scoresChanged = true;
 	    Paint_score_table();
 	    widget->bounds.w = scoreListWin.w+2;
 	    widget->bounds.h = scoreListWin.h+2;
@@ -160,7 +121,7 @@ static void Scorelist_paint(GLWidget *widget)
     glColor4ub(0, 0x20, 0, 0x90);
     glEnable(GL_BLEND);
     glBegin(GL_QUADS);
-    	glVertex2i(scoreListWin.x, scoreListWin.y + scoreListWin.h + 2);
+    	glVertex2i(scoreListWin.x, scoreListWin.y + scoreListWin.h + 2);    
     	glVertex2i(scoreListWin.x, scoreListWin.y);
     	glVertex2i(scoreListWin.x + scoreListWin.w, scoreListWin.y);
     	glVertex2i(scoreListWin.x + scoreListWin.w,scoreListWin.y + scoreListWin.h + 2);
@@ -168,7 +129,7 @@ static void Scorelist_paint(GLWidget *widget)
     sdl_window_paint(&scoreListWin);
     glBegin(GL_LINE_LOOP);
     	glColor4ub(0, 0, 0, 0xff);
-    	glVertex2i(scoreListWin.x, scoreListWin.y + scoreListWin.h + 2);
+    	glVertex2i(scoreListWin.x, scoreListWin.y + scoreListWin.h + 2);    
     	glColor4ub(0, 0x90, 0x00, 0xff);
     	glVertex2i(scoreListWin.x, scoreListWin.y);
     	glColor4ub(0, 0, 0, 0xff);
@@ -216,36 +177,29 @@ GLWidget *Init_ScorelistWidget(void)
 
 bool Set_scaleFactor(xp_option_t *opt, double val)
 {
-    scaleFactor = val;
-    scale = 1 / val;
+    clData.scaleFactor = val;
+    clData.scale = 1.0 / val;
+    clData.fscale = (float)clData.scale;
     return true;
 }
 
 bool Set_altScaleFactor(xp_option_t *opt, double val)
 {
-    scaleFactor_s = val;
+    clData.altScaleFactor = val;
     return true;
 }
 
 int Paint_init(void)
 {
-    extern bool players_exposed; /* paint.c */
-    int i;
-
     if (Init_wreckage() == -1)
 	return -1;
-
-    if (Images_init() == -1)
+    
+    if (Images_init() == -1) 
 	return -1;
 
-    for (i=0;i<MAX_SCORE_OBJECTS;++i)
-    	score_object_texs[i].texture = 0;
-    for (i=0;i<MAX_METERS;++i)
-    	meter_texs[i].texture = 0;
-
-    scoresChanged = 1;
+    scoresChanged = true;
     players_exposed = true;
-
+    
     return 0;
 }
 
@@ -255,9 +209,9 @@ void Paint_cleanup(void)
     Images_cleanup();
 
     for (i=0;i<MAX_SCORE_OBJECTS;++i)
-    	if (score_object_texs[i].texture) free_string_texture(&score_object_texs[i]);
+    	if (score_object_texs[i].tex_list) free_string_texture(&score_object_texs[i]);
     for (i=0;i<MAX_METERS;++i)
-    	if (meter_texs[i].texture) free_string_texture(&meter_texs[i]);
+    	if (meter_texs[i].tex_list) free_string_texture(&meter_texs[i]);
 }
 
 /* This one works best for things that are fixed in position
@@ -271,8 +225,10 @@ void setupPaint_stationary(void)
     glMatrixMode(GL_MODELVIEW);
     glPushMatrix();
     glLoadIdentity();
-    glTranslatef(rint(-world.x * scale), rint(-world.y * scale), 0);
-    glScalef(scale, scale, 0);
+    glTranslatef(rint(-world.x * clData.scale),
+		 rint(-world.y * clData.scale),
+		 0);
+    glScalef(clData.scale, clData.scale, 0);
 }
 
 /* This one works best for things that move, since they don't get
@@ -286,8 +242,8 @@ void setupPaint_moving(void)
     glMatrixMode(GL_MODELVIEW);
     glPushMatrix();
     glLoadIdentity();
-    glTranslatef(-world.x * scale, -world.y * scale, 0);
-    glScalef(scale, scale, 0);
+    glTranslatef(-world.x * clData.scale, -world.y * clData.scale, 0);
+    glScalef(clData.scale, clData.scale, 0);
 }
 
 void setupPaint_HUD(void)
@@ -305,50 +261,11 @@ void setupPaint_HUD(void)
 
 void Paint_frame(void)
 {
-    Check_view_dimensions();
+    struct timeval tv1, tv2;
 
-    world.x = selfPos.x - (ext_view_width / 2);
-    world.y = selfPos.y - (ext_view_height / 2);
-    realWorld = world;
-    if (BIT(Setup->mode, WRAP_PLAY)) {
-	if (world.x < 0 && world.x + ext_view_width < Setup->width)
-	    world.x += Setup->width;
-	else if (world.x > 0 && world.x + ext_view_width >= Setup->width)
-	    realWorld.x -= Setup->width;
-	if (world.y < 0 && world.y + ext_view_height < Setup->height)
-	    world.y += Setup->height;
-	else if (world.y > 0 && world.y + ext_view_height >= Setup->height)
-	    realWorld.y -= Setup->height;
-    }
+    gettimeofday(&tv1, NULL);
 
-    if (start_loops != end_loops)
-	warn("Start neq. End (%ld,%ld,%ld)", start_loops, end_loops, loops);
-    loops = end_loops;
-
-
-    /*
-     * If time() changed from previous value, assume one second has passed.
-     */
-    if (newSecond) {
-	/* kps - improve */
-	timePerFrame = 1.0 / clientFPS;
-
-	/* TODO: move this somewhere else */
-	/* check once per second if we are playing */
-	if (newSecond && self && !strchr("PW", self->mychar))
-	    played_this_round = true;
-    }
-
-    /*
-     * Instead of using loops to determining if things are drawn this frame,
-     * loopsSlow should be used. We don't want things to be drawn too fast
-     * at high fps.
-     */
-    time_counter += timePerFrame;
-    if (time_counter >= 1.0 / 12) {
-	loopsSlow++;
-	time_counter -= (1.0 / 12);
-    }
+    Paint_frame_start();
 
     if (damaged <= 0) {
     	/*glClear(GL_COLOR_BUFFER_BIT);*/
@@ -369,10 +286,10 @@ void Paint_frame(void)
 	/* This one works best for things that are fixed in position
 	 * since they won't appear to move relative to eachother
 	 */
-
+    	
     	glPushMatrix();
     	setupPaint_stationary();
-
+	
     	Paint_world();
 
 	if (oldServer) {
@@ -384,7 +301,7 @@ void Paint_frame(void)
 	    Paint_objects();
 
     	Paint_score_objects();
-
+	
 	Paint_shots();
 
 	setupPaint_moving();
@@ -394,18 +311,27 @@ void Paint_frame(void)
 
     	Paint_meters();
     	Paint_HUD();
-    	Paint_client_fps();
+    	Paint_HUD_values();
 
-	Paint_messages();
+	Paint_messages();       
 	Console_paint();
 	Paint_select();
 
+	if (UpdateRadar) {
+	  Radar_update();
+	  UpdateRadar = false;
+	}
     	DrawGLWidgets(MainWidget);
-
+    		
 	glPopMatrix();
     }
-
+    
     SDL_GL_SwapBuffers();
+
+    if (newSecond) {
+	gettimeofday(&tv2, NULL);
+	clData.clientLag = 1e-3 * timeval_sub(&tv2, &tv1);
+    }
 }
 
 void Paint_score_start(void)
@@ -428,7 +354,7 @@ void Paint_score_start(void)
 	    strlcat(headingStr, "LIFE", sizeof(headingStr));
 	strlcat(headingStr, " NAME", sizeof(headingStr));
     }
-
+	
     fg.r = (scoreColorRGBA >> 24) & 255;
 	fg.g = (scoreColorRGBA >> 16) & 255;
 	fg.b = (scoreColorRGBA >> 8) & 255;
@@ -471,6 +397,21 @@ void Paint_score_entry(int entry_num, other_t *other, bool is_team)
 	raceStr[2] = ' ';
 
 	lineSpacing = TTF_FontLineSkip(scoreListFont) + 1;
+	/*
+	 * SDL_ttf 1.2 seems to have a broken TTF_FontLineSkip.
+	 * Enable workaround and print a warning.
+	 */
+	if (lineSpacing == 1) {
+	    static bool warned = false;
+	    if (!warned) {
+		warn("Enabling workaround for bug in SDL_ttf 1.2.");
+		warn("SDL_ttf 2.0 or newer should not have this problem.");
+		warned = true;
+	    }
+	    lineSpacing = 15;
+	}
+	/* End of SDL_ttf 1.2 bug workaround. */
+
 	firstLine = 2*SCORE_BORDER + lineSpacing;
     }
     scoreEntryRect.y = firstLine + lineSpacing * entry_num;
@@ -482,8 +423,6 @@ void Paint_score_entry(int entry_num, other_t *other, bool is_team)
 	sprintf(label, "%s=%s@%s",
 		other->nick_name, other->user_name, other->host_name);
     else {
-	other_t *war = Other_by_id(other->war_id);
-
 	if (BIT(Setup->mode, TIMING)) {
 	    raceStr[0] = ' ';
 	    raceStr[1] = ' ';
@@ -509,23 +448,19 @@ void Paint_score_entry(int entry_num, other_t *other, bool is_team)
 		    7 - showScoreDecimals, showScoreDecimals,
 		    other->score);
 	else {
-	    int sc = rint(other->score);
+	    double score = other->score;
+	    int sc = (int)(score >= 0.0 ? score + 0.5 : score - 0.5);
 	    sprintf(scoreStr, "%6d", sc);
 	}
 
 	if (BIT(Setup->mode, TEAM_PLAY))
 	    sprintf(label, "%c%s %-15s%s",
 		    other->mychar, scoreStr, other->nick_name, lifeStr);
-	else {
+	else
 	    sprintf(label, "%c %s%s%s%s  %s",
 		    other->mychar, raceStr, teamStr,
 		    scoreStr, lifeStr,
 		    other->nick_name);
-	    if (war) {
-		if (strlen(label) + strlen(war->nick_name) + 5 < sizeof(label))
-		    sprintf(label + strlen(label), " (%s)", war->nick_name);
-	    }
-	}
     }
 
     /*
@@ -570,7 +505,7 @@ void Paint_score_entry(int entry_num, other_t *other, bool is_team)
      * Underline the teams
      */
     if (is_team) {
-	lineRGBA(scoreListWin.surface, scoreEntryRect.x,
+	lineRGBA(scoreListWin.surface, scoreEntryRect.x, 
 		 scoreEntryRect.y + line->h - 1,
 		 scoreEntryRect.x + scoreEntryRect.w,
 		 scoreEntryRect.y + line->h - 1,

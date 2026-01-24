@@ -115,7 +115,6 @@
 <Option name="playersonradar" value="yes"/>
 <Option name="keepshots" value="no"/>
 <Option name="allownukes" value="no"/>
-<Option name="cloakedshield" value="yes"/>
 <Option name="shieldedmining" value="no"/>
 <Option name="allowplayercrashes" value="yes"/>
 <Option name="ballswallbounce" value="yes"/>
@@ -161,7 +160,6 @@
 <Option name="restrictrobots" value="yes"/>
 <Option name="itemconcentratorvisible" value="yes"/>
 <Option name="itemenergypackprob" value="0"/>
-<Option name="shotspeed" value="21.0"/>
 <Option name="itemconcentratorradius" value="10"/>
 <Option name="maxmissilesperpack" value="4"/>
 <Option name="crashscoremult" value="0.33"/>
@@ -169,108 +167,7 @@
 <Option name="shovekillscoremult" value="0.5"/>
 <Option name="wormholevisible" value="yes"/>
 <Option name="mapwidth" value="3500"/>
-<Option name="mapdata" value="s   qxxxxxxxxxxxxxx                                                  axxxxw                        a
-&#xA;    xxxxxxxxxxxxxxs                                                    axxxw              qxw
-&#xA;    xxxxxxxxxxxs             qw                                         axxxxxxxxw       qxxxw
-&#xA;   qxxxxxxxs                qxx                                          xxxxxxxxx       xxxxxxxxw
-&#xA;  xxxxxxxxx                qxxs                  qxs                    qxxxxxxxxs      qxxxxxxxxx
-&#xA;  axxxxxxxx             qxxxxx                   as                     xxxsaxxs      qxxxxxxxxxxs
-&#xA;   axxsaxxs             xxxxxs                                                        xxxxxxxxxxs
-&#xA;                        axxxs                                                         xxxxxxs
-&#xA;                                                   qxxw qxxw                          axxxxx
-&#xA;xw                                               qxxxxxxxxxxw                          xxxxs      qx
-&#xA;xx             qw                                xxs axxxxxxxw              qw         xxxs       ax
-&#xA;xs        qxxw as                               qxx   axxs axxxw            as qxxw    axx         a
-&#xA;         qxxxx   1                              axs    as   axxxw          2   xxxxw    as
-&#xA;         xx*     xw                                           axs         qx     *xx
-&#xA;         xx      xx                                                       xx      xx
-&#xA;         ax      xs                                                       ax      xs        qxxw
-&#xA;  qxw                                                                                       xxxs
-&#xA; qxxx          1                                qxxxw   qxxxw                  2           qxxx
-&#xA; xxxx        xxxx                 qw            xxxxxxwqxxxxxxw             xxxx           xxxx
-&#xA; xxxx    q#w  axs   q#w         xxxxw          qxxxxxxxxxxxxxxxw      q#w   axs  q#w
-&#xA; axxx    #x#        #x#         axxxx      qx  xxxxxxxxxxxxxxxxs      #x#        #x#
-&#xA;  xxx    a#s  tb    a#s           asx     qxs qxxxxxxxxxxxxxs         a#s   tbby a#s
-&#xA;  axs         bb                   qx     as qxxxxxxxxxxxxxs                b  b
-&#xA;               b                   xs       qxxxxxxxxxxxxxs                   th          qxw
-&#xA;               b                           qxxxxxxxxs                        th           xxs
-&#xA;               b                          qxxxxxxxxs                        th           qxxw
-&#xA;              bbb                         xxxxxxxxx                         bbbb        qxxxx
-&#xA;                                          xxxxxxxxs     qxw                           qxxxxxxw
-&#xA;               qw      qxw                axxxxxxx      xxx           qxxw           qxxxxxxxx
-&#xA;               xx      xxx                 axxxxxx      xxs         qxxxxs           axxxxxxxs
-&#xA;               xx      axs                  xxxxxxw     xxw         axxxs             axxxxxs
-&#xA;              qxx                           xxxxxxx     xxx                            axxs
-&#xA;       qw     xxx                           xxxxxxx    qxxs
-&#xA;      qxxw    xxxw                          xxxxxxx    xxx
-&#xA;      xxxx    xxxx                          xxxxxxx   qxxx
-&#xA;      xxxxw   axxxw                         axxxxxx   xxxs
-&#xA;      xxxxx    xxxxxw                        xxxxxx   xxs
-&#xA;      xxxxx    xxxxxx                        xxxxxx  qxx
-&#xA;      axxxx    xxxxxx          qxw           axxxxx  xxs                          qxxw
-&#xA;       xxxx    xxxxxxw  w qx   xxx            xxxxs           qxw                 xxxx
-&#xA;       xxxx    axxxxxx  xwxs  qxxx            axxx            xxx                 axxs
-&#xA;       xxxx     xxxxxx  axs  qxxxs             axs            xxx
-&#xA;       axxx     axxxxx       xxxx                             axs
-&#xA;        axx      xxxxxw      xxxx
-&#xA;         xx     qxxxxxx     qxxxx                                       qxxxxw
-&#xA;         as    qxxxxxxxw   qxxxxx                                    qxxxxxxxx
-&#xA;               axxxxxxxxw  xxxxxxw                            qxxxwqxxxxxxxxxx
-&#xA;                 axxxxxxxxxxxxxxxxxxw                        qxxxxxxxxxxxxxxxs    qxw
-&#xA;                  xxxxxxxxxxxxxxxxxxs                      qxxxxxxxxxxxxxxxxs     xxxw
-&#xA;       qw         xxxxxxxxxxxxxxxxxs                       axxxxxxxxxxxxxxxx      axxxxx
-&#xA;      qxxw       qxxxxxxxxxxxxxxxxs                         axxxxxxs   xxxxx       xxxxx
-&#xA;      xxxs       xxxxxxs    axxxs                                      xxxxx       axxxx
-&#xA;      xxx       qxxxs                                                 qxxxxxw      qxxxs
-&#xA;      axs      qxxs                            qxw                    xxxxxxxw     xxxx w
-&#xA;               axs                            qxxx              qw  xw axxxxxx     xxxx x
-&#xA;                                             qxxxxw             xxwqxs  xxxxxx     axxs s
-&#xA;                        qxw                 qxxxxxx             axxxxxx axxxxx      xx
-&#xA;                        xxx                 axxxxxx              xxxxxxw xxxxx     qxx
-&#xA;                        xxx                 qxxxxxx              axxxxxx xxxxx     xxx
-&#xA;                        axs                qxxxxxxx               axxxx  axxxx     xxx
-&#xA;                                        qxxxxxxxxxx                axxx   xxxx    qxxx
-&#xA;                                       qxxxxxxxxxxx                 axxw  xxxs    xxxs
-&#xA;                                      qxxxxxxxxxxxs                  xxx  xxxw    xxx
-&#xA;                                      s     axxxxx                   axx  xxxxw   axs
-&#xA;                                    qs       axxxx                    xs   axxx
-&#xA;                                  qxx    qx   xxxx                          xxx
-&#xA;                               qxxxxs   qxx  qxxxxw          qxxw           axs
-&#xA; qxw                          qxxxxx    xxs  xxxxxx          xxxx
-&#xA;qxxxxxw                      xxxxxxxw    x   xxxxxx          axxx
-&#xA;xxxxxxxw                     xxxxxxxxw       xxxxxxw          axs
-&#xA;axxxxxxx                     xxxxxxxxxw     qxxxxxxxw                                      qxw
-&#xA; axxxxxx                     axxxxxxxxxxw  qxxxxxxxxx                                     qxxxxw
-&#xA;   axxxs                      xxxxxxxxxxxxxxxxxxxxxxxw                                    xxxxxx
-&#xA;                             qxxxxxxxxxxxxxxxxxxxxxxxx                                    axxxxxw
-&#xA;         q#w        q#w      xxxxxxxxxxxxxxxxxxxxxxxxx                q#w        q#w         axxx
-&#xA;         #x#        #x#     qxxs axxxxxs        axxxxx                #x#        #x#          axs
-&#xA;         a#s  qxw   a#s    xxxs   axxs             axs                a#s   qxw  a#s
-&#xA;             xxxx                                                           xxxx
-&#xA;   xw                                                                                    qw
-&#xA;  qxx     4                                                                       3      as
-&#xA; qxxx    qx      xw                                                       qx      xw
-&#xA; xxxx    xx      xx      qxxxw qxxxxxxxwqxw                               xx      xx
-&#xA;  axx    xx* 4   xs     qxxxxxxxxxxxxxxxxxxxxxxxx                         ax   3 *xx
-&#xA;         axxxx          axxxxxxxxxs  axxxxxxxxxs                               xxxxs
-&#xA;          axxs qw          axxxxxs    xxxxxxxxs                             qw axxs
-&#xA;               as            axxs     axxxxxxs                              as
-&#xA;           t                                                     qw            bbbb          qxxw
-&#xA;xw        th                                               qxw  qxx              th qxw      xxxxxxx
-&#xA;xx       thb                                               xxxxxxxs             th  xxxw      axxxxx
-&#xA;xs      th b                                               axxxxxs              bby axxx       axxxx
-&#xA;s       bbbbbb                                              axxxs                 b  xxxw       xxxx
-&#xA;           b        qxxw                                     axs                  b qxxxxw      axxs
-&#xA;           b        xxxx                                                       bbbh xxxxxxxw
-&#xA;                    axxx                                                           qxxxxxxxs
-&#xA;                     axx                                            qw             xxxxxxxs
-&#xA;                                                                    as             xxxxxxx
-&#xA;     qxw  qxw                                                                      axxsxxx
-&#xA;     axxxxxxxxw                                                                        axs
-&#xA;      axxxxxxxxw qw
-&#xA;w     qxxxxxxxxxxxx                                                  qxxw                          q
-&#xA;EndOfMapdata
-&#xA;"/>
+<Option name="mapdata" value="s   qxxxxxxxxxxxxxx                                                  axxxxw                        a&#xA;    xxxxxxxxxxxxxxs                                                    axxxw              qxw       &#xA;    xxxxxxxxxxxs             qw                                         axxxxxxxxw       qxxxw      &#xA;   qxxxxxxxs                qxx                                          xxxxxxxxx       xxxxxxxxw  &#xA;  xxxxxxxxx                qxxs                  qxs                    qxxxxxxxxs      qxxxxxxxxx  &#xA;  axxxxxxxx             qxxxxx                   as                     xxxsaxxs      qxxxxxxxxxxs  &#xA;   axxsaxxs             xxxxxs                                                        xxxxxxxxxxs   &#xA;                        axxxs                                                         xxxxxxs       &#xA;                                                   qxxw qxxw                          axxxxx        &#xA;xw                                               qxxxxxxxxxxw                          xxxxs      qx&#xA;xx             qw                                xxs axxxxxxxw              qw         xxxs       ax&#xA;xs        qxxw as                               qxx   axxs axxxw            as qxxw    axx         a&#xA;         qxxxx   1                              axs    as   axxxw          2   xxxxw    as          &#xA;         xx*     xw                                           axs         qx     *xx                &#xA;         xx      xx                                                       xx      xx                &#xA;         ax      xs                                                       ax      xs        qxxw    &#xA;  qxw                                                                                       xxxs    &#xA; qxxx          1                                qxxxw   qxxxw                  2           qxxx     &#xA; xxxx        xxxx                 qw            xxxxxxwqxxxxxxw             xxxx           xxxx     &#xA; xxxx    q#w  axs   q#w         xxxxw          qxxxxxxxxxxxxxxxw      q#w   axs  q#w                &#xA; axxx    #x#        #x#         axxxx      qx  xxxxxxxxxxxxxxxxs      #x#        #x#                &#xA;  xxx    a#s  tb    a#s           asx     qxs qxxxxxxxxxxxxxs         a#s   tbby a#s                &#xA;  axs         bb                   qx     as qxxxxxxxxxxxxxs                b  b                    &#xA;               b                   xs       qxxxxxxxxxxxxxs                   th          qxw       &#xA;               b                           qxxxxxxxxs                        th           xxs       &#xA;               b                          qxxxxxxxxs                        th           qxxw       &#xA;              bbb                         xxxxxxxxx                         bbbb        qxxxx       &#xA;                                          xxxxxxxxs     qxw                           qxxxxxxw      &#xA;               qw      qxw                axxxxxxx      xxx           qxxw           qxxxxxxxx      &#xA;               xx      xxx                 axxxxxx      xxs         qxxxxs           axxxxxxxs      &#xA;               xx      axs                  xxxxxxw     xxw         axxxs             axxxxxs       &#xA;              qxx                           xxxxxxx     xxx                            axxs         &#xA;       qw     xxx                           xxxxxxx    qxxs                                         &#xA;      qxxw    xxxw                          xxxxxxx    xxx                                          &#xA;      xxxx    xxxx                          xxxxxxx   qxxx                                          &#xA;      xxxxw   axxxw                         axxxxxx   xxxs                                          &#xA;      xxxxx    xxxxxw                        xxxxxx   xxs                                           &#xA;      xxxxx    xxxxxx                        xxxxxx  qxx                                            &#xA;      axxxx    xxxxxx          qxw           axxxxx  xxs                          qxxw              &#xA;       xxxx    xxxxxxw  w qx   xxx            xxxxs           qxw                 xxxx              &#xA;       xxxx    axxxxxx  xwxs  qxxx            axxx            xxx                 axxs              &#xA;       xxxx     xxxxxx  axs  qxxxs             axs            xxx                                   &#xA;       axxx     axxxxx       xxxx                             axs                                   &#xA;        axx      xxxxxw      xxxx                                                                   &#xA;         xx     qxxxxxx     qxxxx                                       qxxxxw                      &#xA;         as    qxxxxxxxw   qxxxxx                                    qxxxxxxxx                      &#xA;               axxxxxxxxw  xxxxxxw                            qxxxwqxxxxxxxxxx                      &#xA;                 axxxxxxxxxxxxxxxxxxw                        qxxxxxxxxxxxxxxxs    qxw               &#xA;                  xxxxxxxxxxxxxxxxxxs                      qxxxxxxxxxxxxxxxxs     xxxw              &#xA;       qw         xxxxxxxxxxxxxxxxxs                       axxxxxxxxxxxxxxxx      axxxxx            &#xA;      qxxw       qxxxxxxxxxxxxxxxxs                         axxxxxxs   xxxxx       xxxxx            &#xA;      xxxs       xxxxxxs    axxxs                                      xxxxx       axxxx            &#xA;      xxx       qxxxs                                                 qxxxxxw      qxxxs            &#xA;      axs      qxxs                            qxw                    xxxxxxxw     xxxx w           &#xA;               axs                            qxxx              qw  xw axxxxxx     xxxx x           &#xA;                                             qxxxxw             xxwqxs  xxxxxx     axxs s           &#xA;                        qxw                 qxxxxxx             axxxxxx axxxxx      xx              &#xA;                        xxx                 axxxxxx              xxxxxxw xxxxx     qxx              &#xA;                        xxx                 qxxxxxx              axxxxxx xxxxx     xxx              &#xA;                        axs                qxxxxxxx               axxxx  axxxx     xxx              &#xA;                                        qxxxxxxxxxx                axxx   xxxx    qxxx              &#xA;                                       qxxxxxxxxxxx                 axxw  xxxs    xxxs              &#xA;                                      qxxxxxxxxxxxs                  xxx  xxxw    xxx               &#xA;                                      s     axxxxx                   axx  xxxxw   axs               &#xA;                                    qs       axxxx                    xs   axxx                     &#xA;                                  qxx    qx   xxxx                          xxx                     &#xA;                               qxxxxs   qxx  qxxxxw          qxxw           axs                     &#xA; qxw                          qxxxxx    xxs  xxxxxx          xxxx                                   &#xA;qxxxxxw                      xxxxxxxw    x   xxxxxx          axxx                                   &#xA;xxxxxxxw                     xxxxxxxxw       xxxxxxw          axs                                   &#xA;axxxxxxx                     xxxxxxxxxw     qxxxxxxxw                                      qxw      &#xA; axxxxxx                     axxxxxxxxxxw  qxxxxxxxxx                                     qxxxxw    &#xA;   axxxs                      xxxxxxxxxxxxxxxxxxxxxxxw                                    xxxxxx    &#xA;                             qxxxxxxxxxxxxxxxxxxxxxxxx                                    axxxxxw   &#xA;         q#w        q#w      xxxxxxxxxxxxxxxxxxxxxxxxx                q#w        q#w         axxx   &#xA;         #x#        #x#     qxxs axxxxxs        axxxxx                #x#        #x#          axs   &#xA;         a#s  qxw   a#s    xxxs   axxs             axs                a#s   qxw  a#s                &#xA;             xxxx                                                           xxxx                    &#xA;   xw                                                                                    qw         &#xA;  qxx     4                                                                       3      as         &#xA; qxxx    qx      xw                                                       qx      xw                &#xA; xxxx    xx      xx      qxxxw qxxxxxxxwqxw                               xx      xx                &#xA;  axx    xx* 4   xs     qxxxxxxxxxxxxxxxxxxxxxxxx                         ax   3 *xx                &#xA;         axxxx          axxxxxxxxxs  axxxxxxxxxs                               xxxxs                &#xA;          axxs qw          axxxxxs    xxxxxxxxs                             qw axxs                 &#xA;               as            axxs     axxxxxxs                              as                      &#xA;           t                                                     qw            bbbb          qxxw   &#xA;xw        th                                               qxw  qxx              th qxw      xxxxxxx&#xA;xx       thb                                               xxxxxxxs             th  xxxw      axxxxx&#xA;xs      th b                                               axxxxxs              bby axxx       axxxx&#xA;s       bbbbbb                                              axxxs                 b  xxxw       xxxx&#xA;           b        qxxw                                     axs                  b qxxxxw      axxs&#xA;           b        xxxx                                                       bbbh xxxxxxxw        &#xA;                    axxx                                                           qxxxxxxxs        &#xA;                     axx                                            qw             xxxxxxxs         &#xA;                                                                    as             xxxxxxx          &#xA;     qxw  qxw                                                                      axxsxxx          &#xA;     axxxxxxxxw                                                                        axs          &#xA;      axxxxxxxxw qw                                                                                 &#xA;w     qxxxxxxxxxxxx                                                  qxxw                          q&#xA;EndOfMapdata&#xA;"/>
 <Option name="targetkillteam" value="no"/>
 <Option name="firerepeatrate" value="2"/>
 <Option name="initialrearshots" value="0"/>

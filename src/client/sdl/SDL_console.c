@@ -1,21 +1,21 @@
 /*
 	SDL_console: An easy to use drop-down console based on the SDL library
 	Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004 Clemens Wacha
-
+	
 	This library is free software; you can redistribute it and/or
 	modify it under the terms of the GNU Library General Public
 	License as published by the Free Software Foundation; either
 	version 2 of the License, or (at your option) any later version.
-
+	
 	This library is distributed in the hope that it will be useful,
 	but WHITOUT ANY WARRANTY; without even the implied warranty of
 	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 	Library General Public License for more details.
-
+	
 	You should have received a copy of the GNU Library Generla Public
 	License along with this library; if not, write to the Free
 	Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-
+	
 	Clemens Wacha
 	reflex-2000@gmx.net
 */
@@ -23,7 +23,7 @@
 /*  SDL_console.c
  *  Written By: Garrett Banuk <mongoose@mongeese.org>
  *  Code Cleanup and heavily extended by: Clemens Wacha <reflex-2000@gmx.net>
- *  Modified for XPilotNG/SDL: Juha Lindstrï¿½m <juhal@users.sourceforge.net>
+ *  Modified for XPilotNG/SDL: Juha Lindström <juhal@users.sourceforge.net>
  */
 
 #include "xpclient_sdl.h"
@@ -42,7 +42,7 @@
 static ConsoleInformation *Topmost;
 
 /*  Takes keys from the keyboard and inputs them to the console
-    If the event was not handled (i.e. WM events or unknown ctrl-shift
+    If the event was not handled (i.e. WM events or unknown ctrl-shift 
     sequences) the function returns the event for further processing. */
 SDL_Event *CON_Events(SDL_Event * event)
 {
@@ -89,11 +89,6 @@ SDL_Event *CON_Events(SDL_Event * event)
 	    return event;
 #endif
 	} else {
-	    /* first of all, check if the console hide key was pressed */
-	    if (event->key.keysym.sym == Topmost->HideKey) {
-		CON_Hide(Topmost);
-		return NULL;
-	    }
 	    switch (event->key.keysym.sym) {
 	    case SDLK_HOME:
 		if (event->key.keysym.mod & KMOD_SHIFT) {
@@ -165,10 +160,27 @@ SDL_Event *CON_Events(SDL_Event * event)
 		    Clear_Command(Topmost);
 		    Topmost->CommandScrollBack = -1;
 		}
+		else
+		    /* deactivate Console if return is pressed on empty line */
+		    
+		    /* was: CON_Hide(Topmost); */
+		    Talk_set_state(false);
 		break;
 	    case SDLK_ESCAPE:
+			if (strlen(Topmost->Command) > 0) {
+		    CON_NewLineCommand(Topmost);
+
+		    /* copy the input into the past commands strings */
+		    strcpy(Topmost->CommandLines[0], Topmost->Command);
+
+		    Clear_Command(Topmost);
+		    Topmost->CommandScrollBack = -1;
+			}
 		/* deactivate Console */
-		CON_Hide(Topmost);
+
+		/*was: CON_Hide(Topmost);*/
+		Talk_set_state(false);
+		
 		return NULL;
 	    default:
 		if (Topmost->InsMode)
@@ -340,7 +352,7 @@ ConsoleInformation *CON_Init(const char *FontName,
     newinfo->CursorPos = 0;
     newinfo->CommandScrollBack = 0;
     newinfo->OutputScreen = DisplayScreen;
-    newinfo->Prompt = CON_DEFAULT_PROMPT;
+    newinfo->Prompt = (char *)&CON_DEFAULT_PROMPT;
     newinfo->HideKey = CON_DEFAULT_HIDEKEY;
 
     CON_SetExecuteFunction(newinfo, Default_CmdFunction);
@@ -654,7 +666,7 @@ void CON_Out(ConsoleInformation * console, const char *str, ...)
        width so we have to cut it into several pieces */
 
     if (console->ConsoleLines) {
-	while (strlen(ptemp) > console->VChars) {
+	while ((int)strlen(ptemp) > console->VChars) {
 	    CON_NewLineConsole(console);
 	    strncpy(console->ConsoleLines[0], ptemp, console->VChars);
 	    console->ConsoleLines[0][console->VChars] = '\0';
@@ -880,13 +892,13 @@ void CON_Topmost(ConsoleInformation * console)
 }
 
 /* Sets the Prompt for console */
-void CON_SetPrompt(ConsoleInformation * console, char *newprompt)
+void CON_SetPrompt(ConsoleInformation * console, const char *newprompt)
 {
     if (!console)
 	return;
 
     /* check length so we can still see at least 1 char :-) */
-    if (strlen(newprompt) < console->VChars)
+    if ((int)strlen(newprompt) < console->VChars)
 	console->Prompt = strdup(newprompt);
     else
 	CON_Out(console, "prompt too long. (max. %i chars)",
@@ -995,7 +1007,7 @@ void Cursor_Right(ConsoleInformation * console)
 {
     char temp[CON_CHARS_PER_LINE + 1];
 
-    if (Topmost->CursorPos < strlen(Topmost->Command)) {
+    if (Topmost->CursorPos < (int)strlen(Topmost->Command)) {
 	Topmost->CursorPos++;
 	strncat(Topmost->LCommand, Topmost->RCommand, 1);
 	strcpy(temp, Topmost->RCommand);
@@ -1061,6 +1073,25 @@ void Cursor_Add(ConsoleInformation * console, SDL_Event * event)
     }
 }
 
+void Add_String_to_Console(char *text)
+{
+
+    int len = 0, textlen, i;
+    
+    textlen = (int)strlen(text);
+    
+    for ( i = 0 ; i < textlen; ++i) {
+    	/* Again: the commandline has to hold the command and the cursor (+1) */
+    	if (strlen(Topmost->Command) + 1 < CON_CHARS_PER_LINE) {
+	    Topmost->CursorPos++;
+	    len = strlen(Topmost->LCommand);
+	    Topmost->LCommand[len] = text[i];
+	    Topmost->LCommand[len + sizeof(char)] = '\0';
+	    Assemble_Command(Topmost);
+    	}
+    }
+}
+
 void Clear_Command(ConsoleInformation * console)
 {
     Topmost->CursorPos = 0;
@@ -1092,6 +1123,7 @@ void Clear_History(ConsoleInformation * console)
 void Command_Up(ConsoleInformation * console)
 {
     if (console->CommandScrollBack < console->TotalCommands - 1) {
+		if (console->CommandScrollBack == -1) strcpy(console->BackupCommand,console->LCommand);
 	/* move back a line in the command strings and copy the command to the current input string */
 	console->CommandScrollBack++;
 	/* I want to know if my string handling REALLY works :-) */
@@ -1120,8 +1152,9 @@ void Command_Down(ConsoleInformation * console)
 
 	console->Offset = 0;
 	if (console->CommandScrollBack > -1)
-	    strcpy(console->LCommand,
-		   console->CommandLines[console->CommandScrollBack]);
+	    strcpy(console->LCommand, console->CommandLines[console->CommandScrollBack]);
+	else
+			strcpy(console->LCommand,console->BackupCommand);
 	console->CursorPos = strlen(console->LCommand);
 	Assemble_Command(console);
     }

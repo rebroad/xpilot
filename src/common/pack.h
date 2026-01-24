@@ -1,11 +1,11 @@
-/*
- * XPilotNG, an XPilot-like multiplayer space war game.
+/* 
+ * XPilot NG, a multiplayer space war game.
  *
  * Copyright (C) 2000-2004 Uoti Urpala <uau@users.sourceforge.net>
  *
  * Copyright (C) 1991-2001 by
  *
- *      Bjï¿½rn Stabell        <bjoern@xpilot.org>
+ *      Bjørn Stabell        <bjoern@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
  *      Dick Balaska         <dick@xpilot.org>
@@ -57,11 +57,11 @@
  * 3.0.3: implemented a version awareness system, so that
  * newer clients can join older servers and so that
  * newer servers can support older clients.
- * The client maintains a `version' variable indicating
+ * The client maintains a 'version' variable indicating
  * the version of the server it has joined and the server
- * maintains for each connection a `connection_t->version'
- * and a `player->version' variable.
- * 3.0.4: the so-called `pizza-mode' introduced a new packet type.
+ * maintains for each connection a 'connection_t->version'
+ * and a 'player->version' variable.
+ * 3.0.4: the so-called 'pizza-mode' introduced a new packet type.
  * The score packet now also includes pl->mychar.
  * 3.0.4.1: new laser weapon introduces another packet change.
  * Because there is an unofficial (and forbidden) 3.0.4 version floating
@@ -109,15 +109,21 @@
  * 4.F.1.2: Show ships about to appear on bases, new team change packet.
  * 4.F.1.3: cumulative turning
  * 4.F.1.4: balls use polygon styles
+ * 4.F.1.5: Possibility to change polygon styles.
  */
+#define MAGIC_WORD		0xF4ED
+#define POLYGON_VERSION		0x4F15
+#define OLD_VERSION		0x4501
 #ifdef SERVER
-#define	MAGIC		(is_polygon_map ? 0x4F14F4ED : 0x4501F4ED)
+#define	MAGIC (is_polygon_map \
+               ? VERSION2MAGIC(POLYGON_VERSION) \
+               : VERSION2MAGIC(OLD_VERSION))
 #else
-#define	MAGIC		0x4F14F4ED
+#define	MAGIC (VERSION2MAGIC(protocolVersion))
 #endif
 
 #define MAGIC2VERSION(M)	(((M) >> 16) & 0xFFFF)
-#define VERSION2MAGIC(V)	((((V) & 0xFFFF) << 16) | (MAGIC & 0xFFFF))
+#define VERSION2MAGIC(V)	((((V) & 0xFFFF) << 16) | MAGIC_WORD)
 #define MY_VERSION		MAGIC2VERSION(MAGIC)
 
 /*

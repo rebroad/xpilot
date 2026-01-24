@@ -1,8 +1,8 @@
-/*
+/* 
  *
  * XPilot, a multiplayer gravity war game.  Copyright (C) 1991-2001 by
  *
- *      Bjï¿½rn Stabell        <bjoern@xpilot.org>
+ *      Bjørn Stabell        <bjoern@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
  *      Dick Balaska         <dick@xpilot.org>
@@ -328,14 +328,14 @@ extern "C" void DoWinAboutBox()
     theApp.OnCmdMsg(ID_APP_ABOUT, 0, NULL, NULL);
 }
 
-extern "C" int scoresChanged;
+extern "C" bool scoresChanged;
 
 void CXpilotView::OnActivateView(BOOL bActivate, CView * pActivateView,
 				 CView * pDeactiveView)
 {
     // TODO: Add your specialized code here and/or call the base class
     if (bActivate)
-	scoresChanged = 1;
+	scoresChanged = true;
 
     CView::OnActivateView(bActivate, pActivateView, pDeactiveView);
 }

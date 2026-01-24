@@ -1,9 +1,9 @@
-/*
- * XPilotNG, an XPilot-like multiplayer space war game.
+/* 
+ * XPilot NG, a multiplayer space war game.
  *
  * Copyright (C) 1991-2001 by
  *
- *      Bjï¿½rn Stabell        <bjoern@xpilot.org>
+ *      Bjørn Stabell        <bjoern@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
  *      Dick Balaska         <dick@xpilot.org>
@@ -25,13 +25,11 @@
 
 #include "xpcommon.h"
 
-char net_version[] = VERSION;
-
 int last_packet_of_frame;
 
 int Sockbuf_init(sockbuf_t *sbuf, sock_t *sock, size_t size, int state)
 {
-    if ((sbuf->buf = sbuf->ptr = malloc(size)) == NULL)
+    if ((sbuf->buf = sbuf->ptr = XMALLOC(char, size)) == NULL)
 	return -1;
 
     if (sock != NULL)
@@ -49,8 +47,7 @@ int Sockbuf_init(sockbuf_t *sbuf, sock_t *sock, size_t size, int state)
 
 int Sockbuf_cleanup(sockbuf_t *sbuf)
 {
-    if (sbuf->buf != NULL)
-	free(sbuf->buf);
+    XFREE(sbuf->buf);
 
     sbuf->buf = sbuf->ptr = NULL;
     sbuf->size = sbuf->len = 0;
@@ -290,16 +287,16 @@ int Sockbuf_read(sockbuf_t *sbuf)
 	    }
 #endif
 /*
-		Trace("errno=%d (%s) len = %d during sock_read\n",
+		Trace("errno=%d (%s) len = %d during sock_read\n", 
 			errno, _GetWSockErrText(errno), len);
-*/
+*/			
 	    if (++i > MAX_SOCKBUF_RETRIES) {
 		error("Can't recv on socket");
 		return -1;
 	    }
 	    {
 		static int recv_err;
-
+		
 		if ((recv_err++ & 0x3F) == 0)
 		    error("recv (%d)", i);
 	    }

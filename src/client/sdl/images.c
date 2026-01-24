@@ -1,7 +1,7 @@
 /*
  * XPilotNG/SDL, an SDL/OpenGL XPilot client.
  *
- * Copyright (C) 2003-2004 Juha Lindstrï¿½m <juhal@users.sourceforge.net>
+ * Copyright (C) 2003-2004 Juha Lindström <juhal@users.sourceforge.net>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,21 +27,22 @@ static image_t *images = NULL;
 static int num_images = 0, max_images = 0;
 static int first_texture = 0;
 
-static int pow2_ceil(int t)
+static int pow2_ceil(int t) 
 {
     int r = 1;
     while (r < t) r <<= 1;
-    return r;
+    return r;   
 }
 
 static int Image_init(image_t *img)
 {
-    int           i, x, y;
-    xp_picture_t  pic;
-
-    if (img->state != IMG_STATE_UNINITIALIZED)
+    int i, x, y;
+    xp_picture_t pic;
+    RGB_COLOR c;
+    
+    if (img->state != IMG_STATE_UNINITIALIZED) 
 	return -1;
-
+	
     if (Picture_init(&pic,
 		     img->filename,
 		     img->num_frames * (img->rotate ? 1 : -1)) == -1) {
@@ -54,53 +55,49 @@ static int Image_init(image_t *img)
     img->frame_width = img->width / img->num_frames;
     img->data_width = pow2_ceil(img->width);
     img->data_height = pow2_ceil(img->height);
-
-    printf("Loaded image %s: w=%d, h=%d, fw=%d, dw=%d, dh=%d\n",
-	   img->filename, img->width, img->height, img->frame_width,
-	   img->data_width, img->data_height);
-
-    img->data = calloc(img->data_width * img->data_height, sizeof(unsigned int));
+	
+    warn("Loaded image %s: w=%d, h=%d, fw=%d, dw=%d, dh=%d",
+	 img->filename, img->width, img->height, img->frame_width,
+	 img->data_width, img->data_height);
+	
+    img->data = XCALLOC(unsigned int, img->data_width * img->data_height);
     if (img->data == NULL) {
         error("Failed to allocate memory for: %s size %dx%d",
               img->filename, img->data_width, img->data_height);
 	img->state = IMG_STATE_ERROR;
 	return -1;
     }
+
     for (i = 0; i < img->num_frames; i++) {
 	for (y = 0; y < img->height; y++) {
 	    for (x = 0; x < img->frame_width; x++) {
+		/* the pixels needs to be mirrored over x-axis because
+		 * of the used OpenGL projection */
+		c = Picture_get_pixel(&pic, i, x, img->height - y - 1);
+		if (c)
+		    c |= 0xff000000; /* alpha */
 		img->data[(x + img->frame_width * i) + (y * img->data_width)]
-		    /* the pixels needs to be mirrored over x-axis because
-		     * of the used OpenGL projection */
-		    = Picture_get_pixel(&pic, i, x, img->height - y - 1)
-		    | 0xff000000; /* alpha */
-		if (!(img->data[(x + img->frame_width * i) + (y * img->data_width)] & 0x00ffffff))
-		    img->data[(x + img->frame_width * i) + (y * img->data_width)] = 0x00000000;
+		    = c;
 	    }
 	}
     }
+
     glGenTextures(1, &img->name);
     glBindTexture(GL_TEXTURE_2D, img->name);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, img->data_width, img->data_height,
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, img->data_width, img->data_height, 
                  0, GL_RGBA, GL_UNSIGNED_BYTE, img->data);
-    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER,
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, 
                     GL_NEAREST);
-    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, 
                     GL_NEAREST);
-
+	
     img->state = IMG_STATE_READY;
     return 0;
 }
 
-static void Image_free(image_t *img) {
-    if (img->filename != NULL) {
-	free(img->filename);
-	img->filename = NULL;
-    }
-    if (img->filename != NULL) {
-	free(img->filename);
-	img->filename = NULL;
-    }
+static void Image_free(image_t *img)
+{
+    XFREE(img->filename);
     if (img->state == IMG_STATE_READY) {
 	glDeleteTextures(1, &img->name);
 	/* this causes a Segmentation Fault for some reason
@@ -114,9 +111,11 @@ image_t *Image_get(int ind) {
 
     image_t *img;
 
-    if (ind >= num_images) return NULL;
+    if (ind >= num_images)
+	return NULL;
     img = &images[ind];
-    if (img == NULL) return NULL;
+    if (img == NULL)
+	return NULL;
     if (img->state == IMG_STATE_UNINITIALIZED)
 	Image_init(img);
     if (img->state != IMG_STATE_READY)
@@ -124,7 +123,7 @@ image_t *Image_get(int ind) {
     return img;
 }
 
-image_t *Image_get_texture(int ind)
+image_t *Image_get_texture(int ind) 
 {
     return Image_get(first_texture + ind);
 }
@@ -132,18 +131,21 @@ image_t *Image_get_texture(int ind)
 void Image_use_texture(int ind)
 {
     image_t *img = Image_get_texture(ind);
+
     glEnable(GL_TEXTURE_2D);
     glEnable(GL_BLEND);
+
     if (img == NULL) {
-	printf("texture %d is undefined\n", ind);
+	warn("Texture %d is undefined.\n", ind);
+	return;
     }
-    if (img == NULL) return;
+
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glBindTexture(GL_TEXTURE_2D, img->name);
     glColor4ub(255, 255, 255, 255);
 }
 
-void Image_no_texture()
+void Image_no_texture(void)
 {
     /*glDisable(GL_BLEND);*/
     glDisable(GL_TEXTURE_2D);
@@ -154,15 +156,16 @@ void Image_paint(int ind, int x, int y, int frame, int c)
     Image_paint_area(ind, x, y, frame, NULL, c);
 }
 
-
 void Image_paint_area(int ind, int x, int y, int frame, irec_t *r, int c)
 {
     image_t *img;
-    irec_t    whole;
-    float   tx1, ty1, tx2, ty2;
+    irec_t whole;
+    float tx1, ty1, tx2, ty2;
 
     img = Image_get(ind);
-    if (img == NULL) return;
+    if (img == NULL)
+	return;
+
     if (r == NULL) {
 	whole.x = 0;
 	whole.y = 0;
@@ -175,9 +178,7 @@ void Image_paint_area(int ind, int x, int y, int frame, irec_t *r, int c)
     ty1 = ((float)r->y) / img->data_height;
     tx2 = ((float)frame * img->frame_width + r->x + r->w) / img->data_width;
     ty2 = ((float)r->y + r->h) / (img->data_height);
-    /* this above -1 seems to keep individual stationary textures from changing */
-    /* for fixing moving textures... dunno except going to window choords =( */
-
+    
     glBindTexture(GL_TEXTURE_2D, img->name);
     glEnable(GL_TEXTURE_2D);
     glEnable(GL_BLEND);
@@ -189,10 +190,56 @@ void Image_paint_area(int ind, int x, int y, int frame, irec_t *r, int c)
     glTexCoord2f(tx2, ty1); glVertex2i(x + r->w , y 	    );
     glTexCoord2f(tx2, ty2); glVertex2i(x + r->w , y + r->h  );
     glTexCoord2f(tx1, ty2); glVertex2i(x    	, y + r->h  );
-    glEnd();
+    glEnd();    
 
     glDisable(GL_BLEND);
     glDisable(GL_TEXTURE_2D);
+}
+
+void Image_paint_rotated(int ind, int x, int y, int dir, int color)
+{
+    image_t *img;
+    irec_t whole;
+    float tx1, ty1, tx2, ty2;
+
+    img = Image_get(ind);
+    if (img == NULL)
+	return;
+
+    whole.x = 0;
+    whole.y = 0;
+    whole.w = img->frame_width;
+    whole.h = img->height;
+
+    tx1 = 0.0;
+    ty1 = 0.0;
+    tx2 = img->frame_width / (double)img->data_width;
+    ty2 = img->height / (double)img->data_height;
+
+    glPushMatrix();
+    glTranslatef((GLfloat)(x), (GLfloat)(y), 0.0);
+    glRotatef(360.0 * dir / (double)TABLE_SIZE, 0.0, 0.0, 1.0);
+    
+    glBindTexture(GL_TEXTURE_2D, img->name);
+    glEnable(GL_TEXTURE_2D);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    /* Linear Filtering */
+    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
+    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+    set_alphacolor(color);
+
+    glBegin(GL_QUADS);
+    glTexCoord2f(tx1, ty1); glVertex2f( -whole.w / 2.0 ,    -whole.h / 2.0  );
+    glTexCoord2f(tx2, ty1); glVertex2f( whole.w / 2.0  ,    -whole.h / 2.0  );
+    glTexCoord2f(tx2, ty2); glVertex2f( whole.w / 2.0  ,    whole.h / 2.0   );
+    glTexCoord2f(tx1, ty2); glVertex2f( -whole.w / 2.0 ,    whole.h / 2.0   );
+    glEnd();    
+
+    glDisable(GL_BLEND);
+    glDisable(GL_TEXTURE_2D);
+
+    glPopMatrix();
 }
 
 
@@ -203,11 +250,11 @@ int Images_init(void)
     DEF_IMG("holder1.ppm", 1);
     DEF_IMG("holder2.ppm", 1);
     DEF_IMG("ball_gray.ppm", 1);
-    DEF_IMG("ship_red.ppm", 128);
-    DEF_IMG("ship_blue.ppm", 128);
-    DEF_IMG("ship_red2.ppm", 128);
-    DEF_IMG("bullet.ppm", -8);
-    DEF_IMG("bullet_blue.ppm", -8);
+    DEF_IMG("ship_friend.ppm", 1); /* 128 fails in some OpenGL drivers */
+    DEF_IMG("ship_friend.ppm", 1); /* I guess texture gets too wide (4096) */
+    DEF_IMG("ship_enemy.ppm", 1);
+    DEF_IMG("bullet.ppm", -16);
+    DEF_IMG("bullet_blue.ppm", -16);
     DEF_IMG("base_down.ppm", 1);
     DEF_IMG("base_left.ppm", 1);
     DEF_IMG("base_up.ppm", 1);
@@ -222,20 +269,22 @@ int Images_init(void)
     DEF_IMG("sparks.ppm", -8);
     DEF_IMG("paused.ppm", -2);
     DEF_IMG("refuel.ppm", -4);
-    DEF_IMG("wormhole.ppm", 8);
+    DEF_IMG("wormhole.ppm", 1);
     DEF_IMG("mine_team.ppm", 1);
     DEF_IMG("mine_other.ppm", 1);
-    DEF_IMG("concentrator.ppm", 32);
+    DEF_IMG("concentrator.ppm", 1);
     DEF_IMG("plus.ppm", 1);
     DEF_IMG("minus.ppm", 1);
     DEF_IMG("checkpoint.ppm", -2);
     DEF_IMG("meter.ppm", -2);
-    DEF_IMG("asteroidconcentrator.ppm", 32);
+    DEF_IMG("asteroidconcentrator.ppm", 1);
     DEF_IMG("shield.ppm", 1);
     DEF_IMG("acwise_grav.ppm", -6);
     DEF_IMG("cwise_grav.ppm", -6);
-    DEF_IMG("missile.ppm", 32);
+    DEF_IMG("missile.ppm", 1);
     DEF_IMG("asteroid.ppm", 1);
+    DEF_IMG("target.ppm", 1);
+    DEF_IMG("huditems.ppm", -30);
 
     first_texture = num_images;
 
@@ -248,11 +297,13 @@ void Images_cleanup(void)
 {
     int i;
 
-    if (images == NULL) return;
+    if (images == NULL)
+	return;
+
     for (i = 0; i < num_images; i++)
 	Image_free(images + i);
-    free(images);
-    images = NULL;
+
+    XFREE(images);
 }
 
 

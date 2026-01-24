@@ -1,7 +1,7 @@
-/*
+/* 
  * XPilot, a multiplayer gravity war game.  Copyright (C) 1991-2001 by
  *
- *      Bjï¿½rn Stabell        <bjoern@xpilot.org>
+ *      Bjørn Stabell        <bjoern@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
  *      Dick Balaska         <dick@xpilot.org>
@@ -29,7 +29,7 @@
 *																			*
 *  						*
 \***************************************************************************/
-#include "../../client/xpclient_x11.h"
+#include "../../client/NT/xpclient_x11.h"
 /*
 #include "winX.h"
 #include "windows.h"
@@ -390,7 +390,7 @@ LRESULT CALLBACK WinXwindowProc(HWND hwnd, UINT uMsg, WPARAM wParam,
 	    XID i;
 	    XAnyEvent *enter = (XAnyEvent *) & event;
 
-	    /* Trace("MouseMove in %d %d/%d %s:%d\n", xidno,
+	    /* Trace("MouseMove in %d %d/%d %s:%d\n", xidno, 
 	       LOWORD(lParam), HIWORD(lParam), xid[xidno].any.file, xid[xidno].any.line); */
 
 	    enter->type = LeaveNotify;
@@ -840,13 +840,13 @@ Pixmap WinXCreateBitmapFromData(Display * dpy, Drawable d, char *data,
     WORD *e;
 
     BITMAP bm = {
-	0,			//   LONG   bmType;
-	16,			//   LONG   bmWidth;
-	16,			//   LONG   bmHeight;
-	4,			//   LONG   bmWidthBytes;
-	1,			//   WORD   bmPlanes;
-	1,			//   WORD   bmBitsPixel;
-	NULL			//   LPVOID bmBits;
+	0,			//   LONG   bmType; 
+	16,			//   LONG   bmWidth; 
+	16,			//   LONG   bmHeight; 
+	4,			//   LONG   bmWidthBytes; 
+	1,			//   WORD   bmPlanes; 
+	1,			//   WORD   bmBitsPixel; 
+	NULL			//   LPVOID bmBits; 
     };
     RECT rect = { 0, 0, 16, 16 };
 
@@ -894,7 +894,7 @@ void WinXResize(void)
     draw_width = WinXUnscale(draw_width);
     draw_height = WinXUnscale(draw_height);
 
-    if (radarWindow && (instruments.showSlidingRadar)) {
+    if (radarWindow && (instruments.slidingRadar)) {
 	GetClientRect(xid[radarWindow].hwnd.hWnd, &rect);
 	InvalidateRect(xid[radarWindow].hwnd.hWnd, &rect, FALSE);
     }

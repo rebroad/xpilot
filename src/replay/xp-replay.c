@@ -1,7 +1,7 @@
-/*
+/* 
  * XP-Replay, playback an XPilot session.  Copyright (C) 1994-98 by
  *
- *      Bjï¿½rn Stabell        <bjoern@xpilot.org>
+ *      Bjørn Stabell        <bjoern@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
  *      Steven Singer        (S.Singer@ph.surrey.ac.uk)
@@ -249,6 +249,7 @@ struct xprc {
     double		gamma;		/* gamma correction when saving */
     struct errorwin	*ewin;		/* Error display window */
     tile_list_t		*tlist;		/* list of pixmaps */
+    int     		linewidth;	/* linewidth */
 };
 
 enum LabelDataTypes {
@@ -396,7 +397,9 @@ static int		verbose = 0;	/* want extra info messages */
 static int		compress = 0;	/* save files in compressed format */
 static int		frame_count;	/* number of frame next read in */
 static int		frames_in_core;	/* number of frame next read in */
+#ifdef USE_GCLIST
 static struct rGC	*gclist;	/* list of all GCs used */
+#endif
 static int		forceRedraw = False;
 static int		quit = 0;
 static struct xprc	*purge_argument;
@@ -503,24 +506,10 @@ void *MyMalloc(size_t size, enum MemTypes mt)
     return p;
 }
 
-#if 0
-/*
- * Wrapper for strdup(3).
- * This one uses MyMalloc() instead of malloc()
- */
-static char *MyStrDup(const char *str)
-{
-    size_t size = strlen(str) + 1;
-    char *dup = (char *) MyMalloc(size, MEM_STRING);
-    memcpy(dup, str, size);
-    return dup;
-}
-#endif
-
 /*
  * Read one 8-bit byte from the recorded input stream.
  */
-static unsigned char RReadByte(FILE *fp)
+static inline unsigned char RReadByte(FILE *fp)
 {
     return (unsigned char) (getc(fp));
 }
@@ -528,7 +517,7 @@ static unsigned char RReadByte(FILE *fp)
 /*
  * Read one 16-bit unsigned word from the recorded input stream.
  */
-static unsigned short RReadUShort(FILE *fp)
+static inline unsigned short RReadUShort(FILE *fp)
 {
     unsigned short i;
 
@@ -541,7 +530,7 @@ static unsigned short RReadUShort(FILE *fp)
 /*
  * Read one 16-bit signed word from the recorded input stream.
  */
-static short RReadShort(FILE *fp)
+static inline short RReadShort(FILE *fp)
 {
     short i;
 
@@ -556,7 +545,7 @@ static short RReadShort(FILE *fp)
 /*
  * Read one 32-bit unsigned longword from the recorded input stream.
  */
-static unsigned long RReadULong(FILE *fp)
+static inline unsigned long RReadULong(FILE *fp)
 {
     unsigned long	i;
 
@@ -571,7 +560,7 @@ static unsigned long RReadULong(FILE *fp)
 /*
  * Read one 32-bit signed longword from the recorded input stream.
  */
-static long RReadLong(FILE *fp)
+static inline long RReadLong(FILE *fp)
 {
     long i;
 
@@ -587,14 +576,14 @@ static long RReadLong(FILE *fp)
  * Read a pascal-type string from the recorded input stream
  * and convert it to a nul-byte terminated C-string.
  */
-static char *RReadString(FILE *fp)
+static inline char *RReadString(FILE *fp)
 {
     char		*s;
     int			i;
     size_t		len;
 
     len = RReadUShort(fp);
-    s = MyMalloc(len + 1, MEM_STRING);
+    s = (char *)MyMalloc(len + 1, MEM_STRING);
     s[len] = '\0';
     for (i = 0; i < (int)len; i++)
 	s[i] = getc(fp);
@@ -646,7 +635,7 @@ static int RReadHeader(struct xprc *rc)
 	rc->fps = fps;
     rc->recorddate = RReadString(rc->fp);
     rc->maxColors = (unsigned char) getc(rc->fp);
-    rc->colors = MyMalloc(rc->maxColors * sizeof(XColor), MEM_MISC);
+    rc->colors = (XColor *)MyMalloc(rc->maxColors * sizeof(XColor), MEM_MISC);
     for (i = 0; i < rc->maxColors; i++) {
 	rc->colors[i].pixel = RReadULong(rc->fp);
 	rc->colors[i].red = RReadUShort(rc->fp);
@@ -712,7 +701,7 @@ static Pixmap RReadTile(struct xprc *rc)
 	fprintf(stderr, "Can't create XImage %ux%u", width, height);
 	exit(1);
     }
-    img->data = MyMalloc(img->bytes_per_line * height, MEM_GC);
+    img->data = (char *)MyMalloc(img->bytes_per_line * height, MEM_GC);
     for (y = 0; y < img->height; y++) {
 	for (x = 0; x < img->width; x++) {
 	    ch = RReadByte(rc->fp);
@@ -728,7 +717,7 @@ static Pixmap RReadTile(struct xprc *rc)
     XPutImage(dpy, tile, rc->gc, img, 0, 0, 0, 0, width, height);
     XDestroyImage(img);
 
-    if (!(lptr = malloc(sizeof(tile_list_t)))) {
+    if (!(lptr = XMALLOC(tile_list_t, 1))) {
 	perror("memory");
 	exit(1);
     }
@@ -776,6 +765,8 @@ static struct rGC *RReadGCValues(struct xprc *rc)
 	if (input_mask & RC_GC_LW) {
 	    gc.mask |= GCLineWidth;
 	    gc.line_width = RReadByte(rc->fp);
+	    if(rc->linewidth)
+	    	gc.line_width = rc->linewidth;
 	}
 	if (input_mask & RC_GC_LS) {
 	    gc.mask |= GCLineStyle;
@@ -795,7 +786,7 @@ static struct rGC *RReadGCValues(struct xprc *rc)
 	    if (gc.num_dashes == 0) {
 		gc.dash_list = NULL;
 	    } else {
-		gc.dash_list = MyMalloc(gc.num_dashes, MEM_GC);
+		gc.dash_list = (char *)MyMalloc(gc.num_dashes, MEM_GC);
 		for (i = 0; i < gc.num_dashes; i++)
 		    gc.dash_list[i] = RReadByte(rc->fp);
 	    }
@@ -820,6 +811,11 @@ static struct rGC *RReadGCValues(struct xprc *rc)
 	}
     }
 
+    /*
+     * kps - This linked list of GCs is very inefficient for some
+     * big recordings.
+     */
+#ifdef USE_GCLIST
     for (gcp = gclist; gcp != NULL; gcp = gcp->next) {
 	if (gcp->mask != gc.mask)
 	    continue;
@@ -854,10 +850,13 @@ static struct rGC *RReadGCValues(struct xprc *rc)
 	}
 	return gcp;
     }
-    gcp = MyMalloc(sizeof(*gcp), MEM_GC);
+#endif
+    gcp = (struct rGC *)MyMalloc(sizeof(*gcp), MEM_GC);
     memcpy(gcp, &gc, sizeof(*gcp));
+#ifdef USE_GCLIST
     gcp->next = gclist;
     gclist = gcp;
+#endif
 
     return gcp;
 }
@@ -956,6 +955,9 @@ static void FreeShapes(struct shape *shp)
 	}
 
 	shp->type = 0;
+#ifndef USE_GCLIST
+	MyFree(shp->gc, sizeof(struct rGC), MEM_GC);
+#endif
 	MyFree(shp, sizeof(struct shape), MEM_SHAPE);
 	shp = nextshp;
     }
@@ -1104,7 +1106,7 @@ static int readFrameData(struct xprc *rc, struct frame *f)
 	case RC_DRAWARCS:
 	case RC_DRAWSEGMENTS:
 	case RC_DAMAGED:
-	    newshp = MyMalloc(sizeof(struct shape), MEM_SHAPE);
+	    newshp = (struct shape *)MyMalloc(sizeof(struct shape), MEM_SHAPE);
 	    newshp->next = NULL;
 	    newshp->type = 0;
 	    if ((newshp->gc = RReadGCValues(rc)) == NULL) {
@@ -1137,7 +1139,7 @@ static int readFrameData(struct xprc *rc, struct frame *f)
 	    case RC_DRAWLINES:
 		shp->shape.lines.npoints = c = RReadUShort(rc->fp);
 		shp->shape.lines.points = xpp =
-		    MyMalloc(sizeof(XPoint) * c, MEM_POINT);
+		    (XPoint *)MyMalloc(sizeof(XPoint) * c, MEM_POINT);
 		while (c--) {
 		    xpp->x = RReadShort(rc->fp);
 		    xpp->y = RReadShort(rc->fp);
@@ -1167,7 +1169,7 @@ static int readFrameData(struct xprc *rc, struct frame *f)
 		shp->shape.string.font = RReadByte(rc->fp);
 		shp->shape.string.length = c = RReadUShort(rc->fp);
 		shp->shape.string.string
-		    = cp = MyMalloc((size_t)c, MEM_STRING);
+		    = cp = (char *)MyMalloc((size_t)c, MEM_STRING);
 		while (c--)
 		    *cp++ = getc(rc->fp);
 		break;
@@ -1175,7 +1177,7 @@ static int readFrameData(struct xprc *rc, struct frame *f)
 	    case RC_FILLPOLYGON:
 		shp->shape.polygon.npoints = c = RReadUShort(rc->fp);
 		shp->shape.polygon.points = xpp =
-		    MyMalloc(sizeof(XPoint) * c, MEM_POINT);
+		    (XPoint *)MyMalloc(sizeof(XPoint) * c, MEM_POINT);
 		while (c--) {
 		    xpp->x = RReadShort(rc->fp);
 		    xpp->y = RReadShort(rc->fp);
@@ -1194,7 +1196,7 @@ static int readFrameData(struct xprc *rc, struct frame *f)
 	    case RC_FILLRECTANGLES:
 		shp->shape.rectangles.nrectangles = c = RReadUShort(rc->fp);
 		shp->shape.rectangles.rectangles = xrp =
-		    MyMalloc(sizeof(XRectangle) * c, MEM_POINT);
+		    (XRectangle *)MyMalloc(sizeof(XRectangle) * c, MEM_POINT);
 		while (c--) {
 		    xrp->x = RReadShort(rc->fp);
 		    xrp->y = RReadShort(rc->fp);
@@ -1207,7 +1209,7 @@ static int readFrameData(struct xprc *rc, struct frame *f)
 	    case RC_DRAWARCS:
 		shp->shape.arcs.narcs = c = RReadUShort(rc->fp);
 		shp->shape.arcs.arcs = xap =
-		    MyMalloc(sizeof(XArc) * c, MEM_POINT);
+		    (XArc *)MyMalloc(sizeof(XArc) * c, MEM_POINT);
 		while (c--) {
 		    xap->x = RReadShort(rc->fp);
 		    xap->y = RReadShort(rc->fp);
@@ -1222,7 +1224,7 @@ static int readFrameData(struct xprc *rc, struct frame *f)
 	    case RC_DRAWSEGMENTS:
 		shp->shape.segments.nsegments = c = RReadUShort(rc->fp);
 		shp->shape.segments.segments = xsp =
-		    MyMalloc(sizeof(XSegment) * c, MEM_POINT);
+		    (XSegment *)MyMalloc(sizeof(XSegment) * c, MEM_POINT);
 		while (c--) {
 		    xsp->x1 = RReadShort(rc->fp);
 		    xsp->y1 = RReadShort(rc->fp);
@@ -1289,7 +1291,7 @@ static int readNewFrame(struct xprc *rc)
 	rc->eof = True;
 	return -1;
     }
-    f = MyMalloc(sizeof(struct frame), MEM_FRAME);
+    f = (struct frame *)MyMalloc(sizeof(struct frame), MEM_FRAME);
     f->width = RReadUShort(rc->fp);
     f->height = RReadUShort(rc->fp);
     f->shapes = NULL;
@@ -1373,13 +1375,19 @@ static XFontStruct *loadQueryFont(const char *fontName, GC gc)
 
 static void allocViewColors(struct xprc *rc)
 {
-    XColor		*cp, *cp2, myColor;
-    int			i, j;
+    XColor		*cp, /**cp2,*/ myColor;
+    int			i /*, j*/;
 
-    rc->pixels = MyMalloc(2 * rc->maxColors * sizeof(*rc->pixels), MEM_MISC);
+    rc->pixels = (unsigned long *)
+	MyMalloc(2 * rc->maxColors * sizeof(*rc->pixels), MEM_MISC);
 
     for (i = 0; i < rc->maxColors; i++) {
 	cp = &rc->colors[i];
+	/*
+	 * kps - don't try to do this "optimisation", it seems to break stuff
+	 * for some recordings.
+	 */
+#if 0
 	for (j = 0; j < i; j++) {
 	    cp2 = &rc->colors[j];
 	    if (cp->red == cp2->red &&
@@ -1392,6 +1400,7 @@ static void allocViewColors(struct xprc *rc)
 	    rc->pixels[j] = rc->pixels[i];
 	    continue;
 	}
+#endif
 	if (cp->red < 0x0100 &&
 	    cp->green < 0x0100 &&
 	    cp->blue < 0x0100 &&
@@ -1693,7 +1702,8 @@ static void Init_wm_prop(Window win,
 
 static struct recordwin *Init_recordwindow(unsigned long bg, void *data)
 {
-    struct recordwin	*rwin = MyMalloc(sizeof(struct recordwin), MEM_UI);
+    struct recordwin	*rwin = (struct recordwin *)
+	MyMalloc(sizeof(struct recordwin), MEM_UI);
     int			x, y;
     unsigned		w, h;
     XWindowChanges	values;
@@ -1860,7 +1870,8 @@ static void closeErrorWindow(void *data)
 
 static struct errorwin *Init_errorwindow(unsigned long bg)
 {
-    struct errorwin *ewin = MyMalloc(sizeof(struct errorwin), MEM_UI);
+    struct errorwin *ewin = (struct errorwin *)
+	MyMalloc(sizeof(struct errorwin), MEM_UI);
     int x, y;
     unsigned w, h;
     union button_image image;
@@ -2005,7 +2016,8 @@ static void Init_topmain(struct xui *ui, struct xprc *rc)
 	x += buttonInit[i].width+BUTTON_BORDER+BUTTON_SPACING;
     }
 
-    ui->labels = MyMalloc(NUM_LABELS * sizeof(struct label), MEM_UI);
+    ui->labels = (struct label *)
+	MyMalloc(NUM_LABELS * sizeof(struct label), MEM_UI);
     memset(ui->labels, 0, NUM_LABELS * sizeof(struct label));
     ui->labels[0].name = "Position";
     ui->labels[0].type = LABEL_TIME;
@@ -2245,11 +2257,11 @@ static void ScalePPM(unsigned char *rgbdata, unsigned cols, unsigned rows,
     size_newxelrow = 3 * newcols;
     size_tempxelrow = 3 * cols;
     size_rsgsbs = cols * sizeof(long);
-    newxelrow = MyMalloc(size_newxelrow, MEM_MISC);
-    tempxelrow = MyMalloc(size_tempxelrow, MEM_MISC);
-    rs = MyMalloc(size_rsgsbs, MEM_MISC);
-    gs = MyMalloc(size_rsgsbs, MEM_MISC);
-    bs = MyMalloc(size_rsgsbs, MEM_MISC);
+    newxelrow = (unsigned char *)MyMalloc(size_newxelrow, MEM_MISC);
+    tempxelrow = (unsigned char *)MyMalloc(size_tempxelrow, MEM_MISC);
+    rs = (long *)MyMalloc(size_rsgsbs, MEM_MISC);
+    gs = (long *)MyMalloc(size_rsgsbs, MEM_MISC);
+    bs = (long *)MyMalloc(size_rsgsbs, MEM_MISC);
     fracrowtofill = SCALE;
     fracrowleft = syscale;
     for (col = 0; col < cols; col++)
@@ -2420,11 +2432,12 @@ static void SaveFramesPPM(struct xprc *rc)
 	return;
     }
     if (rc->scale > 0) {
-	rgbdata = MyMalloc((size_t)(3 * rc->view_width * rc->view_height),
-			   MEM_MISC);
+	rgbdata = (unsigned char *)
+	    MyMalloc((size_t)(3 * rc->view_width * rc->view_height), MEM_MISC);
 	line = NULL;
     } else {
-	line = MyMalloc((size_t)(3 * rc->view_width), MEM_MISC);
+	line = (unsigned char *)
+	    MyMalloc((size_t)(3 * rc->view_width), MEM_MISC);
 	rgbdata = NULL;
     }
 
@@ -3082,9 +3095,25 @@ static void dox(struct xui *ui, struct xprc *rc)
 
 		switch(c) {
 
+		case ' ':
+		    switch(playState) {
+		    case STATE_PLAYING:
+			currentSpeed = 0;
+			playState = STATE_PAUSED;
+			forceRedraw = True;
+			break;
+		    case STATE_PAUSED:
+			currentSpeed = 1;
+			playState = STATE_PLAYING;
+			break;
+		    default:
+			break;
+		    }
+
+		    break;
+
 		case 'f':
 		case 'F':
-		case ' ':
 		    frameStep++;
 		    break;
 
@@ -3099,6 +3128,42 @@ static void dox(struct xui *ui, struct xprc *rc)
 		case 'Z':
 		    frameStep = -rc->cur->number;
 		    break;
+
+		    /*
+		     * kps - press a number key to fast forward that many
+		     * minutes.
+		     */
+		case '1':
+		    frameStep += rc->fps * 60;
+		    break;
+		case '2':
+		    frameStep += rc->fps * 60 * 2;
+		    break;
+		case '3':
+		    frameStep += rc->fps * 60 * 3;
+		    break;
+		case '4':
+		    frameStep += rc->fps * 60 * 4;
+		    break;
+		case '5':
+		    frameStep += rc->fps * 60 * 5;
+		    break;
+		case '6':
+		    frameStep += rc->fps * 60 * 6;
+		    break;
+		case '7':
+		    frameStep += rc->fps * 60 * 7;
+		    break;
+		case '8':
+		    frameStep += rc->fps * 60 * 8;
+		    break;
+		case '9':
+		    frameStep += rc->fps * 60 * 9;
+		    break;
+		case '0':
+		    frameStep += rc->fps * 60 * 10;
+		    break;
+
 
 		case '[':
 		    rc->save_first = rc->cur;
@@ -3306,6 +3371,8 @@ static void usage(void)
 "        -scale \"factor\"\n"
 "               Set the scale reduction factor for saving operations.\n"
 "               Valid scale factors are in the range [0.01 - 1.0].\n"
+"        -linewidth \"width\"\n"
+"               use a fixed linewidth \"width\" for drawing all lines\n"
 "        -gamma \"factor\"\n"
 "               Set the gamma correction factor when saving scaled frames.\n"
 "               Valid gamma correction factors are in the range [0.1 - 10].\n"
@@ -3352,6 +3419,7 @@ int main(int argc, char **argv)
     int			fps = 0;
     double		scale = 0;
     double		gamma_val = 0;
+    int 		linewidth = 0;
 
     Argc = argc;
     Argv = argv;
@@ -3388,6 +3456,12 @@ int main(int argc, char **argv)
 		usage();
 	    if (gamma_val == 1.0)
 		gamma_val = 0;
+	}
+	else if (!strcmp(argv[argi], "-linewidth")) {
+	    if (++argi == argc || sscanf(argv[argi], "%d", &linewidth) != 1)
+		usage();
+	    if (linewidth < 1 || gamma_val > 100)
+		usage();
 	}
 	else if (!strcmp(argv[argi], "-play"))
 	    currentSpeed = 1;
@@ -3430,16 +3504,17 @@ int main(int argc, char **argv)
 	exit(1);
     }
 
-    ui = MyMalloc(sizeof(*ui), MEM_UI);
+    ui = (struct xui *)MyMalloc(sizeof(*ui), MEM_UI);
     memset(ui, 0, sizeof(*ui));
 
-    rc = MyMalloc(sizeof(*rc), MEM_MISC);
+    rc = (struct xprc *)MyMalloc(sizeof(*rc), MEM_MISC);
     memset(rc, 0, sizeof(*rc));
     rc->filename = filename;
     rc->fp = fp;
     rc->fps = fps;
     rc->scale = scale;
     rc->gamma = gamma_val;
+    rc->linewidth = linewidth;
     TestInput(rc);
     purge_argument = rc;
     if (RReadHeader(rc) >= 0) {

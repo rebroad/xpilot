@@ -1,14 +1,14 @@
-/*
- * XPilotNG, an XPilot-like multiplayer space war game.
+/* 
+ * XPilot NG, a multiplayer space war game.
  *
  * Copyright (C) 2000-2004 by
  *
  *      Uoti Urpala          <uau@users.sourceforge.net>
- *      Kristian Sï¿½derblom   <kps@users.sourceforge.net>
+ *      Kristian Söderblom   <kps@users.sourceforge.net>
  *
  * Copyright (C) 1991-2001 by
  *
- *      Bjï¿½rn Stabell        <bjoern@xpilot.org>
+ *      Bjørn Stabell        <bjoern@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
  *      Dick Balaska         <dick@xpilot.org>
@@ -72,47 +72,18 @@
 #define ASTEROID_CONCENTRATOR	28
 #define BASE_ATTRACTOR		127
 
-#define SPACE_BIT		(1 << SPACE)
-#define BASE_BIT		(1 << BASE)
-#define FILLED_BIT		(1 << FILLED)
-#define REC_LU_BIT		(1 << REC_LU)
-#define REC_LD_BIT		(1 << REC_LD)
-#define REC_RU_BIT		(1 << REC_RU)
-#define REC_RD_BIT		(1 << REC_RD)
-#define FUEL_BIT		(1 << FUEL)
-#define CANNON_BIT		(1 << CANNON)
-#define CHECK_BIT		(1 << CHECK)
-#define POS_GRAV_BIT		(1 << POS_GRAV)
-#define NEG_GRAV_BIT		(1 << NEG_GRAV)
-#define CWISE_GRAV_BIT		(1 << CWISE_GRAV)
-#define ACWISE_GRAV_BIT		(1 << ACWISE_GRAV)
-#define WORMHOLE_BIT		(1 << WORMHOLE)
-#define TREASURE_BIT		(1 << TREASURE)
-#define TARGET_BIT		(1 << TARGET)
-#define ITEM_CONCENTRATOR_BIT	(1 << ITEM_CONCENTRATOR)
-#define DECOR_FILLED_BIT	(1 << DECOR_FILLED)
-#define DECOR_LU_BIT		(1 << DECOR_LU)
-#define DECOR_LD_BIT		(1 << DECOR_LD)
-#define DECOR_RU_BIT		(1 << DECOR_RU)
-#define DECOR_RD_BIT		(1 << DECOR_RD)
-#define UP_GRAV_BIT             (1 << UP_GRAV)
-#define DOWN_GRAV_BIT           (1 << DOWN_GRAV)
-#define RIGHT_GRAV_BIT          (1 << RIGHT_GRAV)
-#define LEFT_GRAV_BIT           (1 << LEFT_GRAV)
-#define FRICTION_BIT		(1 << FRICTION)
-#define ASTEROID_CONCENTRATOR_BIT	(1 << ASTEROID_CONCENTRATOR)
-
 #define DIR_RIGHT		0
 #define DIR_UP			(RES/4)
 #define DIR_LEFT		(RES/2)
 #define DIR_DOWN		(3*RES/4)
 
 typedef struct world world_t;
+extern world_t		World, *world;
 
 typedef struct fuel {
     clpos_t	pos;
     double	fuel;
-    unsigned	conn_mask;
+    uint32_t	conn_mask;
     long	last_change;
     int		team;
 } fuel_t;
@@ -128,16 +99,17 @@ typedef struct base {
     int		dir;
     int		ind;
     int		team;
+    int		order;
+    int		initial_items[NUM_ITEMS];
 } base_t;
 
 typedef struct cannon {
-    world_t	*world;
     clpos_t	pos;
     int		dir;
-    unsigned	conn_mask;
+    uint32_t	conn_mask;
     long	last_change;
     int		item[NUM_ITEMS];
-    struct player	*tractor_target_pl;
+    int		tractor_target_id;
     bool	tractor_is_pressor;
     int		team;
     long	used;
@@ -147,6 +119,11 @@ typedef struct cannon {
     double	emergency_shield_left;
     double	phasing_left;
     int		group;
+    double	score;
+    short	id;
+    short	smartness;
+    float	shot_speed;
+    int		initial_items[NUM_ITEMS];
 } cannon_t;
 
 typedef struct check {
@@ -162,6 +139,7 @@ typedef struct item {
     int		min_per_pack;	/* minimum number of elements per item. */
     int		max_per_pack;	/* maximum number of elements per item. */
     int		initial;	/* initial number of elements per player. */
+    int		cannon_initial;	/* initial number of elements per cannon. */
     int		limit;		/* max number of elements per player/cannon. */
 } item_t;
 
@@ -172,14 +150,18 @@ typedef struct asteroid {
     int		chance;		/* Chance [0..127] for asteroid to appear */
 } asteroid_t;
 
-typedef enum { WORM_NORMAL, WORM_IN, WORM_OUT } wormType;
+typedef enum {
+    WORM_NORMAL,
+    WORM_IN,
+    WORM_OUT,
+    WORM_FIXED
+} wormtype_t;
 
 typedef struct wormhole {
     clpos_t	pos;
     int		lastdest;	/* last destination wormhole */
     double	countdown;	/* >0 warp to lastdest else random */
-    bool	temporary;	/* wormhole was left by hyperjump */
-    wormType	type;
+    wormtype_t	type;
     int		lastID;
     int		lastblock;	/* block it occluded */
     int		group;
@@ -199,8 +181,8 @@ typedef struct target {
     int		team;
     double	dead_ticks;
     double	damage;
-    unsigned	conn_mask;
-    unsigned 	update_mask;
+    uint32_t	conn_mask;
+    uint32_t 	update_mask;
     long	last_change;
     int		group;
 } target_t;
@@ -214,8 +196,6 @@ typedef struct team {
     int		TreasuresDestroyed;	/* Number of destroyed treasures */
     int		TreasuresLeft;		/* Number of treasures left */
     int		SwapperId;		/* Player swapping to this full team */
-    double	score;
-    double	prev_score;
 } team_t;
 
 typedef struct item_concentrator {
@@ -233,10 +213,30 @@ typedef struct friction_area {
     int		group;
 } friction_area_t;
 
+#define MAX_PLAYER_ECMS		8	/* Maximum simultaneous per player */
+typedef struct {
+    double	size;
+    clpos_t	pos;
+    int		id;
+} ecm_t;
+
+/*
+ * Transporter info.
+ */
+typedef struct {
+    clpos_t	pos;
+    int		victim_id;
+    int		id;
+    double	count;
+} transporter_t;
+
+
 extern bool is_polygon_map;
 
 struct world {
-    int		x, y;		/* Size of world in blocks */
+    int		x, y;		/* Size of world in blocks, rounded up */
+    int		bwidth_floor;	/* Width of world in blocks, rounded down */
+    int		bheight_floor;	/* Height of world in blocks, rounded down */
     double	diagonal;	/* Diagonal length in blocks */
     int		width, height;	/* Size of world in pixels (optimization) */
     int		cwidth, cheight;/* Size of world in clicks */
@@ -253,49 +253,41 @@ struct world {
     team_t	teams[MAX_TEAMS];
 
     int		NumTeamBases;	/* How many 'different' teams are allowed */
-    int		NumBases, MaxBases;
-    base_t	*bases;
-    int		NumFuels, MaxFuels;
-    fuel_t	*fuels;
-    int		NumGravs, MaxGravs;
-    grav_t	*gravs;
-    int		NumCannons, MaxCannons;
-    cannon_t	*cannons;
+
+    arraylist_t	*asteroidConcs;
+    arraylist_t	*bases;
+    arraylist_t	*cannons;
+    arraylist_t	*ecms;
+    arraylist_t	*fuels;
+    arraylist_t	*frictionAreas;
+    arraylist_t	*gravs;
+    arraylist_t	*itemConcs;
+    arraylist_t	*targets;
+    arraylist_t	*transporters;
+    arraylist_t	*treasures;
+    arraylist_t	*wormholes;
+
     int		NumChecks, MaxChecks;
     check_t	*checks;
-    int		NumWormholes, MaxWormholes;
-    wormhole_t	*wormholes;
-    int		NumTreasures, MaxTreasures;
-    treasure_t	*treasures;
-    int		NumTargets, MaxTargets;
-    target_t	*targets;
-    int		NumItemConcs, MaxItemConcs;
-    item_concentrator_t		*itemConcs;
-    int		NumAsteroidConcs, MaxAsteroidConcs;
-    asteroid_concentrator_t	*asteroidConcs;
-    int		NumFrictionAreas, MaxFrictionAreas;
-    friction_area_t		*frictionAreas;
 
     bool	have_options;
 };
 
-extern world_t		World;
-
-static inline void World_set_block(world_t *world, blkpos_t blk, int type)
+static inline void World_set_block(blkpos_t blk, int type)
 {
     assert (! (blk.bx < 0 || blk.bx >= world->x
 	       || blk.by < 0 || blk.by >= world->y));
     world->block[blk.bx][blk.by] = type;
 }
 
-static inline int World_get_block(world_t *world, blkpos_t blk)
+static inline int World_get_block(blkpos_t blk)
 {
     assert (! (blk.bx < 0 || blk.bx >= world->x
 	       || blk.by < 0 || blk.by >= world->y));
     return world->block[blk.bx][blk.by];
 }
 
-static inline bool World_contains_clpos(world_t *world, clpos_t pos)
+static inline bool World_contains_clpos(clpos_t pos)
 {
     if (pos.cx < 0 || pos.cx >= world->cwidth)
 	return false;
@@ -304,7 +296,7 @@ static inline bool World_contains_clpos(world_t *world, clpos_t pos)
     return true;
 }
 
-static inline clpos_t World_get_random_clpos(world_t *world)
+static inline clpos_t World_get_random_clpos(void)
 {
     clpos_t pos;
 
@@ -314,7 +306,7 @@ static inline clpos_t World_get_random_clpos(world_t *world)
     return pos;
 }
 
-static inline int World_wrap_xclick(world_t *world, int cx)
+static inline int World_wrap_xclick(int cx)
 {
     while (cx < 0)
 	cx += world->cwidth;
@@ -324,7 +316,7 @@ static inline int World_wrap_xclick(world_t *world, int cx)
     return cx;
 }
 
-static inline int World_wrap_yclick(world_t *world, int cy)
+static inline int World_wrap_yclick(int cy)
 {
     while (cy < 0)
 	cy += world->cheight;
@@ -334,75 +326,127 @@ static inline int World_wrap_yclick(world_t *world, int cy)
     return cy;
 }
 
-static inline clpos_t World_wrap_clpos(world_t *world, clpos_t pos)
+static inline clpos_t World_wrap_clpos(clpos_t pos)
 {
-    pos.cx = World_wrap_xclick(world, pos.cx);
-    pos.cy = World_wrap_yclick(world, pos.cy);
+    pos.cx = World_wrap_xclick(pos.cx);
+    pos.cy = World_wrap_yclick(pos.cy);
 
     return pos;
 }
 
 
-static inline base_t *Bases(world_t *world, int ind)
+/*
+ * Two inline function for edge wrap of x and y coordinates measured
+ * in clicks.
+ *
+ * Note that even when wrap play is off, ships will wrap around the map
+ * if there is not walls that hinder it.
+ */
+static inline int WRAP_XCLICK(int cx)
 {
-    return &world->bases[ind];
+    return World_wrap_xclick(cx);
 }
 
-static inline fuel_t *Fuels(world_t *world, int ind)
+static inline int WRAP_YCLICK(int cy)
 {
-    return &world->fuels[ind];
+    return World_wrap_yclick(cy);
 }
 
-static inline cannon_t *Cannons(world_t *world, int ind)
+
+/*
+ * Two macros for edge wrap of differences in position.
+ * If the absolute value of a difference is bigger than
+ * half the map size then it is wrapped.
+ */
+#define WRAP_DCX(dcx)	\
+	(BIT(world->rules->mode, WRAP_PLAY) \
+	    ? ((dcx) < - (world->cwidth >> 1) \
+		? (dcx) + world->cwidth \
+		: ((dcx) > (world->cwidth >> 1) \
+		    ? (dcx) - world->cwidth \
+		    : (dcx))) \
+	    : (dcx))
+
+#define WRAP_DCY(dcy)	\
+	(BIT(world->rules->mode, WRAP_PLAY) \
+	    ? ((dcy) < - (world->cheight >> 1) \
+		? (dcy) + world->cheight \
+		: ((dcy) > (world->cheight >> 1) \
+		    ? (dcy) - world->cheight \
+		    : (dcy))) \
+	    : (dcy))
+
+#define TWRAP_XCLICK(x_) \
+     ((x_) > 0 ? (x_) % world->cwidth : \
+      ((x_) % world->cwidth + world->cwidth))
+
+#define TWRAP_YCLICK(y_) \
+     ((y_) > 0 ? (y_) % world->cheight : \
+      ((y_) % world->cheight + world->cheight))
+
+
+#define CENTER_XCLICK(X) \
+        (((X) < -(world->cwidth >> 1)) ? \
+             (X) + world->cwidth : \
+             (((X) >= (world->cwidth >> 1)) ? \
+                 (X) - world->cwidth : \
+                 (X)))
+
+#define CENTER_YCLICK(X) \
+        (((X) < -(world->cheight >> 1)) ? \
+	     (X) + world->cheight : \
+	     (((X) >= (world->cheight >> 1)) ? \
+	         (X) - world->cheight : \
+	         (X)))
+
+
+
+#define Num_asteroidConcs()	Arraylist_get_num_elements(world->asteroidConcs)
+#define Num_bases()		Arraylist_get_num_elements(world->bases)
+#define Num_cannons()		Arraylist_get_num_elements(world->cannons)
+#define Num_ecms()		Arraylist_get_num_elements(world->ecms)
+#define Num_frictionAreas()	Arraylist_get_num_elements(world->frictionAreas)
+#define Num_fuels()		Arraylist_get_num_elements(world->fuels)
+#define Num_gravs()		Arraylist_get_num_elements(world->gravs)
+#define Num_itemConcs()	Arraylist_get_num_elements(world->itemConcs)
+#define Num_targets()		Arraylist_get_num_elements(world->targets)
+#define Num_transporters()	Arraylist_get_num_elements(world->transporters)
+#define Num_treasures()	Arraylist_get_num_elements(world->treasures)
+#define Num_wormholes()	Arraylist_get_num_elements(world->wormholes)
+
+#define AsteroidConc_by_index(i) \
+	((asteroid_concentrator_t *)Arraylist_get(world->asteroidConcs, (i)))
+#define Base_by_index(i)	((base_t *)Arraylist_get(world->bases, (i)))
+#define Cannon_by_index(i)	((cannon_t *)Arraylist_get(world->cannons, (i)))
+#define Ecm_by_index(i)	((ecm_t *)Arraylist_get(world->ecms, (i)))
+#define FrictionArea_by_index(i) \
+	((friction_area_t *)Arraylist_get(world->frictionAreas, (i)))
+#define Fuel_by_index(i)	((fuel_t *)Arraylist_get(world->fuels, (i)))
+#define Grav_by_index(i)	((grav_t *)Arraylist_get(world->gravs, (i)))
+#define ItemConc_by_index(i) \
+	((item_concentrator_t *)Arraylist_get(world->itemConcs, (i)))
+#define Target_by_index(i)	((target_t *)Arraylist_get(world->targets, (i)))
+#define Treasure_by_index(i)	((treasure_t *)Arraylist_get(world->treasures, (i)))
+#define Wormhole_by_index(i)	((wormhole_t *)Arraylist_get(world->wormholes, (i)))
+#define Transporter_by_index(i) \
+	((transporter_t *)Arraylist_get(world->transporters, (i)))
+
+
+static inline check_t *Check_by_index(int ind)
 {
-    return &world->cannons[ind];
+    if (ind >= 0 && ind < world->NumChecks)
+	return &world->checks[ind];
+    return NULL;
 }
 
-static inline check_t *Checks(world_t *world, int ind)
+/*
+ * Here the index is the team number.
+ */
+static inline team_t *Team_by_index(int ind)
 {
-    return &world->checks[ind];
-}
-
-static inline grav_t *Gravs(world_t *world, int ind)
-{
-    return &world->gravs[ind];
-}
-
-static inline target_t *Targets(world_t *world, int ind)
-{
-    return &world->targets[ind];
-}
-
-static inline treasure_t *Treasures(world_t *world, int ind)
-{
-    return &world->treasures[ind];
-}
-
-static inline wormhole_t *Wormholes(world_t *world, int ind)
-{
-    return &world->wormholes[ind];
-}
-
-static inline asteroid_concentrator_t *AsteroidConcs(world_t *world, int ind)
-{
-    return &world->asteroidConcs[ind];
-}
-
-static inline item_concentrator_t *ItemConcs(world_t *world, int ind)
-{
-    return &world->itemConcs[ind];
-}
-
-static inline friction_area_t *FrictionAreas(world_t *world, int ind)
-{
-    return &world->frictionAreas[ind];
-}
-
-static inline team_t *Teams(world_t *world, int team)
-{
-    if (team == TEAM_NOT_SET)
-	return NULL;
-    return &world->teams[team];
+    if (ind >= 0 && ind < MAX_TEAMS)
+	return &world->teams[ind];
+    return NULL;
 }
 
 #endif

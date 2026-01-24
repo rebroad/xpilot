@@ -1,9 +1,9 @@
-/*
- * XPilotNG, an XPilot-like multiplayer space war game.
+/* 
+ * XPilot NG, a multiplayer space war game.
  *
  * Copyright (C) 1991-2001 by
  *
- *      Bjï¿½rn Stabell        <bjoern@xpilot.org>
+ *      Bjørn Stabell        <bjoern@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
  *      Dick Balaska         <dick@xpilot.org>
@@ -24,8 +24,6 @@
  */
 
 #include "xpserver.h"
-
-char option_version[] = VERSION;
 
 /*
  * This module implements an in memory server option database.
@@ -176,10 +174,7 @@ static void Option_free_node(hash_node* node)
 	Option_free_value(node->value);
 	node->value = NULL;
     }
-    if (node->name) {
-	free(node->name);
-	node->name = NULL;
-    }
+    XFREE(node->name);
     node->next = NULL;
     free(node);
     hash_nodes_freed++;
@@ -428,7 +423,7 @@ static void Option_change_node(
 	}
     }
 
-    if (set_ok == true) {
+    if (set_ok) {
 	if (node->value == NULL) {
 	    node->value = Option_allocate_value(value, NULL, opt_origin);
 	    if (node->value == NULL)
@@ -483,17 +478,29 @@ void Option_set_value(
 	if ((!strcasecmp(name, "mineLife")
 	     || (!strcasecmp(name, "missileLife")))
 	    && atoi(value) == 0) {
-	    warn("WARNING: '%s: %s' in map.", name, value);
+	    warn("Value of %s is %s in map.", name, value);
 	    warn("This is an obsolete way to set the default value.");
+	    warn("It will cause the weapon to detonate at once.");
 	    warn("To fix, remove the option from the map file.");
 	}
     }
 
     for (np = Option_hash_array[ix]; np; np = np->next) {
 	if (!strcasecmp(name, np->name)) {
+	    if (opt_origin == OPT_MAP && np->value->origin == OPT_MAP) {
+		warn("The map contains multiple instances of the option %s.",
+		     name);
+		warn("The server will use the first instance.");
+		return;
+	    }
 	    Option_change_node(np, value, override, opt_origin);
 	    return;
 	}
+    }
+
+    if (opt_origin == OPT_MAP && np == NULL) {
+	warn("Server does not support option '%s'", name);
+	return;
     }
 
     if (!value)
@@ -658,7 +665,7 @@ bool Convert_string_to_bool(const char *value_str, bool *bool_ptr)
 }
 
 
-void Convert_list_to_string(list_t list, char **string)
+void Convert_list_to_string(list_t list, char **str)
 {
     list_iter_t	iter;
     size_t	size = 0;
@@ -668,14 +675,14 @@ void Convert_list_to_string(list_t list, char **string)
 	 LI_FORWARD(iter))
 	size += 1 + strlen((const char *) LI_DATA(iter));
 
-    *string = xp_safe_malloc(size);
-    **string = '\0';
+    *str = (char *)xp_safe_malloc(size);
+    **str = '\0';
     for (iter = List_begin(list);
 	 iter != List_end(list);
 	 LI_FORWARD(iter)) {
 	if (iter != List_begin(list))
-	    strlcat(*string, ",", size);
-	strlcat(*string, (const char *) LI_DATA(iter), size);
+	    strlcat(*str, ",", size);
+	strlcat(*str, (const char *) LI_DATA(iter), size);
     }
 }
 
@@ -708,7 +715,7 @@ void Convert_string_to_list(const char *value, list_t *list_ptr)
 	if (start < end) {
 	    size_t size = end - start;
 
-	    str = xp_safe_malloc(size + 1);
+	    str = (char *)xp_safe_malloc(size + 1);
 	    memcpy(str, start, size);
 	    str[size] = '\0';
 	    if (NULL == List_push_back(*list_ptr, str))
@@ -735,9 +742,11 @@ static void Option_parse_node(hash_node *np)
     if (value == NULL) {
 	/* no value has been set, so get the option default value. */
 	value = desc->defaultValue;
-	if (value == NULL)
+	if (value == NULL) {
 	    /* no value at all.  (options.mapData or options.serverHost.) */
+	    assert(desc->type == valString);
 	    return;
+	}
     }
 
     if (!desc->variable) {

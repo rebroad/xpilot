@@ -1,9 +1,9 @@
-/*
- * XPilotNG, an XPilot-like multiplayer space war game.
+/* 
+ * XPilot NG, a multiplayer space war game.
  *
  * Copyright (C) 1991-2001 by
  *
- *      Bjï¿½rn Stabell        <bjoern@xpilot.org>
+ *      Bjørn Stabell        <bjoern@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
  *      Dick Balaska         <dick@xpilot.org>
@@ -28,6 +28,18 @@
 
 void block_timer(void);
 void allow_timer(void);
+
+void install_input(void (*func)(int, void *), int fd, void *arg);
+void remove_input(int fd);
+void sched(void);
+void stop_sched(void);
+
+#ifdef SELECT_SCHED
+
+void install_timer_tick(void (*func)(void), int freq);
+
+#else /* SELECT_SCHED */
+
 #ifndef _WINDOWS
 void install_timer_tick(void (*func)(void), int freq);
 #else
@@ -35,9 +47,7 @@ extern	void install_timer_tick(void (__stdcall *func)(void *,unsigned int ,unsig
 #endif
 void install_timeout(void (*func)(void *), int offset, void *arg);
 void remove_timeout(void (*func)(void *), void *arg);
-void install_input(void (*func)(int, void *), int fd, void *arg);
-void remove_input(int fd);
-void sched(void);
-void stop_sched(void);
+
+#endif /* SELECT_SCHED */
 
 #endif

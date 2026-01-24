@@ -1,14 +1,14 @@
 /*
- * XPilotNG, an XPilot-like multiplayer space war game.
+ * XPilot NG, a multiplayer space war game.
  *
  * Copyright (C) 1991-2001 by
  *
- *      Bjørn Stabell        <bjoern@xpilot.org>
+ *      Bjï¿½rn Stabell        <bjoern@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
  *      Dick Balaska         <dick@xpilot.org>
  *
- * Copyright (C) 2003-2004 Kristian Söderblom <kps@users.sourceforge.net>
+ * Copyright (C) 2003-2004 Kristian Sï¿½derblom <kps@users.sourceforge.net>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,16 +27,79 @@
 
 #include "xpclient.h"
 
-char event_version[] = VERSION;
-
 #define MAX_BUTTON_DEFS		10
 
 static BITV_DECL(keyv, NUM_KEYS);
+static unsigned char keyv_new[NUM_KEYS];
 
 keys_t buttonDefs[MAX_POINTER_BUTTONS][MAX_BUTTON_DEFS+1];
 
 char *pointerButtonBindings[MAX_POINTER_BUTTONS] =
 { NULL, NULL, NULL, NULL, NULL };
+
+static int Key_get_count(keys_t key);
+static bool Key_inc_count(keys_t key);
+static bool Key_dec_count(keys_t key);
+
+void Pointer_control_newbie_message(void)
+{
+    xp_option_t *opt = Find_option("keyExit");
+    char msg[MSG_LEN];
+    const char *val;
+
+    if (!newbie)
+	return;
+
+    if (!opt)
+	return;
+
+    val = Option_value_to_string(opt);
+    if (strlen(val) == 0)
+	return;
+
+    if (clData.pointerControl)
+	snprintf(msg, sizeof(msg),
+		 "Mouse steering enabled. "
+		 "Key(s) to disable it: %s.", val);
+    else
+	snprintf(msg, sizeof(msg),
+		 "Mouse steering disabled. "
+		 "Click background with left mouse button to enable it.");
+
+    Add_newbie_message(msg);
+}
+
+void Pointer_control_set_state(bool on)
+{
+    if (clData.pointerControl == on)
+	return;
+    Platform_specific_pointer_control_set_state(on);
+    clData.pointerControl = on;
+    if (!clData.restorePointerControl)
+	Pointer_control_newbie_message();
+}
+
+void Talk_set_state(bool on)
+{
+    if (clData.talking == on)
+	return;
+    if (on) {
+	/* When enabling talking, disable pointer control if it is enabled. */
+	if (clData.pointerControl) {
+	    clData.restorePointerControl = true;
+	    Pointer_control_set_state(false);
+	}
+    }
+    Platform_specific_talk_set_state(on);
+    if (!on) {
+	/* When disabling talking, enable pointer control if it was enabled. */
+	if (clData.restorePointerControl) {
+	    Pointer_control_set_state(true);
+	    clData.restorePointerControl = false;
+	}
+    }
+    clData.talking = on;
+}
 
 static inline int pointer_button_index_by_option(xp_option_t *opt)
 {
@@ -63,6 +126,8 @@ static void Clear_buttonDefs(int ind)
 
 int Key_init(void)
 {
+    int i;
+
     if (sizeof(keyv) != KEYBOARD_SIZE) {
 	warn("%s, %d: keyv size %d, KEYBOARD_SIZE is %d",
 	     __FILE__, __LINE__,
@@ -70,6 +135,9 @@ int Key_init(void)
 	exit(1);
     }
     memset(keyv, 0, sizeof keyv);
+    for (i = 0; i < NUM_KEYS; i++)
+    	keyv_new[i] = 0;
+
     BITV_SET(keyv, KEY_SHIELD);
 
     return 0;
@@ -91,7 +159,7 @@ static bool Key_check_talk_macro(keys_t key)
 static bool Key_press_id_mode(void)
 {
     showUserName = showUserName ? false : true;
-    scoresChanged++;
+    scoresChanged = true;
     return false;	/* server doesn't need to know */
 }
 
@@ -135,6 +203,16 @@ static bool Key_press_swap_settings(void)
     Config_redraw();
 
     return true;
+}
+
+static bool Key_press_swap_scalefactor(void)
+{
+    double a = clData.altScaleFactor;
+
+    Set_altScaleFactor(NULL, clData.scaleFactor);
+    Set_scaleFactor(NULL, a);
+
+    return false;
 }
 
 static bool Key_press_increase_power(void)
@@ -182,6 +260,22 @@ static bool Key_press_decrease_turnspeed(void)
     return false;	/* server doesn't see these keypresses anymore */
 }
 
+static bool Key_press_talk(void)
+{
+    int i;
+
+    /*
+     * this releases mouse in x11 client, so we clear the mouse buttons
+     * so they don't lock on
+     */
+    if (clData.pointerControl)
+	for (i = 0; i < MAX_POINTER_BUTTONS; i++)
+	    Pointer_button_released(i);
+
+    Talk_set_state(!clData.talking);
+    return false;	/* server doesn't need to know */
+}
+
 static bool Key_press_show_items(void)
 {
     instruments.showItems = !instruments.showItems;
@@ -194,52 +288,187 @@ static bool Key_press_show_messages(void)
     return false;	/* server doesn't need to know */
 }
 
+static bool Key_press_pointer_control(void)
+{
+    Pointer_control_set_state(!clData.pointerControl);
+    return false;	/* server doesn't need to know */
+}
+
+static bool Key_press_toggle_fullscreen(void)
+{
+    Toggle_fullscreen();
+    return false;	/* server doesn't need to know */
+}
+
+static bool Key_press_toggle_radar_score(void)
+{
+    Toggle_radar_and_scorelist();
+    return false;	/* server doesn't need to know */
+}
+
+static bool Key_press_toggle_record(void)
+{
+    Record_toggle();
+    return false;	/* server doesn't need to know */
+}
+
+static bool Key_press_toggle_sound(void)
+{
+#ifdef SOUND
+    sound = !sound;
+#endif
+    return false;	/* server doesn't need to know */
+}
+
 static bool Key_press_msgs_stdout(void)
 {
-    if (selectionAndHistory)
-	Print_messages_to_stdout();
+    Print_messages_to_stdout();
     return false;	/* server doesn't need to know */
 }
 
 static bool Key_press_select_lose_item(void)
 {
     if (lose_item_active == 1)
-        lose_item_active = 2;
+	lose_item_active = 2;
     else
 	lose_item_active = 1;
     return true;
 }
 
+static bool Key_press_yes(void)
+{
+    /* Handled in other code */
+    assert(!clData.quitMode);
+
+    return false;	/* server doesn't need to know */
+}
+
+static bool Key_press_no(void)
+{
+    return false;	/* server doesn't need to know */
+}
+
+static bool Key_press_exit(void)
+{
+    int i;
+
+    /* exit pointer control if exit key pressed in pointer control mode */
+    if (clData.pointerControl) {
+	/*
+	 * this releases mouse, so we clear the mouse buttons so
+	 * they don't lock on
+	 */
+	for (i = 0; i < MAX_POINTER_BUTTONS; i++)
+	    Pointer_button_released(i);
+
+	Pointer_control_set_state(false);
+	return false;	/* server doesn't need to know */
+    }
+
+    clData.quitMode = true;
+    Add_alert_message("Really Quit (y/n) ?", 0.0);
+
+    return false;	/* server doesn't need to know */
+}
+
+static int Key_get_count(keys_t key)
+{
+   if (key >= NUM_KEYS)
+       return -1;
+
+   return keyv_new[key];
+}
+
+static bool Key_inc_count(keys_t key)
+{
+    if (key >= NUM_KEYS)
+	return false;
+
+    if (keyv_new[key] < 255) {
+    	++keyv_new[key];
+	return true;
+    }
+
+    return false;
+}
+
+static bool Key_dec_count(keys_t key)
+{
+    if (key >= NUM_KEYS)
+	return false;
+
+    if (keyv_new[key] > 0) {
+    	--keyv_new[key];
+	return true;
+    }
+
+    return false;
+}
+
+void Key_clear_counts(void)
+{
+    int i;
+    bool change = false;
+
+    for (i = 0; i < NUM_KEYS; i++) {
+    	if (keyv_new[i] > 0) {
+	    /* set to one so that Key_release(i) will trigger */
+    	    keyv_new[i] = 1;
+	    change |= Key_release((keys_t)i);
+	}
+    }
+
+    if (change)
+	Net_key_change();
+}
+
+/* Remember which key we used to exit quit mode. */
+static keys_t quit_mode_exit_key = KEY_DUMMY;
+
+static bool Quit_mode_key_press(keys_t key)
+{
+    if (key == KEY_YES)
+	Client_exit(0);
+
+    if (key == KEY_NO || key == KEY_EXIT) {
+	clData.quitMode = false;
+	Clear_alert_messages();
+	quit_mode_exit_key = key;
+    }
+
+    return false;
+}
+
 bool Key_press(keys_t key)
 {
-    static bool thrusthelp = false;
+    bool countchange;
+    int keycount, i;
+
+    if (clData.quitMode)
+	return Quit_mode_key_press(key);
+
+    countchange = Key_inc_count(key);
+    keycount = Key_get_count(key);
+
+    /*
+     * keycount -1 means this was a client only key, we don't count those
+     */
+    if (keycount != -1) {
+	/*
+	 * if countchange is false it means that Key_<inc|dec>_count()
+	 * failed to change the count due to being at the end of the range
+	 * (should be very rare) keycount != 1 means that this key was
+	 * already pressed (multiple key mappings)
+	 */
+	if ((!countchange) || (keycount != 1))
+	    return true;
+    }
 
     Key_check_talk_macro(key);
 
     switch (key) {
-    case KEY_THRUST:
-	if (newbie && !thrusthelp && !pointerControl) {
-	    xp_option_t *opt = Find_option("keyPointerControl");
-	    char msg[MSG_LEN];
-	    const char *val;
-
-	    if (!opt)
-		break;
-	    val = Option_value_to_string(opt);
-	    if (strlen(val) == 0)
-		break;
-
-	    snprintf(msg, sizeof(msg),
-		     "Steering with mouse is superior. "
-		     "Enable with one of: %s.", val);
-
-	    Add_newbie_message(msg);
-	    thrusthelp = true;
-	}
-	break;
-
     case KEY_ID_MODE:
-	return (Key_press_id_mode());
+	return Key_press_id_mode();
 
     case KEY_FIRE_SHOT:
     case KEY_FIRE_LASER:
@@ -295,32 +524,21 @@ bool Key_press(keys_t key)
 	return Key_press_show_messages();
 
     case KEY_POINTER_CONTROL:
-	if (newbie) {
-    	    xp_option_t *opt = Find_option("keyPointerControl");
-	    char msg[MSG_LEN];
-	    const char *val;
+    	/*
+	 * this releases mouse, so we clear the mouse buttons so they
+	 * don't lock on
+	 */
+    	if (clData.pointerControl)
+    	    for (i = 0; i < MAX_POINTER_BUTTONS; i++)
+    	    	Pointer_button_released(i);
 
-	    if (!opt)
-	    	break;
-	    val = Option_value_to_string(opt);
-	    if (strlen(val) == 0)
-	    	break;
-
-	    if(!pointerControl)
-		snprintf(msg, sizeof(msg),
-			 "Mouse steering enabled. "
-			 "Key(s) to disable it: %s.", val);
-	    else
-		snprintf(msg, sizeof(msg),
-			 "Mouse steering disabled. "
-			 "Key(s) to disable it: %s.", val);
-
-    	    Add_newbie_message(msg);
-	}
 	return Key_press_pointer_control();
 
     case KEY_TOGGLE_RECORD:
 	return Key_press_toggle_record();
+
+    case KEY_TOGGLE_SOUND:
+	return Key_press_toggle_sound();
 
     case KEY_TOGGLE_RADAR_SCORE:
 	return Key_press_toggle_radar_score();
@@ -335,6 +553,15 @@ bool Key_press(keys_t key)
     case KEY_LOSE_ITEM:
 	if (!Key_press_select_lose_item())
 	    return false;
+	break;
+
+    case KEY_EXIT:
+	return Key_press_exit();
+    case KEY_YES:
+	return Key_press_yes();
+    case KEY_NO:
+	return Key_press_no();
+
     default:
 	break;
     }
@@ -347,6 +574,36 @@ bool Key_press(keys_t key)
 
 bool Key_release(keys_t key)
 {
+    bool countchange;
+    int keycount;
+
+    /*
+     * Make sure nothing is done when we release the button we used
+     * to exit quit mode with.
+     */
+    if (key == quit_mode_exit_key) {
+	assert(key != KEY_DUMMY);
+	quit_mode_exit_key = KEY_DUMMY;
+	return false;
+    }
+
+    countchange = Key_dec_count(key);
+    keycount = Key_get_count(key);
+
+    /* -1 means this was a client only key, we don't count those */
+    if (keycount != -1) {
+	/*
+	 * if countchange is false it means that Key_<inc|dec>_count()
+	 * failed to change the count due to being at the end of the range
+	 * (happens to most key releases let through from talk mode)
+	 * keycount != 0 means that some physical keys remain pressed
+	 * that map to this xpilot key
+	 */
+	if ((!countchange) || (keycount != 0))
+	    return true;
+    }
+
+
     switch (key) {
     case KEY_ID_MODE:
     case KEY_TALK:
@@ -395,8 +652,8 @@ bool Key_release(keys_t key)
 	if (lose_item_active == 2)
 	    lose_item_active = 1;
 	else
-	    lose_item_active = -clientFPS;
-        break;
+	    lose_item_active = -(int)(clientFPS + 0.5);
+	break;
 
     default:
 	break;
@@ -545,8 +802,7 @@ static bool setPointerButtonBinding(xp_option_t *opt, const char *value)
     assert(ind >= 0);
     assert(ind < MAX_POINTER_BUTTONS);
     assert(value);
-    if (pointerButtonBindings[ind])
-	xp_free(pointerButtonBindings[ind]);
+    XFREE(pointerButtonBindings[ind]);
 
     Clear_buttonDefs(ind);
 
@@ -576,7 +832,7 @@ static bool setPointerButtonBinding(xp_option_t *opt, const char *value)
 	    warn("Unknown key \"%s\" for %s.", ptr, Option_get_name(opt));
     }
 
-    xp_free(valcpy);
+    XFREE(valcpy);
 
     return true;
 }
@@ -597,34 +853,33 @@ static const char *getPointerButtonBinding(xp_option_t *opt)
  * Generic key options.
  */
 xp_option_t key_options[] = {
-
     XP_KEY_OPTION(
 	"keyTurnLeft",
-	"a Left",
+	"a",
 	KEY_TURN_LEFT,
 	"Turn left (anti-clockwise).\n"),
 
     XP_KEY_OPTION(
 	"keyTurnRight",
-	"s Right",
+	"s",
 	KEY_TURN_RIGHT,
 	"Turn right (clockwise).\n"),
 
     XP_KEY_OPTION(
 	"keyThrust",
-	"Shift_L Up", /* Shift_R was here also */
+	"Shift_R Shift_L",
 	KEY_THRUST,
 	"Thrust.\n"),
 
     XP_KEY_OPTION(
 	"keyShield",
-	"Caps_Lock Down", /* was Caps_lock space */
+	"space",
 	KEY_SHIELD,
 	"Raise or toggle the shield.\n"),
 
     XP_KEY_OPTION(
 	"keyFireShot",
-	"Return",	/* Linefeed removed */
+	"Return Linefeed",
 	KEY_FIRE_SHOT,
 	"Fire shot.\n"
 	"Note that shields must be down to fire.\n"),
@@ -673,25 +928,25 @@ xp_option_t key_options[] = {
 
     XP_KEY_OPTION(
 	"keyLockClose",
-	"",		/* Select and Up removed */
+	"Up",
 	KEY_LOCK_CLOSE,
 	"Lock on closest player.\n"),
 
     XP_KEY_OPTION(
 	"keyLockNextClose",
-	"",		/* Down removed */
+	"Down",
 	KEY_LOCK_NEXT_CLOSE,
 	"Lock on next closest player.\n"),
 
     XP_KEY_OPTION(
 	"keyLockNext",
-	"Next",		/* a.k.a. Page Down */
+	"Next Right",		/* Next is a.k.a. Page Down */
 	KEY_LOCK_NEXT,
 	"Lock on next player.\n"),
 
     XP_KEY_OPTION(
 	"keyLockPrev",
-	"Prior",	/* a.k.a. Page Up */
+	"Prior Right",		/* Prior is a.k.a. Page Up */
 	KEY_LOCK_PREV,
 	"Lock on previous player.\n"),
 
@@ -740,23 +995,23 @@ xp_option_t key_options[] = {
 
     XP_KEY_OPTION(
 	"keySwapSettings",
-	"", /* was Escape */
+	"",
 	KEY_SWAP_SETTINGS,
-	"Swap control settings.\n"
+	"Swap to alternate control settings.\n"
 	"These are the power, turn speed and turn resistance settings.\n"),
 
     XP_KEY_OPTION(
-        "keySwapScaleFactor",
-        "",
-        KEY_SWAP_SCALEFACTOR,
-        "Swap scalefactor settings.\n"),
+	"keySwapScaleFactor",
+	"",
+	KEY_SWAP_SCALEFACTOR,
+	"Swap scalefactor settings.\n"),
 
     XP_KEY_OPTION(
 	"keyChangeHome",
 	"Home h",
 	KEY_CHANGE_HOME,
 	"Change home base.\n"
-	"When the ship is stationary on a new homebase.\n"),
+	"When the ship is close to a suitable base.\n"),
 
     XP_KEY_OPTION(
 	"keyConnector",
@@ -766,7 +1021,7 @@ xp_option_t key_options[] = {
 
     XP_KEY_OPTION(
 	"keyDropBall",
-	"d Shift_R",
+	"d",
 	KEY_DROP_BALL,
 	"Drop a ball.\n"),
 
@@ -910,7 +1165,7 @@ xp_option_t key_options[] = {
 
     XP_KEY_OPTION(
 	"keyEmergencyShield",
-	"g",
+	"Caps_Lock",
 	KEY_EMERGENCY_SHIELD,
 	"Toggle emergency shield power.\n"),
 
@@ -1004,17 +1259,25 @@ xp_option_t key_options[] = {
 	KEY_TOGGLE_RECORD,
 	"Toggle recording of session (see recordFile).\n"),
 
+#ifdef SOUND
     XP_KEY_OPTION(
-        "keyToggleRadarScore",
-        "F11",
-        KEY_TOGGLE_RADAR_SCORE,
-        "Toggles the radar and score windows on and off.\n"),
+	"keyToggleSound",
+	"",
+	KEY_TOGGLE_SOUND,
+	"Toggle sound. Changes value of option 'sound'.\n"),
+#endif
 
     XP_KEY_OPTION(
-        "keyToggleFullScreen",
-        "F11",
-        KEY_TOGGLE_FULLSCREEN,
-        "Toggles between fullscreen mode and window mode.\n"),
+	"keyToggleRadarScore",
+	"F11",
+	KEY_TOGGLE_RADAR_SCORE,
+	"Toggles the radar and score windows on and off.\n"),
+
+    XP_KEY_OPTION(
+	"keyToggleFullScreen",
+	"F11",
+	KEY_TOGGLE_FULLSCREEN,
+	"Toggles between fullscreen mode and window mode.\n"),
 
     XP_KEY_OPTION(
 	"keySelectItem",
@@ -1060,9 +1323,30 @@ xp_option_t key_options[] = {
 
     XP_KEY_OPTION(
 	"keyPointerControl",
-	"space KP_Enter",
+	"KP_Enter",
 	KEY_POINTER_CONTROL,
 	"Toggle pointer control.\n"),
+
+    XP_KEY_OPTION(
+	"keyExit",
+	"Escape",
+	KEY_EXIT,
+	"Generic exit key.\n"
+	"Used for example to exit mouse mode or quit the client.\n"),
+
+    XP_KEY_OPTION(
+	"keyYes",
+	"y",
+	KEY_YES,
+	"Positive reply key.\n"
+	"Used to reply 'yes' to client questions.\n"),
+
+    XP_KEY_OPTION(
+	"keyNo",
+	"n",
+	KEY_NO,
+	"Negative reply key.\n"
+	"Used to reply 'no' to client questions.\n"),
 
     XP_KEY_OPTION(
 	"keySendMsg1",
@@ -1126,13 +1410,13 @@ xp_option_t key_options[] = {
 
     XP_KEY_OPTION(
 	"keySendMsg11",
-	"Escape", /* F11 is keyToggleFullScreen now */
+	"", /* F11 is keyToggleFullScreen now */
 	KEY_MSG_11,
 	"Sends the talkmessage stored in msg11.\n"),
 
     XP_KEY_OPTION(
 	"keySendMsg12",
-	"F12",
+	"",
 	KEY_MSG_12,
 	"Sends the talkmessage stored in msg12.\n"),
 
@@ -1206,7 +1490,7 @@ xp_option_t key_options[] = {
 
     XP_STRING_OPTION(
 	"pointerButton3",
-	"keyDropBall",
+	"keyThrust",
 	NULL, 0,
 	setPointerButtonBinding, NULL, getPointerButtonBinding,
 	XP_OPTFLAG_DEFAULT,

@@ -1,9 +1,9 @@
-/*
- * XPilotNG, an XPilot-like multiplayer space war game.
+/* 
+ * XPilot NG, a multiplayer space war game.
  *
  * Copyright (C) 1991-2001 by
  *
- *      Bjï¿½rn Stabell        <bjoern@xpilot.org>
+ *      Bjørn Stabell        <bjoern@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
  *      Dick Balaska         <dick@xpilot.org>
@@ -23,11 +23,8 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#ifndef _audio_h
-#define _audio_h
-
-#define SOUND_MAX_VOLUME	100
-#define SOUND_MIN_VOLUME	10
+#ifndef AUDIO_H
+#define AUDIO_H
 
 enum {
     START_SOUND,
@@ -118,7 +115,7 @@ enum {
 
 #ifdef _CAUDIO_C_
 
-static char    *soundNames[] =
+static const char    *soundNames[] =
 {
     "start",
     "fire_shot",
@@ -138,7 +135,7 @@ static char    *soundNames[] =
     "wideangle_shot_pickup",
     "sensor_pack_pickup",
     "back_shot_pickup",
-    "smart_shot_pickup",
+    "rocket_pack_pickup",
     "cloaking_device_pickup",
     "energy_pack_pickup",
     "mine_pack_pickup",
@@ -207,12 +204,4 @@ static char    *soundNames[] =
 
 #endif						/* _CAUDIO_C_ */
 
-extern	void audioInit(char* display);
-extern	void audioCleanup(void);
-extern	int	Handle_audio(int type, int volume);
-
-extern	int	audioDeviceInit(char *display);
-extern	void	audioDeviceEvents(void);
-extern	void	audioDevicePlay(char *filename, int type, int volume, void **private);
-
-#endif						/* _audio_h */
+#endif						/* AUDIO_H */

@@ -1,9 +1,9 @@
-/*
- * XPilotNG, an XPilot-like multiplayer space war game.
+/* 
+ * XPilot NG, a multiplayer space war game.
  *
  * Copyright (C) 1991-2001 by
  *
- *      Bjï¿½rn Stabell        <bjoern@xpilot.org>
+ *      Bjørn Stabell        <bjoern@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
  *      Dick Balaska         <dick@xpilot.org>
@@ -24,27 +24,6 @@
  */
 
 #include "xpcommon.h"
-
-void *xp_malloc(size_t size)
-{
-    return (void *) malloc(size);
-}
-
-void *xp_realloc(void *oldptr, size_t size)
-{
-    return (void *) realloc(oldptr, size);
-}
-
-void *xp_calloc(size_t nmemb, size_t size)
-{
-    return (void *) calloc(nmemb, size);
-}
-
-void xp_free(void *p)
-{
-    if (p)
-	free(p);
-}
 
 void *xp_safe_malloc(size_t size)
 {

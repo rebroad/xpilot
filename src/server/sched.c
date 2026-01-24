@@ -1,13 +1,12 @@
-/*
- * XPilotNG, an XPilot-like multiplayer space war game.
+/* 
+ * XPilot NG, a multiplayer space war game.
  *
- * Copyright (C) 2000-2004 by
+ * Copyright (C) 1991-2004 by
  *
  *      Uoti Urpala          <uau@users.sourceforge.net>
- *
- * Copyright (C) 1991-2001 by
- *
- *      Bjï¿½rn Stabell        <bjoern@xpilot.org>
+ *      Erik Andersson
+ *      Kristian Söderblom
+ *      Bjørn Stabell        <bjoern@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
  *      Dick Balaska         <dick@xpilot.org>
@@ -29,11 +28,309 @@
 
 #include "xpserver.h"
 
-char sched_version[] = VERSION;
+/* Windows incorrectly uses u_int in FD_CLR */
+#ifdef _WINDOWS
+typedef	u_int	FDTYPE;
+#else
+typedef	int	FDTYPE;
+#endif
 
-int sched_running = false;
+#ifndef _WINDOWS
+#define NUM_SELECT_FD		((int)sizeof(int) * 8)
+#else
+/*
+    Windoze:
+    The first call to socket() returns 560ish.  Successive calls keep bumping
+    up the SOCKET returned until about 880 when it wraps back to 8.
+    (It seems to increment by 8 with each connect - but that's not important)
+    I can't find a manifest constant to tell me what the upper limit will be
+    *sigh*
 
-volatile long	timer_ticks;	/* SIGALRMs that have occurred */
+    --- Now, the Windoze gurus tell me that SOCKET is an opaque data type.
+    So i need to make a lookup array for the lookup array :(
+*/
+#define	NUM_SELECT_FD		2000
+#endif
+
+struct io_handler {
+    int			fd;
+    void		(*func)(int, void *);
+    void		*arg;
+};
+
+static struct io_handler	input_handlers[NUM_SELECT_FD];
+static struct io_handler	record_handlers[NUM_SELECT_FD];
+static fd_set			input_mask;
+int				max_fd, min_fd;
+static int			input_inited = false;
+
+#if !defined(_WINDOWS)
+static volatile bool sched_running = false;
+
+void stop_sched(void)
+{
+	sched_running = false;
+}
+#endif
+
+static void io_dummy(int fd, void *arg)
+{
+    xpprintf("io_dummy called!  (%d, %p)\n", fd, arg);
+}
+
+void install_input(void (*func)(int, void *), int fd, void *arg)
+{
+    int i;
+    static struct io_handler *handlers;
+
+    if (playback) {
+	handlers = record_handlers;
+	fd += min_fd;
+    }
+    else
+	handlers = input_handlers;
+
+    if (input_inited == false) {
+	input_inited = true;
+	FD_ZERO(&input_mask);
+#ifndef _WINDOWS
+	min_fd = fd;
+#else
+	min_fd = 0;
+#endif
+	max_fd = fd;
+	for (i = 0; i < NELEM(input_handlers); i++) {
+	    input_handlers[i].fd = -1;
+	    input_handlers[i].func = io_dummy;
+	    input_handlers[i].arg = 0;
+	}
+    }
+    /* IFWINDOWS(xpprintf("install_input: fd %d min_fd=%d\n", fd, min_fd)); */
+    if (!playback && (fd < min_fd || fd >= min_fd + NUM_SELECT_FD)) {
+	error("install illegal input handler fd %d (%d)", fd, min_fd);
+	exit(1);
+    }
+    if (!playback && FD_ISSET(fd, &input_mask)) {
+	error("input handler %d busy", fd);
+	exit(1);
+    }
+    handlers[fd - min_fd].fd = fd;
+    handlers[fd - min_fd].func = func;
+    handlers[fd - min_fd].arg = arg;
+    if (playback)
+	return;
+    FD_SET(fd, &input_mask);
+    if (fd > max_fd) {
+	max_fd = fd;
+    }
+}
+
+void remove_input(int fd)
+{
+    if (!playback) {
+	if (fd < min_fd || fd >= min_fd + NUM_SELECT_FD) {
+	    error("remove illegal input handler fd %d (%d)", fd, min_fd);
+	    exit(1);
+	}
+	if (FD_ISSET(fd, &input_mask) || playback) {
+	    input_handlers[fd - min_fd].fd = -1;
+	    input_handlers[fd - min_fd].func = io_dummy;
+	    input_handlers[fd - min_fd].arg = 0;
+	    FD_CLR((FDTYPE)fd, &input_mask);
+	    if (fd == max_fd) {
+		int i = fd;
+		max_fd = -1;
+		while (--i >= min_fd) {
+		    if (FD_ISSET(i, &input_mask)) {
+			max_fd = i;
+			break;
+		    }
+		}
+	    }
+	}
+    }
+    else {
+	record_handlers[fd].fd = -1;
+	record_handlers[fd].func = io_dummy;
+	record_handlers[fd].arg = 0;
+    }
+}
+
+static void sched_select_error(void)
+{
+    error("sched select error");
+
+    End_game();
+}
+
+#ifdef SELECT_SCHED
+
+static long	timer_freq;
+static void	(*timer_handler)(void);
+static double	frametime;	/* time between 2 frames in seconds */
+static double	t_nextframe;
+
+static void setup_timer(void)
+{
+    struct timeval tv;
+    double t;
+
+    if (timer_freq <= 0 || timer_freq > MAX_SERVER_FPS) {
+	error("illegal timer frequency: %ld", timer_freq);
+	exit(1);
+    }
+
+    frametime = 1.0 / (double)timer_freq;
+
+    gettimeofday(&tv, NULL);
+    t = timeval_to_seconds(&tv);
+    t_nextframe = t + frametime;
+}
+
+/*
+ * Configure timer tick callback.
+ */
+void install_timer_tick(void (*func)(void), int freq)
+{
+    if (func != NULL) /* NULL to change freq, keep same handler */
+	timer_handler = func;
+    timer_freq = freq;
+    setup_timer();
+}
+
+
+/*
+ * If you set skip_to the server calculates frames
+ * until that value of main_loops as fast as it can.
+ * If you manage to record a bug, you can got to the
+ * frame where it happens quickly.
+ */
+unsigned long skip_to = 0;
+
+/*
+ * I/O + timer dispatcher.
+ */
+void sched(void)
+{
+    int i, n;
+    double t_now, t_wait;
+    struct timeval tv, wait_tv;
+
+    playback = rplayback;
+
+    if (sched_running)
+	dumpcore("sched already running");
+    else
+	sched_running = true;
+
+    gettimeofday(&tv, NULL);
+    t_now = timeval_to_seconds(&tv);
+    t_nextframe = t_now + frametime;
+
+    while (sched_running) {
+	fd_set readmask = input_mask;
+
+	gettimeofday(&tv, NULL);
+	t_now = timeval_to_seconds(&tv);
+	t_wait = t_nextframe - t_now;
+
+	/* heuristics for different cases */
+	if (t_wait < 0) {
+	    if (t_wait < -2 * frametime) {
+		/* long freeze, schedule frame now */
+		t_nextframe = t_now;
+		t_wait = 0;
+	    } else
+		t_wait = 0;
+	} else {
+	    if (t_wait > 2 * frametime) {
+		/* nasty, someone changed the time! might aswell start over */
+		t_nextframe = t_now + frametime;
+		t_wait = frametime;
+	    }
+	}
+
+	if (main_loops < skip_to) {
+	    t_nextframe = t_now;
+	    t_wait = 0;
+	}
+	
+	/* RECORDING STUFF */
+	Handle_recording_buffers();
+	/* RECORDING STUFF END */
+
+	wait_tv = seconds_to_timeval(t_wait);
+	n = select(max_fd + 1, &readmask, NULL, NULL, &wait_tv);
+
+	if (n <= 0) {
+	    if (n == -1 && errno != EINTR)
+		sched_select_error();
+
+	    /* RECORDING STUFF */
+	    if (playback) {
+		while (*playback_sched) {
+		    if (*playback_sched == 127) {
+			playback_sched++;
+			Get_recording_data();
+		    }
+		    else {
+			struct io_handler *ioh;
+			ioh = &record_handlers[*playback_sched++ - 1];
+			(*(ioh->func))(ioh->fd, ioh->arg);
+		    }
+		}
+		playback_sched++;
+	    }
+	    else if (record)
+		*playback_sched++ = 0;
+	    /* RECORDING STUFF END */
+
+	    if (timer_handler)
+		(*timer_handler)();
+
+#if 1
+	    /* stable 50 fps as deity (2.6.x kernel) */
+	    t_nextframe += frametime - 0.0000028571;
+#else
+	    t_nextframe += frametime;
+#endif
+	}
+	else {
+	    for (i = max_fd; i >= min_fd; i--) {
+		if (FD_ISSET(i, &readmask)) {
+		    struct io_handler *ioh;
+
+		    /* RECORDING STUFF */
+		    record = playback = 0;
+		    if (rrecord && (i - min_fd > 0)) {
+			if (i - min_fd + 1 > 126) { /* 127 reserved */
+			    warn("recording: this shouldn't happen");
+			    exit(1);
+			}
+			*playback_sched++ = i - min_fd + 1;
+			record = 1;
+		    }
+		    /* RECORDING STUFF END */
+
+		    ioh = &input_handlers[i - min_fd];
+		    (*(ioh->func))(ioh->fd, ioh->arg);
+
+		    /* RECORDING STUFF */
+		    record = rrecord;
+		    playback = rplayback;
+		    /* RECORDING STUFF END */
+
+		    if (--n == 0)
+			break;
+		}
+	    }
+	}
+    }
+}
+
+#else /* SELECT_SCHED */
+
+static volatile long	timer_ticks;	/* SIGALRMs that have occurred */
 static long		timers_used;	/* SIGALRMs that have been used */
 static long		timer_freq;	/* rate at which timer ticks. (in FPS) */
 #ifndef _WINDOWS
@@ -43,13 +340,6 @@ static	TIMERPROC	timer_handler;
 #endif
 static time_t		current_time;
 static int		ticks_till_second;
-
-/* Windows incorrectly uses u_int in FD_CLR */
-#ifdef _WINDOWS
-typedef	u_int	FDTYPE;
-#else
-typedef	int		FDTYPE;
-#endif
 
 /*
  * Block or unblock a single signal.
@@ -144,7 +434,7 @@ static void setup_timer(void)
     /*
      * Install a real-time timer.
      */
-    if (timer_freq <= 0 || timer_freq > 100) {
+    if (timer_freq <= 0 || timer_freq > MAX_SERVER_FPS) {
 	error("illegal timer frequency: %ld", timer_freq);
 	exit(1);
     }
@@ -319,146 +609,12 @@ static void timeout_chime(void)
     }
 }
 
-#ifndef _WINDOWS
-#define NUM_SELECT_FD		((int)sizeof(int) * 8)
-#else
-/*
-    Windoze:
-    The first call to socket() returns 560ish.  Successive calls keep bumping
-    up the SOCKET returned until about 880 when it wraps back to 8.
-    (It seems to increment by 8 with each connect - but that's not important)
-    I can't find a manifest constant to tell me what the upper limit will be
-    *sigh*
-
-    --- Now, the Windoze gurus tell me that SOCKET is an opaque data type.
-    So i need to make a lookup array for the lookup array :(
-*/
-#define	NUM_SELECT_FD		2000
-#endif
-
-struct io_handler {
-    int			fd;
-    void		(*func)(int, void *);
-    void		*arg;
-};
-
-static struct io_handler	input_handlers[NUM_SELECT_FD];
-static struct io_handler	record_handlers[NUM_SELECT_FD];
-static fd_set			input_mask;
-int				max_fd, min_fd;
-static int			input_inited = false;
-
-static void io_dummy(int fd, void *arg)
-{
-    xpprintf("io_dummy called!  (%d, %p)\n", fd, arg);
-}
-
-void install_input(void (*func)(int, void *), int fd, void *arg)
-{
-    int i;
-    static struct io_handler *handlers;
-
-    if (playback) {
-	handlers = record_handlers;
-	fd += min_fd;
-    }
-    else
-	handlers = input_handlers;
-
-    if (input_inited == false) {
-	input_inited = true;
-	FD_ZERO(&input_mask);
-#ifndef _WINDOWS
-	min_fd = fd;
-#else
-	min_fd = 0;
-#endif
-	max_fd = fd;
-	for (i = 0; i < NELEM(input_handlers); i++) {
-	    input_handlers[i].fd = -1;
-	    input_handlers[i].func = io_dummy;
-	    input_handlers[i].arg = 0;
-	}
-    }
-    /* IFWINDOWS(xpprintf("install_input: fd %d min_fd=%d\n", fd, min_fd)); */
-    if (!playback && (fd < min_fd || fd >= min_fd + NUM_SELECT_FD)) {
-	error("install illegal input handler fd %d (%d)", fd, min_fd);
-	ServerExit();
-    }
-    if (!playback && FD_ISSET(fd, &input_mask)) {
-	error("input handler %d busy", fd);
-	ServerExit();
-    }
-    handlers[fd - min_fd].fd = fd;
-    handlers[fd - min_fd].func = func;
-    handlers[fd - min_fd].arg = arg;
-    if (playback)
-	return;
-    FD_SET(fd, &input_mask);
-    if (fd > max_fd) {
-	max_fd = fd;
-    }
-}
-
-void remove_input(int fd)
-{
-    if (!playback) {
-	if (fd < min_fd || fd >= min_fd + NUM_SELECT_FD) {
-	    error("remove illegal input handler fd %d (%d)", fd, min_fd);
-	    ServerExit();
-	}
-	if (FD_ISSET(fd, &input_mask) || playback) {
-	    input_handlers[fd - min_fd].fd = -1;
-	    input_handlers[fd - min_fd].func = io_dummy;
-	    input_handlers[fd - min_fd].arg = 0;
-	    FD_CLR((FDTYPE)fd, &input_mask);
-	    if (fd == max_fd) {
-		int i = fd;
-		max_fd = -1;
-		while (--i >= min_fd) {
-		    if (FD_ISSET(i, &input_mask)) {
-			max_fd = i;
-			break;
-		    }
-		}
-	    }
-	}
-    }
-    else {
-	record_handlers[fd].fd = -1;
-	record_handlers[fd].func = io_dummy;
-	record_handlers[fd].arg = 0;
-    }
-}
-
-void stop_sched(void)
-{
-    sched_running = 0;
-}
-
-
-static void sched_select_error(void)
-{
-#ifndef _WINDOWS
-    error("sched select error");
-#else
-    char	msg[MSG_LEN];
-
-    sprintf(msg, "sched select error e=%d (%s)",
-	    errno, _GetWSockErrText(errno));
-    error("%s", msg);
-#endif
-
-    End_game();
-}
-
-
 /*
  * I/O + timer dispatcher.
  * Windows pumps this one time
  */
 
-unsigned long skip_to = 0;
+long skip_to = 0;
 
 #ifndef _WINDOWS
 void sched(void)
@@ -468,12 +624,10 @@ void sched(void)
 
     playback = rplayback;
 
-    if (sched_running) {
-	error("sched already running");
-	exit(1);
-    }
-
-    sched_running = 1;
+    if (sched_running)
+	dumpcore("sched already running");
+    else
+	sched_running = true;
 
     while (sched_running) {
 
@@ -623,3 +777,5 @@ void sched(void)
 }
 
 #endif /* _WINDOWS */
+
+#endif /* SELECT_SCHED */

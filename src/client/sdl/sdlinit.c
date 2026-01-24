@@ -1,7 +1,7 @@
 /*
- * XPilotNG/SDL, an SDL/OpenGL XPilot client. Copyright (C) 2003-2004 by
+ * XPilotNG/SDL, an SDL/OpenGL XPilot client. Copyright (C) 2003-2004 by 
  *
- *      Juha Lindstrï¿½m       <juhal@users.sourceforge.net>
+ *      Juha Lindström       <juhal@users.sourceforge.net>
  *      Erik Andersson       <deity_at_home.se>
  *      Darel Cullen         <darelcullen@users.sourceforge.net>
  *
@@ -27,6 +27,8 @@
 #include "sdlkeys.h"
 #include "glwidgets.h"
 #include "sdlpaint.h"
+#include "sdlinit.h"
+#include "scrap.h"
 
 /* These are only needed for the polygon tessellation */
 /* I'd like to move them to Paint_init/cleanup but because it */
@@ -51,19 +53,19 @@ int mapFontSize;
 char *gamefontname;
 
 /* ugly kps hack */
-bool file_exists(const char *path)
-{
+static bool file_exists(const char *path) 
+{ 
   FILE *fp;
 
   if (!path) {
-    return false;
+    return false; 
   } else {
     fp = fopen(path ? path : "", "r");
-    if (fp) {
-      fclose(fp);
+    if (fp) { 
+      fclose(fp); 
       return true;
     }
-    return false;
+    return false; 
   }
 }
 
@@ -89,22 +91,45 @@ int Init_playing_windows(void)
     return 0;
 }
 
+static bool find_size(int *w, int *h)
+{
+    SDL_Rect **modes, *m;
+    int i, d, best_i, best_d;
+
+    modes = SDL_ListModes(NULL, videoFlags);
+    if (modes == NULL) return false;
+    if (modes == (SDL_Rect**)-1) return true;
+    
+    best_i = 0;
+    best_d = INT_MAX;
+    for (i = 0; modes[i]; i++) {
+	m = modes[i];
+	d = (m->w - *w)*(m->w - *w) + (m->h - *h)*(m->h - *h);
+	if (d < best_d) {
+	    best_d = d;
+	    best_i = i;
+	}
+    }
+    *w = modes[best_i]->w;
+    *h = modes[best_i]->h;
+    return true;
+}
 
 int Init_window(void)
 {
     int value;
     char defaultfontname[] = CONF_FONTDIR "FreeSansBoldOblique.ttf";
     bool gf_exists = true,df_exists = true,gf_init = false, mf_init = false;
-
+    
     if (TTF_Init()) {
     	error("SDL_ttf initialization failed: %s", SDL_GetError());
     	return -1;
     }
-    xpprintf("SDL_ttf initialized\n");
+    warn("SDL_ttf initialized.\n");
 
     Conf_print();
 
-    if (SDL_Init(SDL_INIT_VIDEO) < 0) {
+    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_NOPARACHUTE) < 0) {
         error("failed to initialize SDL: %s", SDL_GetError());
         return -1;
     }
@@ -140,11 +165,16 @@ int Init_window(void)
 
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 
+    if (videoFlags & SDL_FULLSCREEN)
+      if (!find_size((int*)&draw_width, (int*)&draw_height))
+      	videoFlags ^= SDL_FULLSCREEN;
+
     if ((MainSDLSurface = SDL_SetVideoMode(draw_width,
 			 draw_height,
 			 draw_depth,
 			 videoFlags )) == NULL) {
       error("Could not find a valid GLX visual for your display");
+	  return -1;
     }
 
     SDL_GL_GetAttribute(SDL_GL_RED_SIZE, &value);
@@ -166,7 +196,7 @@ int Init_window(void)
 
     /* Set title for window */
     SDL_WM_SetCaption(TITLE, NULL);
-
+    
     /* this prevents a freetype crash if you pass non existant fonts */
     if (!file_exists(gamefontname)) {
     	error("cannot find your game font '%s'.\n" \
@@ -178,14 +208,14 @@ int Init_window(void)
     	error("cannot find the default font! '%s'" ,defaultfontname);
 	df_exists = false;
     }
-
+    
     if (!gf_exists && !df_exists) {
     	error("Failed to find any font files!\n" \
 	    	"Probably you forgot to run 'make install',use '-TTFont <font.ttf>' argument" \
 		" until you do");
 	return -1;
     }
-
+      
     if (gf_exists) {
     	if (fontinit(&gamefont,gamefontname,gameFontSize)) {
     	    error("Font initialization failed with %s", gamefontname);
@@ -196,12 +226,12 @@ int Init_window(void)
     	    error("Default font initialization failed with %s", defaultfontname);
     	} else gf_init = true;
     }
-
+    
     if (!gf_init) {
     	error("Failed to initialize any game font! (quitting)");
 	return -1;
     }
-
+    
     if (gf_exists) {
     	if (fontinit(&mapfont,gamefontname,mapFontSize)) {
     	    error("Font initialization failed with %s", gamefontname);
@@ -218,10 +248,55 @@ int Init_window(void)
 	return -1;
     }
 
+    /* Set up the clipboard */
+    if ( init_scrap() < 0 ) {
+    	error("Couldn't init clipboard: %s\n");
+    }
+
     return 0;
 }
 
-void Quit(void)
+/* function to reset our viewport after a window resize */
+int Resize_Window( int width, int height )
+{
+    SDL_Rect b = {0,0,0,0};
+
+	if (videoFlags & SDL_FULLSCREEN)
+		if (!find_size(&width, &height))
+			return -1;
+    
+    b.w = draw_width = width;
+    b.h = draw_height = height;
+    
+    SetBounds_GLWidget(MainWidget,&b);
+    
+    if (!SDL_SetVideoMode( width,
+			   height,
+			   draw_depth, 
+			   videoFlags ))
+	return -1;
+    
+
+    /* change to the projection matrix and set our viewing volume. */
+    glMatrixMode( GL_PROJECTION );
+
+    glLoadIdentity( );
+
+    gluOrtho2D(0, draw_width, 0, draw_height);
+    
+    /* Make sure we're chaning the model view and not the projection */
+    glMatrixMode( GL_MODELVIEW );
+    
+    /* Reset The View */
+    glLoadIdentity( );
+
+    /* Setup our viewport. */
+    glViewport( 0, 0, ( GLint )draw_width, ( GLint )draw_height );
+    return 0;
+}
+
+
+void Platform_specific_cleanup(void)
 {
     Close_Widget(&MainWidget);
     Gui_cleanup();
@@ -261,8 +336,7 @@ static const char* Get_geometry(xp_option_t *opt)
 static bool Set_fontName(xp_option_t *opt, const char *value)
 {
     UNUSED_PARAM(opt);
-    if (gamefontname)
-	xp_free(gamefontname);
+    XFREE(gamefontname);
     gamefontname = xp_safe_strdup(value);
 
     return true;
@@ -283,7 +357,7 @@ static xp_option_t sdlinit_options[] = {
 	Set_geometry, NULL, Get_geometry,
 	XP_OPTFLAG_DEFAULT,
 	"Set the initial window geometry.\n"),
-
+    
      XP_INT_OPTION(
         "gameFontSize",
 	16, 12, 32,

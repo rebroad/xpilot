@@ -1,9 +1,9 @@
-/*
- * XPilotNG, an XPilot-like multiplayer space war game.
+/* 
+ * XPilot NG, a multiplayer space war game.
  *
  * Copyright (C) 1991-2001 by
  *
- *      Bjï¿½rn Stabell        <bjoern@xpilot.org>
+ *      Bjørn Stabell        <bjoern@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
  *      Dick Balaska         <dick@xpilot.org>
@@ -28,6 +28,7 @@
 
 #ifdef _WINDOWS
 #  /* kps - what about this ???? */
+#  undef CONF_DATADIR
 #  define CONF_DATADIR			"lib/"
 #endif
 
@@ -40,7 +41,7 @@
 #endif
 
 #ifndef CONF_DEFAULT_MAP
-#  define CONF_DEFAULT_MAP		"polybloods.xp2"
+#  define CONF_DEFAULT_MAP		"ndh.xp2"
 #endif
 
 #ifndef CONF_MAPDIR
@@ -92,12 +93,13 @@
 #  define CONF_SOUNDFILE	  	CONF_SOUNDDIR "sounds.txt"
 #endif
 
+#ifndef CONF_SHIP_FILE
+#  define CONF_SHIP_FILE		CONF_DATADIR "shipshapes.txt"
+#endif
+
+
 
 #ifndef _WINDOWS
-
-#  ifndef CONF_SHIP_FILE
-#    define CONF_SHIP_FILE       	""
-#  endif
 
 #  ifdef DEBUG
 #    define D(x)	x ;  fflush(stdout);
@@ -106,10 +108,6 @@
 #  endif
 
 #else /* _WINDOWS */
-
-#  ifndef CONF_SHIP_FILE
-#    define CONF_SHIP_FILE		"XPilot.shp"
-#  endif
 
 #  ifdef _DEBUG
 #    define DEBUG	1
@@ -149,18 +147,14 @@
 #define CONF_ZCAT_FORMAT 		"gzip -d -c < %s"
 
 /*
- * Windows doesn't play with stdin/out well at all...
- * So for the client i route the "debug" printfs to the debug stream
- * The server gets 'real' messages routed to the messages window
+ * Windows doesn't play with stdin/out well at all... 
+ * So for the client i route the "debug" printfs to the debug stream 
+ * The server gets 'real' messages routed to the messages window 
  */
-#ifndef _WINDOWS
-#  define xpprintf	printf
-#else
+#ifdef _WINDOWS
 #  ifdef _XPILOTNTSERVER_
 #    define xpprintf	xpprintfW
 /* # define xpprintf _Trace  */
-#  else
-#    define xpprintf	_Trace
 #  endif
 #endif
 
@@ -169,7 +163,7 @@
  * warning C4244: 'initializing' : conversion from 'double ' to 'int ',
  * possible loss of data a million times.  I used to fix each warning
  * added by the Unix people, but this makes for harder to read code (and
- * was tiring with each patch)
+ * was tiring with each patch) 
  */
 #ifdef	_WINDOWS
 #  pragma warning (disable : 4244 4761)
@@ -181,6 +175,7 @@ char *Conf_defaults_file_name(void);
 char *Conf_password_file_name(void);
 char *Conf_player_passwords_file_name(void);
 char *Conf_mapdir(void);
+char *Conf_fontdir(void);
 char *Conf_default_map(void);
 char *Conf_servermotdfile(void);
 char *Conf_localmotdfile(void);

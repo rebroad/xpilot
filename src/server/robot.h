@@ -1,9 +1,9 @@
-/*
- * XPilotNG, an XPilot-like multiplayer space war game.
+/* 
+ * XPilot NG, a multiplayer space war game.
  *
  * Copyright (C) 1991-2001 by
  *
- *      Bjï¿½rn Stabell        <bjoern@xpilot.org>
+ *      Bjørn Stabell        <bjoern@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
  *      Dick Balaska         <dick@xpilot.org>
@@ -64,7 +64,7 @@
  *    5) The playing function which gets called each loop.
  *       The programming challenge here is to implement
  *       different characters per robot, while at the
- *       same time not calculating `everything' every
+ *       same time not calculating 'everything' every
  *       time this function is called.  i.e., try to give
  *       the robot some long term goals which are only
  *       recalculated once every couple of seconds or so.
@@ -94,15 +94,15 @@
  */
 typedef struct {
     const char		*name;
-    void		(*round_tick)(world_t *world);
-    void		(*create)(player_t *robot, char *str);
-    void		(*go_home)(player_t *robot);
-    void		(*play)(player_t *robot);
-    void		(*set_war)(player_t *victim, int killer);
-    int			(*war_on_player)(player_t *robot);
-    void		(*message)(player_t *robot, const char *str);
-    void		(*destroy)(player_t *robot);
-    void		(*invite)(player_t *robot, player_t *inviter);
+    void		(*robot_round_tick)(void);
+    void		(*robot_create)(player_t *robot, char *str);
+    void		(*robot_go_home)(player_t *robot);
+    void		(*robot_play)(player_t *robot);
+    void		(*robot_set_war)(player_t *victim, int killer);
+    int			(*robot_war_on_player)(player_t *robot);
+    void		(*robot_message)(player_t *robot, const char *str);
+    void		(*robot_destroy)(player_t *robot);
+    void		(*robot_invite)(player_t *robot, player_t *inviter);
 } robot_type_t;
 
 /*
@@ -151,13 +151,46 @@ typedef struct robot_default_data {
     double	robot_normal_speed;
     double	robot_attack_speed;
     double	robot_max_speed;
-    int		last_used_ecm;          /* relative to robot_count */
     int		last_dropped_mine;      /* relative to robot_count */
     int		last_fired_missile;     /* relative to robot_count */
     int		last_thrown_ball;	/* relative to robot_count */
     int		longterm_mode;		/* long term robot mode */
-    int		lock_last_seen;		/* last time robot saw target */
-    position_t	lock_last_pos;		/* last known position of target */
+    double	fuel_l1;		/* Fuel critical level */
+    double	fuel_l2;		/* Fuel warning level */
+    double	fuel_l3;		/* Fuel notify level */
 } robot_default_data_t;
+
+/*
+ * The private robot instance data for the simple ng robot.
+ */
+typedef struct robot_suibot_data {
+    int         robot_lock;             /* lock mode */
+    int         robot_lock_id;          /* target player if in war mode */
+    int         robot_mode;             /* ultrashort term mode of robot. */
+    int         robot_count;            /* Misc timings, minimizes rand use */
+    int         attack;                 /* how aggressive (1-99) */
+    int         defense;                /* how defensive (1-99) */
+    int         longterm_mode;          /* long term robot mode */
+    double      fuel_l1;                /* Fuel critical level */
+    double      fuel_l2;                /* Fuel warning level */
+    int last_attacked_player; /* relative to robot_count */
+} robot_suibot_data_t;
+
+
+/*
+ * Prototypes for robot.c
+ */
+void Parse_robot_file(void);
+void Robot_init(void);
+void Robot_delete(player_t *robot, bool kicked);
+void Robot_destroy(player_t *robot);
+void Robot_update(bool tick);
+void Robot_invite(player_t *robot, player_t *inviter);
+void Robot_war(player_t *robot, player_t *killer);
+void Robot_reset_war(player_t *robot);
+int Robot_war_on_player(player_t *robot);
+void Robot_go_home(player_t *robot);
+void Robot_program(player_t *robot, int victim_id);
+void Robot_message(player_t *robot, const char *message);
 
 #endif

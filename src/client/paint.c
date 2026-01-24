@@ -1,9 +1,9 @@
 /*
- * XPilotNG, an XPilot-like multiplayer space war game.
+ * XPilot NG, a multiplayer space war game.
  *
  * Copyright (C) 1991-2001 by
  *
- *      Bjï¿½rn Stabell        <bjoern@xpilot.org>
+ *      Bjørn Stabell        <bjoern@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
  *      Dick Balaska         <dick@xpilot.org>
@@ -25,15 +25,12 @@
 
 #include "xpclient.h"
 
-char paint_version[] = VERSION;
-
 /*
  * Globals.
  */
 ipos_t	world;
 ipos_t	realWorld;
 
-bool	gotFocus;
 bool	players_exposed;
 short	ext_view_width;		/* Width of extended visible area */
 short	ext_view_height;	/* Height of extended visible area */
@@ -45,6 +42,7 @@ int	ext_view_y_offset;	/* Offset ext_view_height */
 long	loops = 0;
 long	loopsSlow = 0;	/* Proceeds slower than loops */
 double	timePerFrame = 0.0;
+static double   time_counter = 0.0;
 
 unsigned	draw_width, draw_height;
 int	num_spark_colors;
@@ -55,8 +53,8 @@ int Check_view_dimensions(void)
     int			width_wanted, height_wanted;
     int			srv_width, srv_height;
 
-    width_wanted = (int)(draw_width * scaleFactor + 0.5);
-    height_wanted = (int)(draw_height * scaleFactor + 0.5);
+    width_wanted = (int)(draw_width * clData.scaleFactor + 0.5);
+    height_wanted = (int)(draw_height * clData.scaleFactor + 0.5);
 
     srv_width = width_wanted;
     srv_height = height_wanted;
@@ -66,9 +64,9 @@ int Check_view_dimensions(void)
 	server_display.view_height != srv_height ||
 	server_display.num_spark_colors != num_spark_colors ||
 	server_display.spark_rand != spark_rand) {
-	if (Send_display(srv_width,
-			 srv_height,
-			 spark_rand,
+	if (Send_display(srv_width, 
+			 srv_height, 
+			 spark_rand, 
 			 num_spark_colors))
 	    return -1;
     }
@@ -92,7 +90,53 @@ int Check_view_dimensions(void)
     return 0;
 }
 
+void Paint_frame_start(void)
+{
+    Check_view_dimensions();
 
+    world.x = selfPos.x - (ext_view_width / 2);
+    world.y = selfPos.y - (ext_view_height / 2);
+    realWorld = world;
+    if (BIT(Setup->mode, WRAP_PLAY)) {
+	if (world.x < 0 && world.x + ext_view_width < Setup->width)
+	    world.x += Setup->width;
+	else if (world.x > 0 && world.x + ext_view_width >= Setup->width)
+	    realWorld.x -= Setup->width;
+	if (world.y < 0 && world.y + ext_view_height < Setup->height)
+	    world.y += Setup->height;
+	else if (world.y > 0 && world.y + ext_view_height >= Setup->height)
+	    realWorld.y -= Setup->height;
+    }
+
+    if (start_loops != end_loops)
+	warn("Start neq. End (%ld,%ld,%ld)", start_loops, end_loops, loops);
+    loops = end_loops;
+
+    /*
+     * If time() changed from previous value, assume one second has passed.
+     */
+    if (newSecond) {
+	/* kps - improve */
+	recordFPS = (int)(clientFPS+0.5);
+	timePerFrame = 1.0 / recordFPS;
+
+	/* TODO: move this somewhere else */
+	/* check once per second if we are playing */
+	if (newSecond && self && !strchr("PW", self->mychar))
+	    played_this_round = true;
+    }
+
+    /*
+     * Instead of using loops to determining if things are drawn this frame,
+     * loopsSlow should be used. We don't want things to be drawn too fast
+     * at high fps.
+     */
+    time_counter += timePerFrame;
+    if (time_counter >= (1.0 / 12)) {
+	loopsSlow++;
+	time_counter -= (1.0 / 12);
+    }
+}
 
 
 struct team_score {
@@ -195,7 +239,6 @@ static int Team_heading(int entrynum, int teamnum,
     other_t tmp;
     tmp.id = -1;
     tmp.team = teamnum;
-    tmp.war_id = -1;
     tmp.name_width = 0;
     tmp.ship = NULL;
     if (teamnum != TEAM_PAUSEHACK)
@@ -265,7 +308,7 @@ void Paint_score_table(void)
 
     if (num_others < 1) {
 	Paint_score_start();
-	scoresChanged = 0;
+	scoresChanged = false;
 	return;
     }
 
@@ -311,6 +354,5 @@ void Paint_score_table(void)
 
     IFWINDOWS( MarkPlayersForRedraw() );
 
-    scoresChanged = 0;
+    scoresChanged = false;
 }
-

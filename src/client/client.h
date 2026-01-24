@@ -1,9 +1,9 @@
-/*
- * XPilotNG, an XPilot-like multiplayer space war game.
+/* 
+ * XPilot NG, a multiplayer space war game.
  *
  * Copyright (C) 1991-2001 by
  *
- *      Bjï¿½rn Stabell        <bjoern@xpilot.org>
+ *      Bjørn Stabell        <bjoern@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
  *      Dick Balaska         <dick@xpilot.org>
@@ -30,16 +30,11 @@
 #ifndef	_WINSOCKAPI_
 #include <winsock.h>
 #endif
-
-#ifndef	_WINX_H_
-/*#include "NT/winX.h"*/
 #endif
-#endif
-
 
 #ifndef DRAW_H
 /* need shipshape_t */
-#include "draw.h"
+#include "shipshape.h"
 #endif
 #ifndef ITEM_H
 /* need NUM_ITEMS */
@@ -55,22 +50,36 @@
 #endif
 
 typedef struct {
-    bool showShipShapes;
-    bool showMyShipShape;
-    bool showShipShapesHack;
-    bool showLivesByShip;
-    bool showItems;
+    bool	talking;	/* Some talk window is open? */
+    bool	pointerControl;	/* Pointer (mouse) control is on? */
+    bool	restorePointerControl;
+				/* Pointer control should be restored later? */
+    bool	quitMode;	/* Client is in quit mode? */
+    double	clientLag;
+    double	scaleFactor;
+    double	scale;
+    float	fscale;
+    double	altScaleFactor;
+} client_data_t;
+
+typedef struct {
+    bool clientRanker;
+    bool clockAMPM;
+    bool filledDecor;
+    bool filledWorld;
+    bool outlineDecor;
+    bool outlineWorld;
     bool showDecor;
-    bool showOutlineWorld;
-    bool showFilledWorld;
-    bool showTexturedWalls;
-    bool showOutlineDecor;
-    bool showFilledDecor;
-    bool showTexturedDecor;
+    bool showItems;
+    bool showLivesByShip;
     bool showMessages;
-    bool showSlidingRadar;
-    bool useClientRanker;
-    bool useAMPMFormatClock;
+    bool showMyShipShape;
+    bool showNastyShots;
+    bool showShipShapes;
+    bool showShipShapesHack;
+    bool slidingRadar;
+    bool texturedDecor;
+    bool texturedWalls;
 } instruments_t;
 
 typedef struct {
@@ -92,16 +101,16 @@ typedef struct {
 #define MIN_SPARK_SIZE		1
 #define MAX_MAP_POINT_SIZE	8
 #define MIN_MAP_POINT_SIZE	0
-#define MAX_SHOT_SIZE		8
+#define MAX_SHOT_SIZE		20
 #define MIN_SHOT_SIZE		1
-#define MAX_TEAMSHOT_SIZE	8
+#define MAX_TEAMSHOT_SIZE	20
 #define MIN_TEAMSHOT_SIZE	1
 
 #define MIN_SHOW_ITEMS_TIME	0.0
 #define MAX_SHOW_ITEMS_TIME	300.0
 
-#define MIN_SCALEFACTOR		0.4
-#define MAX_SCALEFACTOR		8.0
+#define MIN_SCALEFACTOR		0.1
+#define MAX_SCALEFACTOR		20.0
 
 #define FUEL_NOTIFY_TIME	3.0
 #define CONTROL_TIME		8.0
@@ -184,7 +193,6 @@ do {								\
 
 
 typedef struct {
-    double	ratio;
     double	score;
     short	id;
     uint16_t	team;
@@ -195,9 +203,10 @@ typedef struct {
     short	life;
     short	mychar;
     short	alliance;
-    short	war_id;
     short	name_width;	/* In pixels */
     short	name_len;	/* In bytes */
+    short	max_chars_in_names;	/* name_width was calculated
+					   for this value of maxCharsInNames */
     short	ignorelevel;
     shipshape_t	*ship;
     char	nick_name[MAX_CHARS];
@@ -273,7 +282,6 @@ typedef struct {
 typedef struct {
     short		x0, y0, x1, y1;
     u_byte		tractor;
-    u_byte		pad[3];
 } connector_t;
 
 typedef struct {
@@ -284,7 +292,6 @@ typedef struct {
 typedef struct {
     short		x, y, dir;
     unsigned char	len;
-    u_byte		pad[1];
 } missile_t;
 
 typedef struct {
@@ -296,7 +303,6 @@ typedef struct {
     short		x, y, id, dir;
     u_byte		shield, cloak, eshield;
     u_byte		phased, deflector;
-    u_byte		pad[3];
 } ship_t;
 
 typedef struct {
@@ -324,8 +330,8 @@ typedef struct {
 } appearing_t;
 
 typedef enum {
-    normal,
-    friend
+    RadarEnemy,
+    RadarFriend
 } radar_type_t;
 
 typedef struct {
@@ -357,13 +363,11 @@ typedef struct {
 typedef struct {
     short		x, y;
     u_byte		wrecktype, size, rotation;
-    u_byte		pad[1];
 } wreckage_t;
 
 typedef struct {
     short		x, y;
     u_byte		type, size, rotation;
-    u_byte		pad[1];
 } asteroid_t;
 
 typedef struct {
@@ -403,7 +407,7 @@ typedef struct {
         bool    state;	/* current state of the selection */
         size_t  x1;	/* string indices */
         size_t  x2;
-        bool    incl_nl;/* include a `\n'? */
+        bool    incl_nl;/* include a '\n'? */
     } talk ;
     /* a selection in the draw window */
     struct {
@@ -416,7 +420,7 @@ typedef struct {
     char	*txt;   /* allocated when needed */
     size_t	txt_size;	/* size of txt buffer */
     size_t	len;
-    /* when a message `jumps' from talk window to the player messages: */
+    /* when a message 'jumps' from talk window to the player messages: */
     bool	keep_emphasizing;
 } selection_t;
 
@@ -438,6 +442,8 @@ typedef struct {
 } message_t;
 /* typedefs end */
 
+extern client_data_t	clData;
+
 extern bool		newbie;
 extern char		*geometry;
 extern xp_args_t	xpArgs;
@@ -452,7 +458,6 @@ extern int		maxLinesInHistory;	/* lines to save in history */
 extern selection_t	selection;		/* in talk/draw window */
 extern int		maxMessages;
 extern int		messagesToStdout;
-extern bool		selectionAndHistory;
 
 extern char		*talk_fast_msgs[];	/* talk macros */
 
@@ -498,13 +503,14 @@ extern short	phasingtimemax;
 extern int	roundDelay;
 extern int	roundDelayMax;
 
+extern bool	UpdateRadar;
 extern unsigned	RadarWidth;
 extern unsigned	RadarHeight;
-extern int	map_point_distance;	/* spacing of navigation points */
-extern int	map_point_size;		/* size of navigation points */
-extern int	spark_size;		/* size of sparks and debris */
-extern int	shot_size;		/* size of shot */
-extern int	teamshot_size;		/* size of team shot */
+extern int	backgroundPointDist;	/* spacing of navigation points */
+extern int	backgroundPointSize;	/* size of navigation points */
+extern int	sparkSize;		/* size of sparks and debris */
+extern int	shotSize;		/* size of shot */
+extern int	teamShotSize;		/* size of team shot */
 
 extern double	controlTime;		/* Display control for how long? */
 extern u_byte	spark_rand;		/* Sparkling effect */
@@ -546,30 +552,29 @@ extern long	packet_loop;		/* start of measurement */
 extern bool	showUserName;		/* Show username instead of nickname */
 extern char	servername[MAX_CHARS];	/* Name of server connecting to */
 extern unsigned	version;		/* Version of the server */
-extern int	scoresChanged;
+extern bool	scoresChanged;
 extern bool	toggle_shield;		/* Are shields toggled by a press? */
 extern bool	shields;		/* When shields are considered up */
 extern bool	auto_shield;            /* drops shield for fire */
-extern bool	initialPointerControl;	/* Start by using mouse for control? */
-extern bool	pointerControl;		/* current state of mouse ship flying */
-extern int	maxFPS;			/* Client's own FPS */
+
+extern int	maxFPS;			/* Max FPS player wants from server */
 extern int 	oldMaxFPS;
-extern int	clientFPS;	        /* How many fps we actually get */
+extern double	clientFPS;		/* FPS client is drawing at */
+extern int	recordFPS;		/* What FPS to record at */
 extern time_t	currentTime;	        /* Current value of time() */
-extern bool	newSecond;              /* True if time() incremented this frame */
+extern bool	newSecond;              /* Did time() increment this frame? */
+extern int	maxMouseTurnsPS;
+extern int	mouseMovementInterval;
+extern int	cumulativeMouseMovement;
+
 extern char	modBankStr[][MAX_CHARS];/* modifier banks strings */
 
 extern int	clientPortStart;	/* First UDP port for clients */
 extern int	clientPortEnd;		/* Last one (these are for firewalls) */
 extern int	baseWarningType;	/* Which type of base warning you prefer */
+extern int	maxCharsInNames;
 extern byte	lose_item;		/* flag and index to drop item */
 extern int	lose_item_active;	/* one of the lose keys is pressed */
-
-#ifdef SOUND
-extern char 	sounds[PATH_MAX];	/* audio mappings */
-extern char 	audioServer[PATH_MAX];	/* audio server */
-extern int 	maxVolume;		/* maximum volume (in percent) */
-#endif /* SOUND */
 
 /* mapdata accessible to outside world */
 
@@ -639,23 +644,35 @@ extern int		 num_asteroids, max_asteroids;
 extern wormhole_t	*wormhole_ptr;
 extern int		 num_wormholes, max_wormholes;
 
-extern bool	        ball_shout;
-extern bool	        need_cover;
 extern long		start_loops, end_loops;
 extern long		time_left;
 
 extern bool roundend;
 extern bool played_this_round;
+extern int protocolVersion;
 
 /*
  * somewhere
  */
 const char *Program_name(void);
+int Bitmap_add(const char *filename, int count, bool scalable);
+void Pointer_control_newbie_message(void);
+
+/*
+ * Platform specific code needs to implement these.
+ */
+void Platform_specific_pointer_control_set_state(bool on);
+void Platform_specific_talk_set_state(bool on);
+void Record_toggle(void);
+void Toggle_fullscreen(void);
+void Toggle_radar_and_scorelist(void);
 
 /*
  * event.c
  */
 void Pointer_control_set_state(bool on);
+void Talk_set_state(bool on);
+
 void Pointer_button_pressed(int button);
 void Pointer_button_released(int button);
 void Keyboard_button_pressed(xp_keysym_t ks);
@@ -663,27 +680,25 @@ void Keyboard_button_released(xp_keysym_t ks);
 
 int Key_init(void);
 int Key_update(void);
+void Key_clear_counts(void);
 bool Key_press(keys_t key);
 bool Key_release(keys_t key);
-bool Key_press_pointer_control(void);
-bool Key_press_swap_scalefactor(void);
-bool Key_press_talk(void);
-bool Key_press_toggle_radar_score(void);
-bool Key_press_toggle_record(void);
-bool Key_press_toggle_fullscreen(void);
 void Set_auto_shield(bool on);
 void Set_toggle_shield(bool on);
-void Talk_set_state(bool on);
 
 /*
  * messages.c
  */
+bool Bms_test_state(msg_bms_t bms);
+void Bms_set_state(msg_bms_t bms);
 int Alloc_msgs(void);
 void Free_msgs(void);
 int Alloc_history(void);
 void Free_selectionAndHistory(void);
 void Add_message(const char *message);
 void Add_newbie_message(const char *message);
+extern void Add_alert_message(const char *message, double timeout);
+extern void Clear_alert_messages(void);
 void Add_pending_messages(void);
 void Add_roundend_messages(other_t **order);
 void Print_messages_to_stdout(void);
@@ -715,7 +730,6 @@ int Handle_score(int id, double score, int life, int mychar, int alliance);
 int Handle_score_object(double score, int x, int y, char *msg);
 int Handle_team_score(int team, double score);
 int Handle_timing(int id, int check, int round, long loops);
-int Handle_war(int robot_id, int killer_id);
 int Handle_seek(int programmer_id, int robot_id, int sought_id);
 int Handle_start(long server_loops);
 int Handle_end(long server_loops);
@@ -724,7 +738,7 @@ int Handle_self(int x, int y, int vx, int vy, int newHeading,
 		int newLockId, int newLockDist, int newLockBearing,
 		int newNextCheckPoint, int newAutopilotLight,
 		u_byte *newNumItems, int newCurrentTank,
-		double newFuelSum, double newFuelMax, int newPacketSize,
+		double newFuelSum, double newFuelMax, int newPacketSize, 
 		int status);
 int Handle_self_items(u_byte *newNumItems);
 int Handle_modifiers(char *m);
@@ -749,6 +763,7 @@ int Handle_debris(int type, u_byte *p, int n);
 int Handle_wreckage(int x, int y, int wrecktype, int size, int rotation);
 int Handle_asteroid(int x, int y, int type, int size, int rotation);
 int Handle_wormhole(int x, int y);
+int Handle_polystyle(int polyind, int newstyle);
 int Handle_ecm(int x, int y, int size);
 int Handle_trans(int x_1, int y_1, int x_2, int y_2);
 int Handle_paused(int x, int y, int count);
@@ -772,22 +787,20 @@ void Client_cleanup(void);
 int Client_start(void);
 int Client_fps_request(void);
 int Client_power(void);
-int Client_wrap_mode(void);
+int Client_pointer_move(int movement);
+int Client_check_pointer_move_interval(void);
+void Client_exit(int status);
 
 int Init_playing_windows(void);
 void Raise_window(void);
 void Reset_shields(void);
-void Quit(void);
+void Platform_specific_cleanup(void);
 
 #ifdef _WINDOWS
 void MarkPlayersForRedraw(void);
 #endif
 
 int Check_client_fps(void);
-
-#ifdef	SOUND
-extern	void audioEvents(void);
-#endif
 
 /*
  * about.c
@@ -896,15 +909,6 @@ extern void Widget_cleanup(void);
  */
 #ifdef _WINDOWS
 extern	void WinXCreateItemBitmaps();
-#endif
-
-/*
- * winX - The Windows X emulator
- */
-#ifdef _WINDOWS
-#define	WinXFlush(__w)	WinXFlush(__w)
-#else
-#define	WinXFlush(__w)
 #endif
 
 #endif
