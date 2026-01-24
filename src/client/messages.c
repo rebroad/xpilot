@@ -620,6 +620,7 @@ static bool Msg_is_from_our_team(const char *message, const char **msg2)
     static char buf[MAX_CHARS + 8];
     size_t bufstrlen, len;
     int i;
+    int n;
 
     if (self == NULL)
 	return false;
@@ -631,8 +632,10 @@ static bool Msg_is_from_our_team(const char *message, const char **msg2)
 	    continue;
 
 	/* first check if someone in your team sent the message for all */
-	sprintf(buf, "[%s]", other->nick_name);
-	bufstrlen = strlen(buf);
+	n = snprintf(buf, sizeof buf, "[%s]", other->nick_name);
+	if (n < 0 || (size_t)n >= sizeof buf)
+	    continue;
+	bufstrlen = (size_t)n;
 	if (len < bufstrlen)
 	    continue;
 	if (!strcmp(&message[len - bufstrlen], buf)) {
@@ -642,8 +645,10 @@ static bool Msg_is_from_our_team(const char *message, const char **msg2)
 	}
 
 	/* if not, check if it was sent to your team only */
-	sprintf(buf, "[%s]:[%d]", other->nick_name, other->team);
-	bufstrlen = strlen(buf);
+	n = snprintf(buf, sizeof buf, "[%s]:[%d]", other->nick_name, other->team);
+	if (n < 0 || (size_t)n >= sizeof buf)
+	    continue;
+	bufstrlen = (size_t)n;
 	if (len < bufstrlen)
 	    continue;
 	if (!strcmp(&message[len - bufstrlen], buf)) {

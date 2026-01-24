@@ -408,7 +408,7 @@ void Paint_score_start(void)
 
 void Paint_score_entry(int entry_num, other_t* other, bool is_team)
 {
-    static char		raceStr[8], teamStr[4], lifeStr[8], label[MSG_LEN];
+    static char		raceStr[16], teamStr[4], lifeStr[8], label[MSG_LEN];
     static int		lineSpacing = -1, firstLine;
     int			thisLine, color;
     char		scoreStr[16];
@@ -444,10 +444,10 @@ void Paint_score_entry(int entry_num, other_t* other, bool is_team)
 	    if ((other->mychar == ' ' || other->mychar == 'R')
 		&& other->round + other->check > 0) {
 		if (other->round > 99)
-		    sprintf(raceStr, "%3d", other->round);
+		    snprintf(raceStr, sizeof raceStr, "%3d", other->round);
 		else
-		    sprintf(raceStr, "%d.%c",
-			    other->round, other->check + 'a');
+		    snprintf(raceStr, sizeof raceStr, "%d.%c",
+			     other->round, other->check + 'a');
 	    }
 	}
 	if (BIT(Setup->mode, TEAM_PLAY))
@@ -544,7 +544,7 @@ static void Paint_clock(bool redraw)
 			hour,
 			border = 3;
     struct tm		*m;
-    char		buf[16];
+    char		buf[64];
     static unsigned	width;
     unsigned		height = scoreListFont->ascent + scoreListFont->descent
 				+ 3;
@@ -579,7 +579,7 @@ static void Paint_clock(bool redraw)
 	    tmpchar = 'P';
 	    hour %= 12;
 	}
-	sprintf(buf, "%2d:%02d%cM", hour, minute, tmpchar);
+	snprintf(buf, sizeof buf, "%2d:%02d%cM", hour, minute, tmpchar);
     }
     width = XTextWidth(scoreListFont, buf, (int)strlen(buf));
     XSetForeground(dpy, scoreListGC, colors[windowColor].pixel);

@@ -566,7 +566,7 @@ void Server_info(char *str, size_t max_size)
     for (i = 0; i < NumPlayers; i++) {
 	pl = order[i];
 	strlcpy(name, pl->name, MAX_CHARS);
-	snprintf(lblstr, sizeof(lblstr), "%c%c %-19s%03d%6.0f",
+	snprintf(lblstr, sizeof(lblstr), "%c%c %-19.19s%03d%6.0f",
 		 pl->mychar, pl->team == TEAM_NOT_SET ? ' ' : (pl->team + '0'),
 		 name, pl->pl_life, Get_Score(pl));
 	snprintf(msg, sizeof(msg), "%2d... %-36s%s@%s\n",

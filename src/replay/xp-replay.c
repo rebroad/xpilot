@@ -2268,7 +2268,7 @@ static void ScalePPM(unsigned char *rgbdata, unsigned cols, unsigned rows,
 	rs[col] = gs[col] = bs[col] = HALFSCALE;
 
     fprintf(fp, "P6\n");
-    fprintf(fp, "%d %d\n", newcols, newrows);
+    fprintf(fp, "%zu %zu\n", newcols, newrows);
     fprintf(fp, "%d\n", 255);
 
     xelrow = rgbdata;

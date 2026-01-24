@@ -207,7 +207,7 @@ static int Init_setup(void)
     }
 
     size = Polys_to_client(&mapdata);
-    xpprintf("%s Server->client polygon map transfer size is %d bytes.\n",
+    xpprintf("%s Server->client polygon map transfer size is %zu bytes.\n",
 	     showtime(), size);
 
     if ((Setup = (setup_t *)malloc(sizeof(setup_t) + size)) == NULL) {

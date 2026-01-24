@@ -45,6 +45,7 @@ int Mapdata_setup(const char *urlstr)
     const char *name, *dir = NULL;
     char path[1024], buf[1024], *ptr;
     int rv = false;
+    int n;
 
     if (setup_done)
 	return true;
@@ -85,11 +86,16 @@ int Mapdata_setup(const char *urlstr)
 	}
 
 	if (strlen(home) == 0)
-	    sprintf(buf, "%s", DATADIR);
+	    n = snprintf(buf, sizeof buf, "%s", DATADIR);
 	else if (home[strlen(home) - 1] == PATHNAME_SEP)
-	    sprintf(buf, "%s%s", home, DATADIR);
+	    n = snprintf(buf, sizeof buf, "%s%s", home, DATADIR);
 	else
-	    sprintf(buf, "%s%c%s", home, PATHNAME_SEP, DATADIR);
+	    n = snprintf(buf, sizeof buf, "%s%c%s", home, PATHNAME_SEP, DATADIR);
+
+	if (n < 0 || (size_t)n >= sizeof buf) {
+	    error("texture directory path too long");
+	    goto end;
+	}
 
 	if (access(buf, F_OK) != 0) {
 	    if (mkdir(buf, S_IRWXU | S_IRWXG | S_IRWXO) == -1) {
@@ -102,11 +108,16 @@ int Mapdata_setup(const char *urlstr)
     }
 
     if (strlen(dir) == 0)
-	sprintf(path, "%s", name);
+	n = snprintf(path, sizeof path, "%s", name);
     else if (dir[strlen(dir) - 1] == PATHNAME_SEP)
-	sprintf(path, "%s%s", dir, name);
+	n = snprintf(path, sizeof path, "%s%s", dir, name);
     else
-	sprintf(path, "%s%c%s", dir, PATHNAME_SEP, name);
+	n = snprintf(path, sizeof path, "%s%c%s", dir, PATHNAME_SEP, name);
+
+    if (n < 0 || (size_t)n >= sizeof path) {
+	error("map data file path too long");
+	goto end;
+    }
 
     if (strrchr(path, '.') == NULL) {
 	error("no extension in file name %s.", name);
@@ -126,7 +137,8 @@ int Mapdata_setup(const char *urlstr)
 	    error("not enough memory to new realTexturePath");
 	    goto end;
 	}
-	sprintf(temp, "%s:%s", realTexturePath, path);
+	snprintf(temp, strlen(realTexturePath) + strlen(path) + 2, "%s:%s",
+        realTexturePath, path);
 	free(realTexturePath);
 	realTexturePath = temp;
     }
@@ -166,7 +178,7 @@ static int Mapdata_extract(const char *name)
     FILE *out;
     int retval;
     size_t rlen, wlen;
-    char dir[256], buf[COPY_BUF_SIZE], fname[256], *ptr;
+    char dir[256], buf[COPY_BUF_SIZE], fname[256], rel[256], *ptr;
     long int size;
     int count, i;
 
@@ -208,17 +220,22 @@ static int Mapdata_extract(const char *name)
 	    return 0;
 	}
 
-	sprintf(fname, "%s%c", dir, PATHNAME_SEP);
-
-	if (sscanf(buf, "%s\n%ld\n", fname + strlen(dir) + 1, &size) != 2) {
+	if (sscanf(buf, "%255s\n%ld\n", rel, &size) != 2) {
 	    error("failed to parse file info %s", buf);
 	    gzclose(in);
 	    return 0;
 	}
 
 	/* security check */
-	if (strchr(fname + strlen(dir) + 1, PATHNAME_SEP) != NULL) {
-	    error("file name %s is illegal", fname);
+	if (strchr(rel, PATHNAME_SEP) != NULL) {
+	    error("file name %s is illegal", rel);
+	    gzclose(in);
+	    return 0;
+	}
+
+	if (snprintf(fname, sizeof fname, "%s%c%s", dir, PATHNAME_SEP, rel)
+	    >= (int)sizeof fname) {
+	    error("file name %s%c%s is too long", dir, PATHNAME_SEP, rel);
 	    gzclose(in);
 	    return 0;
 	}
