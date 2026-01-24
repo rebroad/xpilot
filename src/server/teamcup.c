@@ -82,7 +82,7 @@ static void teamcup_open_score_file(void)
     }
 
     snprintf(msg, sizeof(msg),
-             "Score file \"%s\" opened.", teamcup_score_file_name);
+	     "Score file \"%.200s\" opened.", teamcup_score_file_name);
     Set_message_f("%s [*Server notice*]", msg);
 
     warn("%s\n", msg);
@@ -119,7 +119,7 @@ static void teamcup_close_score_file(void)
     teamcup_score_file = NULL;
 
     snprintf(msg, sizeof(msg),
-	     "Score file \"%s\" closed.", teamcup_score_file_name);
+	     "Score file \"%.200s\" closed.", teamcup_score_file_name);
     Set_message_f("%s [*Server notice*]", msg);
     warn("%s\n", msg);
 

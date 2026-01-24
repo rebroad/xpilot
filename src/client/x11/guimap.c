@@ -282,7 +282,7 @@ void Gui_paint_base(int x, int y, int id, int team, int type)
     int size = 0, size2 = 0;
     other_t *other;
     char s[3];
-    char info[6];
+    char info[16];
     homebase_t *base = NULL;
     bool do_basewarning = false;
 
@@ -430,11 +430,11 @@ void Gui_paint_base(int x, int y, int id, int team, int type)
     if (other) {
 	if (other->mychar == ' ' || other->mychar == 'R') {
 	    if (BIT(Setup->mode, LIMITED_LIVES))
-		sprintf(info, " %d", other->life);
+		snprintf(info, sizeof info, " %d", other->life);
 	    else
-		sprintf(info, " ");
+		snprintf(info, sizeof info, " ");
 	} else
-	    sprintf(info, " %c", other->mychar);
+	    snprintf(info, sizeof info, " %c", other->mychar);
 
 	size2 = XTextWidth(gameFont, info, (int)strlen(info));
     }

@@ -205,15 +205,18 @@ Window T_MakeWindow(int x, int y, int width, int height, char *fg,
 /*   iconname                                                              */
 /* Purpose : Sets window and icon name hints for window.                   */
 /***************************************************************************/
-void T_SetWindowName(Window window, char windowname[], char iconname[])
+void T_SetWindowName(Window window, const char *windowname, const char *iconname)
 {
     XTextProperty windowName, iconName;
 
-    if (XStringListToTextProperty(&windowname, 1, &windowName) == 0) {
+    char *wn = (char *)windowname;
+    char *in = (char *)iconname;
+
+    if (XStringListToTextProperty(&wn, 1, &windowName) == 0) {
 	fprintf(stderr, "structure allocation for windowName failed.\n");
 	exit(-1);
     }
-    if (XStringListToTextProperty(&iconname, 1, &iconName) == 0) {
+    if (XStringListToTextProperty(&in, 1, &iconName) == 0) {
 	fprintf(stderr, "structure allocation for iconName failed.\n");
 	exit(-1);
     }
@@ -362,7 +365,7 @@ void T_PopButton(Window win, int x, int y, int width, int height,
 /* Purpose : Draw a button with a label string centered.                   */
 /***************************************************************************/
 void T_DrawTextButton(Window win, int x, int y, int width, int height,
-		      int zheight, char *string)
+		      int zheight, const char *string)
 {
     T_DrawButton(win, x, y, width, height, zheight, 1);
     if (string != NULL)
@@ -390,7 +393,7 @@ void T_DrawTextButton(Window win, int x, int y, int width, int height,
 /*           character at curpos unless cursorpos is negative.             */
 /***************************************************************************/
 void T_DrawString(Window win, int x, int y, int width, int height, GC gc,
-		  char *string, int justify, int crop, int cursorpos)
+		  const char *string, int justify, int crop, int cursorpos)
 {
     int length, c;
 
@@ -452,10 +455,10 @@ void T_DrawString(Window win, int x, int y, int width, int height, GC gc,
 /*           constant BKGR.                                                */
 /***************************************************************************/
 void T_DrawText(Window win, int x, int y, int width, int height, GC gc,
-		char *text)
+		const char *text)
 {
     int length, last, h, line;
-    char *draw, *next, *curr;
+    const char *draw, *next, *curr;
 
     XSetFont(display, gc, T_Font->fid);
 

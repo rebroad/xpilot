@@ -38,7 +38,7 @@ T_Popup_t *T_Popup = NULL;
 /*   title                                                                 */
 /* Purpose :                                                               */
 /***************************************************************************/
-Window T_PopupCreate(int x, int y, int width, int height, char *title)
+Window T_PopupCreate(int x, int y, int width, int height, const char *title)
 {
     T_Popup_t **popup;
 
@@ -74,11 +74,13 @@ Window T_PopupCreate(int x, int y, int width, int height, char *title)
 /*   function                                                              */
 /* Purpose :                                                               */
 /***************************************************************************/
-Window T_PopupAlert(int type, char *message, char *btn1, char *btn2,
+Window T_PopupAlert(int type, const char *message, const char *btn1, const char *btn2,
 		    handler_t handler1, handler_t handler2)
 {
     int x, y, width, height;
     Window win;
+    const char *btn1_text;
+    const char *btn2_text;
 
     width = XTextWidth(T_Font, message, strlen(message)) + 40;
     height = POPUPBTNHEIGHT * 3 + 30;
@@ -90,23 +92,17 @@ Window T_PopupAlert(int type, char *message, char *btn1, char *btn2,
 		     POPUPBTNWIDTH, POPUPBTNHEIGHT, "Ok",
 		     PopupCloseHandler);
     } else if (type == 2) {
-	if (btn1 == NULL) {
-	    btn1 = malloc(3);
-	    strcpy(btn1, "Ok");
-	}
-	if (btn2 == NULL) {
-	    btn2 = malloc(7);
-	    strcpy(btn2, "Cancel");
-	}
+	btn1_text = (btn1 != NULL) ? btn1 : "Ok";
+	btn2_text = (btn2 != NULL) ? btn2 : "Cancel";
 	if (handler2 == NULL) {
 	    handler2 = PopupCloseHandler;
 	}
 	x = width / 2 - POPUPBTNWIDTH - 5;
 	y = height - POPUPBTNHEIGHT - 5;
 	T_FormButton(win, "popup_btn1", x, y, POPUPBTNWIDTH,
-		     POPUPBTNHEIGHT, btn1, handler1);
+		     POPUPBTNHEIGHT, btn1_text, handler1);
 	T_FormButton(win, "popup_btn2", x + 10 + POPUPBTNWIDTH,
-		     y, POPUPBTNWIDTH, POPUPBTNHEIGHT, btn2, handler2);
+		     y, POPUPBTNWIDTH, POPUPBTNHEIGHT, btn2_text, handler2);
     }
     T_FormText(win, "popup_alert", 10, 10, width - 20, POPUPBTNHEIGHT,
 	       message, JUSTIFY_CENTER);
@@ -131,30 +127,26 @@ Window T_PopupAlert(int type, char *message, char *btn1, char *btn2,
 /*   function                                                              */
 /* Purpose :                                                               */
 /***************************************************************************/
-Window T_PopupPrompt(int x, int y, int width, int height, char *title,
-		     char *message, char *btn1, char *btn2, char *charvar,
+Window T_PopupPrompt(int x, int y, int width, int height, const char *title,
+		     const char *message, const char *btn1, const char *btn2, char *charvar,
 		     int length, handler_t handler)
 {
     int x2, y2, x3, y3;
     Window win;
     XEvent report;
+    const char *btn1_text;
+    const char *btn2_text;
 
     win = T_PopupCreate(x, y, width, height, title);
 
-    if (btn1 == NULL) {
-	btn1 = (char *) malloc(3);
-	strcpy(btn1, "Ok");
-    }
-    if (btn2 == NULL) {
-	btn2 = (char *) malloc(7);
-	strcpy(btn2, "Cancel");
-    }
+    btn1_text = (btn1 != NULL) ? btn1 : "Ok";
+    btn2_text = (btn2 != NULL) ? btn2 : "Cancel";
     x2 = width / 2 - POPUPBTNWIDTH - 5;
     y2 = height - POPUPBTNHEIGHT - 5;
     T_FormButton(win, "popup_btn1", x2, y2, POPUPBTNWIDTH, POPUPBTNHEIGHT,
-		 btn1, handler);
+		 btn1_text, handler);
     T_FormButton(win, "popup_btn2", x2 + 10 + POPUPBTNWIDTH, y2,
-		 POPUPBTNWIDTH, POPUPBTNHEIGHT, btn2, PopupCloseHandler);
+		 POPUPBTNWIDTH, POPUPBTNHEIGHT, btn2_text, PopupCloseHandler);
     x2 = 5;
     y2 = height - POPUPBTNHEIGHT * 2 - 10;
     y3 = -(y2 + POPUPBTNHEIGHT) / 2;

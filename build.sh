@@ -13,6 +13,8 @@ FORCE_AUTORECONF=false
 FORCE_RECONFIGURE=false
 CONFIGURE_ARGS=()
 
+SDL_CLIENT_SETTING="auto" # auto|on|off
+
 while [ $# -gt 0 ]; do
     case "$1" in
         --autoreconf)
@@ -41,6 +43,19 @@ while [ $# -gt 0 ]; do
     esac
 done
 
+# Determine whether the user explicitly requested SDL client on/off.
+# Autoconf accepts: --enable-sdl-client[=yes|no] and --disable-sdl-client
+for arg in "${CONFIGURE_ARGS[@]}"; do
+    case "$arg" in
+	--disable-sdl-client)
+	    SDL_CLIENT_SETTING="off"
+	    ;;
+	--enable-sdl-client)
+	    SDL_CLIENT_SETTING="on"
+	    ;;
+    esac
+done
+
 echo "=========================================="
 echo "XPilot NG Build Script for Linux"
 echo "=========================================="
@@ -62,6 +77,23 @@ if ! pkg-config --exists expat 2>/dev/null; then
     MISSING_DEPS+=("libexpat1-dev")
 fi
 
+# SDL client (optional): this codebase uses SDL 1.2 via sdl-config (AM_PATH_SDL).
+SDL_CONFIG_CMD="${SDL_CONFIG:-sdl-config}"
+HAVE_SDL_CONFIG=false
+if command -v "$SDL_CONFIG_CMD" >/dev/null 2>&1; then
+    HAVE_SDL_CONFIG=true
+fi
+
+if [ "$SDL_CLIENT_SETTING" = "on" ]; then
+    if [ "$HAVE_SDL_CONFIG" != true ]; then
+	MISSING_DEPS+=("libsdl1.2-dev (provides sdl-config)")
+	MISSING_DEPS+=("libsdl-ttf2.0-dev")
+	MISSING_DEPS+=("libsdl-image1.2-dev")
+	MISSING_DEPS+=("libgl1-mesa-dev")
+	MISSING_DEPS+=("libglu1-mesa-dev")
+    fi
+fi
+
 if [ ${#MISSING_DEPS[@]} -ne 0 ]; then
     echo "ERROR: Missing required dependencies:"
     for dep in "${MISSING_DEPS[@]}"; do
@@ -76,6 +108,17 @@ fi
 
 echo "All dependencies found."
 echo ""
+
+# If SDL client wasn't explicitly requested, automatically disable it if SDL 1.2
+# isn't available. This keeps the server/X11/replay build working on modern
+# distros that no longer ship SDL 1.2 by default.
+if [ "$SDL_CLIENT_SETTING" = "auto" ] && [ "$HAVE_SDL_CONFIG" != true ]; then
+    echo "Note: SDL 1.2 (sdl-config) not found; building without SDL client."
+    echo "      Install SDL 1.2 dev packages to enable it, or pass --enable-sdl-client."
+    echo ""
+    CONFIGURE_ARGS+=(--disable-sdl-client)
+    SDL_CLIENT_SETTING="off"
+fi
 
 # Check for build tools
 if ! command -v autoconf >/dev/null 2>&1; then
@@ -98,6 +141,12 @@ if ! command -v gcc >/dev/null 2>&1; then
     exit 1
 fi
 
+# Create build directory early (used for stamp files)
+mkdir -p "$BUILD_DIR"
+AUTOTOOLS_STAMP="$SCRIPT_DIR/$BUILD_DIR/.autotools.stamp"
+CONFIGURE_STAMP="$SCRIPT_DIR/$BUILD_DIR/.configure.stamp"
+CONFIGURE_ARGS_FILE="$SCRIPT_DIR/$BUILD_DIR/.configure.args"
+
 # Clean any old in-tree build artifacts that would conflict with out-of-tree builds
 if [ -f "$SCRIPT_DIR/src/client/libxpclient.a" ] || \
    find "$SCRIPT_DIR/src" -name "*.o" -type f 2>/dev/null | head -1 | grep -q .; then
@@ -117,7 +166,22 @@ fi
 
 # Ensure autotools outputs exist/up-to-date (configure/Makefile.in).
 # This repo does not keep generated files in version control.
+AUTORECONF_NEEDED=false
 if [ "$FORCE_AUTORECONF" = true ] || [ ! -f "$SCRIPT_DIR/configure" ]; then
+    AUTORECONF_NEEDED=true
+elif [ ! -f "$AUTOTOOLS_STAMP" ]; then
+    AUTORECONF_NEEDED=true
+elif find "$SCRIPT_DIR" \
+	\( -path "$SCRIPT_DIR/$BUILD_DIR" -o -path "$SCRIPT_DIR/$BUILD_DIR/*" \
+	   -o -path "$SCRIPT_DIR/build-windows" -o -path "$SCRIPT_DIR/build-windows/*" \
+	   -o -path "$SCRIPT_DIR/autom4te.cache" -o -path "$SCRIPT_DIR/autom4te.cache/*" \
+	   -o -path "$SCRIPT_DIR/.git" -o -path "$SCRIPT_DIR/.git/*" \) -prune -o \
+	\( -name "configure.ac" -o -name "Makefile.am" -o \( -name "*.m4" ! -name "aclocal.m4" \) \) \
+	-newer "$AUTOTOOLS_STAMP" -print -quit 2>/dev/null | grep -q .; then
+    AUTORECONF_NEEDED=true
+fi
+
+if [ "$AUTORECONF_NEEDED" = true ]; then
     echo "Generating autotools files (configure/Makefile.in)..."
     if [ -f "$SCRIPT_DIR/configure.ac" ]; then
         # Copy SDL m4 macro if not present (needed for AM_PATH_SDL)
@@ -139,20 +203,40 @@ if [ "$FORCE_AUTORECONF" = true ] || [ ! -f "$SCRIPT_DIR/configure" ]; then
         autoconf
         autoheader
         automake --add-missing --copy --force-missing
+	# Autotools may avoid rewriting files when output is identical.
+	# Touch a stamp so we don't loop on mtime comparisons.
+	touch "$AUTOTOOLS_STAMP"
     else
         echo "ERROR: No configure.ac found"
         exit 1
     fi
 fi
 
-# Create build directory
-mkdir -p "$BUILD_DIR"
 cd "$BUILD_DIR"
 
 # Configure if needed (or explicitly requested)
-if [ "$FORCE_RECONFIGURE" = true ] || [ ! -f Makefile ]; then
+CONFIGURE_NEEDED=false
+if [ "$FORCE_RECONFIGURE" = true ] || [ "$AUTORECONF_NEEDED" = true ] || [ ! -f Makefile ] || [ ! -f config.status ]; then
+    CONFIGURE_NEEDED=true
+elif [ ! -f "$CONFIGURE_STAMP" ]; then
+    CONFIGURE_NEEDED=true
+elif [ "$SCRIPT_DIR/configure" -nt "$CONFIGURE_STAMP" ]; then
+    CONFIGURE_NEEDED=true
+elif find "$SCRIPT_DIR" -name "Makefile.in" -newer "$CONFIGURE_STAMP" 2>/dev/null | head -1 | grep -q .; then
+    CONFIGURE_NEEDED=true
+elif [ -f "$CONFIGURE_ARGS_FILE" ]; then
+    if ! printf '%s\n' "${CONFIGURE_ARGS[@]}" | cmp -s - "$CONFIGURE_ARGS_FILE"; then
+	CONFIGURE_NEEDED=true
+    fi
+else
+    CONFIGURE_NEEDED=true
+fi
+
+if [ "$CONFIGURE_NEEDED" = true ]; then
     echo "Configuring build..."
     "$SCRIPT_DIR/configure" "${CONFIGURE_ARGS[@]}"
+    printf '%s\n' "${CONFIGURE_ARGS[@]}" > "$CONFIGURE_ARGS_FILE"
+    touch "$CONFIGURE_STAMP"
     echo ""
 fi
 

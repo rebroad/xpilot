@@ -159,6 +159,16 @@ typedef struct move {
     const object_t *obj;
 } move_t;
 
+/* Collision answer for Move_point()/Move_shape(). */
+struct collans {
+    int line;
+    int point;
+    clvec_t moved;
+};
+
+/* Move a point-like object along move->start + move->delta. */
+void Move_point(const move_t *move, struct collans *answer);
+
 typedef struct group group_t;
 
 struct group {

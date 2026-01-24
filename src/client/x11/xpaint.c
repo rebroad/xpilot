@@ -355,7 +355,7 @@ void Paint_score_start(void)
 
 void Paint_score_entry(int entry_num, other_t* other, bool is_team)
 {
-    static char		raceStr[8], teamStr[4], lifeStr[8], label[MSG_LEN];
+    static char		raceStr[16], teamStr[4], lifeStr[16], label[MSG_LEN];
     static int		lineSpacing = -1, firstLine;
     int			thisLine, color;
     char		scoreStr[16];
@@ -382,8 +382,8 @@ void Paint_score_entry(int entry_num, other_t* other, bool is_team)
      * Setup the status line
      */
     if (showUserName)
-	sprintf(label, "%s=%s@%s",
-		other->nick_name, other->user_name, other->host_name);
+	snprintf(label, sizeof label, "%s=%s@%s",
+		 other->nick_name, other->user_name, other->host_name);
     else {
 	if (BIT(Setup->mode, TIMING)) {
 	    raceStr[0] = ' ';
@@ -391,38 +391,38 @@ void Paint_score_entry(int entry_num, other_t* other, bool is_team)
 	    if ((other->mychar == ' ' || other->mychar == 'R')
 		&& other->round + other->check > 0) {
 		if (other->round > 99)
-		    sprintf(raceStr, "%3d", other->round);
+		    snprintf(raceStr, sizeof raceStr, "%3d", other->round);
 		else
-		    sprintf(raceStr, "%d.%c",
-			    other->round, other->check + 'a');
+		    snprintf(raceStr, sizeof raceStr, "%d.%c",
+			     other->round, other->check + 'a');
 	    }
 	}
 	if (BIT(Setup->mode, TEAM_PLAY))
 	    teamStr[0] = other->team + '0';
 	else
-	    sprintf(teamStr, "%c", other->alliance);
+	    snprintf(teamStr, sizeof teamStr, "%c", other->alliance);
 
 	if (BIT(Setup->mode, LIMITED_LIVES))
-	    sprintf(lifeStr, " %3d", other->life);
+	    snprintf(lifeStr, sizeof lifeStr, " %3d", other->life);
 
 	if (Using_score_decimals())
-	    sprintf(scoreStr, "%*.*f",
-		    9 - showScoreDecimals, showScoreDecimals,
-		    other->score);
+	    snprintf(scoreStr, sizeof scoreStr, "%*.*f",
+		     9 - showScoreDecimals, showScoreDecimals,
+		     other->score);
 	else {
 	    double score = other->score;
 	    int sc = (int)(score >= 0.0 ? score + 0.5 : score - 0.5);
-	    sprintf(scoreStr, "%6d", sc);
+	    snprintf(scoreStr, sizeof scoreStr, "%6d", sc);
 	}
 
 	if (BIT(Setup->mode, TEAM_PLAY))
-	    sprintf(label, "%c %s  %-18s%s",
-		    other->mychar, scoreStr, other->nick_name, lifeStr);
+	    snprintf(label, sizeof label, "%c %s  %-18s%s",
+		     other->mychar, scoreStr, other->nick_name, lifeStr);
 	else
-	    sprintf(label, "%c %s%s%s%s  %s",
-		    other->mychar, raceStr, teamStr,
-		    scoreStr, lifeStr,
-		    other->nick_name);
+	    snprintf(label, sizeof label, "%c %s%s%s%s  %s",
+		     other->mychar, raceStr, teamStr,
+		     scoreStr, lifeStr,
+		     other->nick_name);
     }
 
     /*
@@ -491,7 +491,7 @@ static void Paint_clock(bool redraw)
 			hour,
 			border = 3;
     struct tm		*m;
-    char		buf[16];
+    char		buf[32];
     static unsigned	width;
     unsigned		height = scoreListFont->ascent + scoreListFont->descent
 				+ 3;
@@ -517,7 +517,7 @@ static void Paint_clock(bool redraw)
     /*warn("drawing clock at %02d:%02d:%02d", hour, minute, second);*/
 
     if (!instruments.clockAMPM)
-	sprintf(buf, "%02d:%02d" /*":%02d"*/, hour, minute /*, second*/);
+	snprintf(buf, sizeof buf, "%02d:%02d" /*":%02d"*/, hour, minute /*, second*/);
     else {
 	char tmpchar = 'A';
 	/* strftime(buf, sizeof(buf), "%l:%M%p", m); */
@@ -525,7 +525,7 @@ static void Paint_clock(bool redraw)
 	    tmpchar = 'P';
 	    hour %= 12;
 	}
-	sprintf(buf, "%2d:%02d%cM", hour, minute, tmpchar);
+	snprintf(buf, sizeof buf, "%2d:%02d%cM", hour, minute, tmpchar);
     }
     width = XTextWidth(scoreListFont, buf, (int)strlen(buf));
     XSetForeground(dpy, scoreListGC, colors[windowColor].pixel);

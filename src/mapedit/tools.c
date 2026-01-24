@@ -747,8 +747,9 @@ int OpenPreferencesPopup(HandlerInfo_t info)
 /* Arguments :                                                             */
 /* Purpose :                                                               */
 /***************************************************************************/
-int OpenMapInfoPopup()
+int OpenMapInfoPopup(HandlerInfo_t info)
 {
+    (void)info;
     Window *temp;
 
     switch (prefssheet) {
@@ -790,8 +791,9 @@ int OpenMapInfoPopup()
 /* Arguments :                                                             */
 /* Purpose :                                                               */
 /***************************************************************************/
-int OpenRobotsPopup()
+int OpenRobotsPopup(HandlerInfo_t info)
 {
+    (void)info;
     XMapWindow(display, robots);
     return 0;
 }
@@ -801,8 +803,9 @@ int OpenRobotsPopup()
 /* Arguments :                                                             */
 /* Purpose :                                                               */
 /***************************************************************************/
-int OpenVisibilityPopup()
+int OpenVisibilityPopup(HandlerInfo_t info)
 {
+    (void)info;
     XMapWindow(display, visibility);
     return 0;
 }
@@ -812,8 +815,9 @@ int OpenVisibilityPopup()
 /* Arguments :                                                             */
 /* Purpose :                                                               */
 /***************************************************************************/
-int OpenCannonsPopup()
+int OpenCannonsPopup(HandlerInfo_t info)
 {
+    (void)info;
     XMapWindow(display, cannons);
     return 0;
 }
@@ -823,8 +827,9 @@ int OpenCannonsPopup()
 /* Arguments :                                                             */
 /* Purpose :                                                               */
 /***************************************************************************/
-int OpenRoundsPopup()
+int OpenRoundsPopup(HandlerInfo_t info)
 {
+    (void)info;
     XMapWindow(display, rounds);
     return 0;
 }
@@ -834,8 +839,9 @@ int OpenRoundsPopup()
 /* Arguments :                                                             */
 /* Purpose :                                                               */
 /***************************************************************************/
-int OpenInitItemsPopup()
+int OpenInitItemsPopup(HandlerInfo_t info)
 {
+    (void)info;
     XMapWindow(display, inititems);
     return 0;
 }
@@ -845,8 +851,9 @@ int OpenInitItemsPopup()
 /* Arguments :                                                             */
 /* Purpose :                                                               */
 /***************************************************************************/
-int OpenMaxItemsPopup()
+int OpenMaxItemsPopup(HandlerInfo_t info)
 {
+    (void)info;
     XMapWindow(display, maxitems);
     return 0;
 }
@@ -856,8 +863,9 @@ int OpenMaxItemsPopup()
 /* Arguments :                                                             */
 /* Purpose :                                                               */
 /***************************************************************************/
-int OpenProbsPopup()
+int OpenProbsPopup(HandlerInfo_t info)
 {
+    (void)info;
     XMapWindow(display, probs);
     return 0;
 }
@@ -867,8 +875,9 @@ int OpenProbsPopup()
 /* Arguments :                                                             */
 /* Purpose :                                                               */
 /***************************************************************************/
-int OpenScoringPopup()
+int OpenScoringPopup(HandlerInfo_t info)
 {
+    (void)info;
     XMapWindow(display, scoring);
     return 0;
 }

@@ -187,9 +187,8 @@ int SaveMap(char *file)
 	case POSFLOAT:
 	case COORD:
 
-	    if (strlen(prefs[n].charvar) != (int) NULL)
-		fprintf(ofile, "%s : %s\n", prefs[n].name,
-			prefs[n].charvar);
+	    if (prefs[n].charvar != NULL && prefs[n].charvar[0] != '\0')
+		fprintf(ofile, "%s : %s\n", prefs[n].name, prefs[n].charvar);
 	    break;
 
 	case MAPDATA:
@@ -772,10 +771,19 @@ int ParseLine(FILE * ifile)
 /*    value                                                                */
 /* Purpose :                                                               */
 /***************************************************************************/
-int AddOption(char *name, char *value)
+int AddOption(const char *name_in, const char *value)
 {
     int option, i;
     char *tmp;
+    char *name;
+    int rc = 1;
+
+    if (name_in == NULL || value == NULL)
+	return 1;
+
+    name = strdup(name_in);
+    if (name == NULL)
+	return 1;
 
     for (i = 0; i < strlen(name); i++) {
 	if (isupper(name[i]))
@@ -799,32 +807,38 @@ int AddOption(char *name, char *value)
 	    free(map.comments);
 	    map.comments = tmp;
 	}
+	free(name);
 	return 0;
     }
 
     switch (prefs[option].type) {
 
     case MAPDATA:
-	return (LoadMapData(value));
+	rc = LoadMapData(value);
+	break;
 
     case MAPWIDTH:
 	map.width = atoi(value);
 	strncpy(map.width_str, value, 3);
-	return 0;
+	rc = 0;
+	break;
 
     case MAPHEIGHT:
 	map.height = atoi(value);
 	strncpy(map.height_str, value, 3);
-	return 0;
+	rc = 0;
+	break;
 
     case STRING:
     case COORD:
 	strncpy(prefs[option].charvar, value, prefs[option].length);
-	return 0;
+	rc = 0;
+	break;
 
     case YESNO:
 	(*(prefs[option].intvar)) = YesNo(value) + 1;
-	return 0;
+	rc = 0;
+	break;
 
     case INT:
     case POSINT:
@@ -832,9 +846,11 @@ int AddOption(char *name, char *value)
     case POSFLOAT:
 	strcpy(prefs[option].charvar, StrToNum(value, prefs[option].length,
 					       prefs[option].type));
-	return 0;
+	rc = 0;
+	break;
     }
-    return 1;
+    free(name);
+    return rc;
 }
 
 /***************************************************************************/
@@ -843,7 +859,7 @@ int AddOption(char *name, char *value)
 /*   val                                                                   */
 /* Purpose :                                                               */
 /***************************************************************************/
-int YesNo(char *val)
+int YesNo(const char *val)
 {
     if ((tolower(val[0]) == 'y') || (tolower(val[0]) == 't'))
 	return 1;
@@ -858,7 +874,7 @@ int YesNo(char *val)
 /*   type                                                                  */
 /* Purpose :                                                               */
 /***************************************************************************/
-char *StrToNum(char *string, int len, int type)
+char *StrToNum(const char *string, int len, int type)
 {
     char *returnval;
 
@@ -897,7 +913,7 @@ char *StrToNum(char *string, int len, int type)
 /*   value                                                                 */
 /* Purpose :                                                               */
 /***************************************************************************/
-int LoadMapData(char *value)
+int LoadMapData(const char *value)
 {
     int x = 0, y = 0;
 

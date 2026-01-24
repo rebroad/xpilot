@@ -693,9 +693,9 @@ static void Gui_paint_ship_name(int x, int y, other_t *other)
 
     if (instruments.showLivesByShip
 	&& BIT(Setup->mode, LIMITED_LIVES)) {
-	char keff[4] = "";
+	char keff[16] = "";
 
-	sprintf(keff, "%03d", other->life);
+	snprintf(keff, sizeof keff, "%03d", other->life);
 	rd.drawString(dpy, drawPixmap, gameGC,
 		      WINSCALE(X(x) + SHIP_SZ),
 		      WINSCALE(Y(y) - SHIP_SZ) + gameFont->ascent,
