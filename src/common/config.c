@@ -25,24 +25,199 @@
 
 #include "xpcommon.h"
 
+#ifndef _WINDOWS
+#include <limits.h>
+#include <unistd.h>
+#endif
+
+static int Conf_dir_exists(const char *path)
+{
+    return (path != NULL && *path != '\0' && access(path, R_OK | X_OK) == 0);
+}
+
+static int Conf_file_exists(const char *path)
+{
+    return (path != NULL && *path != '\0' && access(path, R_OK) == 0);
+}
+
+static void Conf_normalize_dir(char *dst, size_t dstsz, const char *in)
+{
+    size_t n;
+
+    if (dstsz == 0)
+	return;
+    dst[0] = '\0';
+    if (in == NULL || *in == '\0')
+	return;
+
+    strlcpy(dst, in, dstsz);
+    n = strlen(dst);
+    if (n > 0 && dst[n - 1] != '/')
+	strlcat(dst, "/", dstsz);
+}
+
+static int Conf_base_has_textures(const char *base)
+{
+    char p[PATH_MAX];
+    int n;
+
+    if (base == NULL)
+	return 0;
+
+    /* Require "base" textures to exist, not just a directory. */
+    n = snprintf(p, sizeof p, "%stextures/", base);
+    if (n < 0 || (size_t)n >= sizeof p)
+	return 0;
+    if (!Conf_dir_exists(p))
+	return 0;
+
+    n = snprintf(p, sizeof p, "%stextures/clouds.ppm", base);
+    if (n < 0 || (size_t)n >= sizeof p || !Conf_file_exists(p))
+	return 0;
+    n = snprintf(p, sizeof p, "%stextures/base_down.ppm", base);
+    if (n < 0 || (size_t)n >= sizeof p || !Conf_file_exists(p))
+	return 0;
+    n = snprintf(p, sizeof p, "%stextures/allitems.ppm", base);
+    if (n < 0 || (size_t)n >= sizeof p || !Conf_file_exists(p))
+	return 0;
+    n = snprintf(p, sizeof p, "%stextures/bullet.ppm", base);
+    if (n < 0 || (size_t)n >= sizeof p || !Conf_file_exists(p))
+	return 0;
+
+    return 1;
+}
+
+static void Conf_try_set_datadir(char *out, size_t outsz, const char *candidate)
+{
+    char tmp[PATH_MAX];
+
+    Conf_normalize_dir(tmp, sizeof tmp, candidate);
+    if (tmp[0] == '\0')
+	return;
+    if (Conf_base_has_textures(tmp))
+	strlcpy(out, tmp, outsz);
+}
+
+static void Conf_try_set_datadir_suffix(char *out, size_t outsz,
+					const char *base, const char *suffix)
+{
+    char tmp[PATH_MAX];
+    int n;
+
+    if (base == NULL || suffix == NULL)
+	return;
+    n = snprintf(tmp, sizeof tmp, "%s/%s", base, suffix);
+    if (n < 0 || (size_t)n >= sizeof tmp)
+	return;
+    Conf_try_set_datadir(out, outsz, tmp);
+}
+
+#ifndef _WINDOWS
+static void Conf_try_set_datadir_from_exe(char *out, size_t outsz)
+{
+    char exe[PATH_MAX];
+    ssize_t n;
+    int depth;
+
+    if (out[0] != '\0')
+	return;
+
+    n = readlink("/proc/self/exe", exe, sizeof exe - 1);
+    if (n <= 0 || (size_t)n >= sizeof exe)
+	return;
+    exe[n] = '\0';
+
+    /* Walk up a few parents looking for repo/installed layouts. */
+    for (depth = 0; depth < 8 && out[0] == '\0'; depth++) {
+	char *slash = strrchr(exe, '/');
+	if (slash == NULL)
+	    break;
+	*slash = '\0';
+
+	/*
+	 * When running from the build tree, the binary often lives under a
+	 * path like:
+	 *   <root>/build-<platform>/src/...
+	 * Prefer the source tree's <root>/lib over <root>/build-<platform>/lib.
+	 */
+	Conf_try_set_datadir_suffix(out, outsz, exe, "../lib");
+	Conf_try_set_datadir_suffix(out, outsz, exe, "../share/xpilot-ng");
+
+	/* source tree layout: <root>/lib/textures */
+	Conf_try_set_datadir_suffix(out, outsz, exe, "lib");
+	/* staged install layout: <root>/share/xpilot-ng/textures */
+	Conf_try_set_datadir_suffix(out, outsz, exe, "share/xpilot-ng");
+    }
+}
+#endif
+
+static const char *Conf_compute_datadir(void)
+{
+    static char datadir[PATH_MAX];
+    static int inited = 0;
+
+    if (inited)
+	return datadir;
+    inited = 1;
+
+    datadir[0] = '\0';
+
+    /* Explicit override. */
+    Conf_try_set_datadir(datadir, sizeof datadir, getenv("XPILOTNG_DATADIR"));
+    Conf_try_set_datadir(datadir, sizeof datadir, getenv("XPILOT_DATADIR"));
+
+    /* Compiled-in default. */
+    if (datadir[0] == '\0')
+	Conf_try_set_datadir(datadir, sizeof datadir, CONF_DATADIR);
+
+    /* Common install locations. */
+    if (datadir[0] == '\0')
+	Conf_try_set_datadir(datadir, sizeof datadir, "/usr/local/share/xpilot-ng/");
+    if (datadir[0] == '\0')
+	Conf_try_set_datadir(datadir, sizeof datadir, "/usr/share/xpilot-ng/");
+
+#ifndef _WINDOWS
+    Conf_try_set_datadir_from_exe(datadir, sizeof datadir);
+#endif
+
+    /* Last resort: keep compiled-in value even if missing. */
+    if (datadir[0] == '\0')
+	Conf_normalize_dir(datadir, sizeof datadir, CONF_DATADIR);
+
+    return datadir;
+}
+
 char *Conf_datadir(void)
 {
-    static char conf[] = CONF_DATADIR;
+    static char conf[PATH_MAX];
+    static int inited = 0;
 
+    if (!inited) {
+	inited = 1;
+	strlcpy(conf, Conf_compute_datadir(), sizeof conf);
+    }
     return conf;
 }
 
 char *Conf_defaults_file_name(void)
 {
-    static char conf[] = CONF_DEFAULTS_FILE_NAME;
-
+    static char conf[PATH_MAX];
+    static int inited = 0;
+    if (!inited) {
+	inited = 1;
+	snprintf(conf, sizeof conf, "%sdefaults.txt", Conf_datadir());
+    }
     return conf;
 }
 
 char *Conf_password_file_name(void)
 {
-    static char conf[] = CONF_PASSWORD_FILE_NAME;
-
+    static char conf[PATH_MAX];
+    static int inited = 0;
+    if (!inited) {
+	inited = 1;
+	snprintf(conf, sizeof conf, "%spassword.txt", Conf_datadir());
+    }
     return conf;
 }
 
@@ -57,15 +232,23 @@ char *Conf_player_passwords_file_name(void)
 
 char *Conf_mapdir(void)
 {
-    static char conf[] = CONF_MAPDIR;
-
+    static char conf[PATH_MAX];
+    static int inited = 0;
+    if (!inited) {
+	inited = 1;
+	snprintf(conf, sizeof conf, "%smaps/", Conf_datadir());
+    }
     return conf;
 }
 
 char *Conf_fontdir(void)
 {
-    static char conf[] = CONF_FONTDIR;
-
+    static char conf[PATH_MAX];
+    static int inited = 0;
+    if (!inited) {
+	inited = 1;
+	snprintf(conf, sizeof conf, "%sfonts/", Conf_datadir());
+    }
     return conf;
 }
 
@@ -105,15 +288,23 @@ char *Conf_logfile(void)
 
 char *Conf_ship_file(void)
 {
-    static char conf[] = CONF_SHIP_FILE;
-
+    static char conf[PATH_MAX];
+    static int inited = 0;
+    if (!inited) {
+	inited = 1;
+	snprintf(conf, sizeof conf, "%sshipshapes.txt", Conf_datadir());
+    }
     return conf;
 }
 
 char *Conf_texturedir(void)
 {
-    static char conf[] = CONF_TEXTUREDIR;
-
+    static char conf[PATH_MAX];
+    static int inited = 0;
+    if (!inited) {
+	inited = 1;
+	snprintf(conf, sizeof conf, "%stextures/", Conf_datadir());
+    }
     return conf;
 }
 
@@ -126,8 +317,12 @@ char *Conf_localguru(void)
 
 char *Conf_robotfile(void)
 {
-    static char conf[] = CONF_ROBOTFILE;
-
+    static char conf[PATH_MAX];
+    static int inited = 0;
+    if (!inited) {
+	inited = 1;
+	snprintf(conf, sizeof conf, "%srobots.txt", Conf_datadir());
+    }
     return conf;
 }
 
@@ -147,15 +342,23 @@ char *Conf_zcat_format(void)
 
 char *Conf_sounddir(void)
 {
-    static char conf[] = CONF_SOUNDDIR;
-
+    static char conf[PATH_MAX];
+    static int inited = 0;
+    if (!inited) {
+	inited = 1;
+	snprintf(conf, sizeof conf, "%ssound/", Conf_datadir());
+    }
     return conf;
 }
 
 char *Conf_soundfile(void)
 {
-    static char conf[] = CONF_SOUNDFILE;
-
+    static char conf[PATH_MAX];
+    static int inited = 0;
+    if (!inited) {
+	inited = 1;
+	snprintf(conf, sizeof conf, "%ssound/sounds.txt", Conf_datadir());
+    }
     return conf;
 }
 

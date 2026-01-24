@@ -246,6 +246,8 @@ static XFontStruct* Set_font(Display* display, GC gc,
 
 static void X11_status_cb(const char *msg)
 {
+    Window w;
+
     if (dpy == NULL || topWindow == 0 || msg == NULL)
 	return;
 
@@ -253,8 +255,9 @@ static void X11_status_cb(const char *msg)
     XSetIconName(dpy, topWindow, msg);
 
     /* Minimal in-window feedback during blocking operations. */
-    XClearWindow(dpy, topWindow);
-    XDrawString(dpy, topWindow, DefaultGC(dpy, DefaultScreen(dpy)),
+    w = (drawWindow != 0) ? drawWindow : topWindow;
+    XClearWindow(dpy, w);
+    XDrawString(dpy, w, DefaultGC(dpy, DefaultScreen(dpy)),
 		10, 20, msg, (int)strlen(msg));
     XFlush(dpy);
 }

@@ -159,6 +159,11 @@ static bool Set_team(xp_option_t *opt, int value)
 static bool Set_texturePath(xp_option_t *opt, const char *value)
 {
     UNUSED_PARAM(opt);
+    if (value == NULL || *value == '\0')
+	value = Conf_texturedir();
+    /* If the configured default doesn't exist, fall back. */
+    if (access(value, R_OK | X_OK) != 0)
+	value = Conf_texturedir();
     XFREE(texturePath);
     texturePath = xp_safe_strdup(value);
     if (realTexturePath == NULL) 
