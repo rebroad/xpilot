@@ -48,6 +48,7 @@ static void Mapdata_redirect_cache_path(char *path, size_t pathsz);
 static void Url_to_string(const URL *url, char *buf, size_t bufsz);
 static int Mapdata_download_external(const char *urlstr, const char *filePath);
 static void Mapdata_home_datadir(char *path, size_t pathsz);
+static void Mapdata_home_texturedir(char *path, size_t pathsz);
 static const char *Mapdata_next_path(const char *p, char *out, size_t outsz);
 static int Mapdata_join_path(char *out, size_t outsz, const char *dir, const char *leaf);
 static bool Mapdata_find_existing(const char *name, const char *base_noext,
@@ -149,26 +150,33 @@ int Mapdata_setup(const char *urlstr)
 
     /*
      * Download destination policy:
-     * - Prefer Conf_texturedir() (installed or source tree) if writable.
-     * - Otherwise use ~/.xpilot_data.
-     * Avoid build-linux/build-windows as "data roots".
+     * - Always use the per-user cache under ~/.xpilot_data.
+     * - Conf_texturedir() is for reading (system install or source tree),
+     *   not for runtime-downloaded assets.
      */
-    if (access(Conf_texturedir(), R_OK | W_OK | X_OK) == 0) {
-	dir = Conf_texturedir();
-    } else {
-	Mapdata_home_datadir(home_dir, sizeof home_dir);
-	if (home_dir[0] == '\0') {
-	    error("HOME is unset; can't create texture cache");
+    Mapdata_home_datadir(home_dir, sizeof home_dir);
+    if (home_dir[0] == '\0') {
+	error("HOME is unset; can't create texture cache");
+	goto end;
+    }
+    if (access(home_dir, F_OK) != 0) {
+	if (mkdir(home_dir, S_IRWXU | S_IRWXG | S_IRWXO) == -1) {
+	    error("failed to create directory %s", home_dir);
 	    goto end;
 	}
-	if (access(home_dir, F_OK) != 0) {
-	    if (mkdir(home_dir, S_IRWXU | S_IRWXG | S_IRWXO) == -1) {
-		error("failed to create directory %s", home_dir);
-		goto end;
-	    }
-	}
-	dir = home_dir;
     }
+    Mapdata_home_texturedir(buf, sizeof buf);
+    if (buf[0] == '\0') {
+	error("failed to resolve user texture cache dir");
+	goto end;
+    }
+    if (access(buf, F_OK) != 0) {
+	if (mkdir(buf, S_IRWXU | S_IRWXG | S_IRWXO) == -1) {
+	    error("failed to create directory %s", buf);
+	    goto end;
+	}
+    }
+    dir = buf;
 
     if (!Mapdata_join_path(path, sizeof path, dir, name)) {
 	error("map data file path too long");
@@ -292,6 +300,24 @@ static void Mapdata_home_datadir(char *path, size_t pathsz)
 	n = snprintf(path, pathsz, "%s%s", home, DATADIR);
     else
 	n = snprintf(path, pathsz, "%s%c%s", home, PATHNAME_SEP, DATADIR);
+    if (n < 0 || (size_t)n >= pathsz)
+	path[0] = '\0';
+}
+
+static void Mapdata_home_texturedir(char *path, size_t pathsz)
+{
+    char base[1024];
+    int n;
+
+    if (pathsz == 0)
+	return;
+    path[0] = '\0';
+
+    Mapdata_home_datadir(base, sizeof base);
+    if (base[0] == '\0')
+	return;
+
+    n = snprintf(path, pathsz, "%s%ctextures", base, PATHNAME_SEP);
     if (n < 0 || (size_t)n >= pathsz)
 	path[0] = '\0';
 }
