@@ -152,17 +152,20 @@ int Mapdata_setup(const char *urlstr)
     *ptr = '.';
 
     warn("Downloading map data from %s to %s.", urlstr, path);
+    Client_status("Downloading map data...");
 
     if (!Mapdata_download(&url, path)) {
 	warn("downloading map data failed");
 	goto end;
     }
 
+    Client_status("Extracting map data...");
     if (!Mapdata_extract(path)) {
 	warn("extracting map data failed");
 	goto end;
     }
 
+    Client_status("Map data ready.");
     rv = true;
     setup_done = true;
 

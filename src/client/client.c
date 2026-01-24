@@ -27,6 +27,34 @@
 
 client_data_t	clData = { 0, };
 
+static client_status_cb_t g_status_cb = NULL;
+
+void Client_set_status_callback(client_status_cb_t cb)
+{
+    g_status_cb = cb;
+}
+
+void Client_status(const char *fmt, ...)
+{
+    char buf[512];
+    va_list ap;
+    int n;
+
+    if (g_status_cb == NULL || fmt == NULL)
+	return;
+
+    va_start(ap, fmt);
+    n = vsnprintf(buf, sizeof buf, fmt, ap);
+    va_end(ap);
+
+    if (n < 0) {
+	g_status_cb("...");
+	return;
+    }
+    buf[sizeof buf - 1] = '\0';
+    g_status_cb(buf);
+}
+
 char	*geometry;
 xp_args_t xpArgs;
 Connect_param_t connectParam;

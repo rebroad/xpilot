@@ -566,6 +566,7 @@ static bool Process_commands(sockbuf_t *ibuf,
 		    } else {
 			conpar->login_port = port;
 			printf("*** Login allowed.\n");
+			Client_status("Login allowed (joining)...");
 		    }
 		    break;
 
@@ -575,6 +576,7 @@ static bool Process_commands(sockbuf_t *ibuf,
 		    else {
 			printf("... queued at position %2d\n", qpos);
 			IFWINDOWS(Progress("Queued at position %2d\n", qpos));
+			Client_status("Queued at position %d", qpos);
 		    }
 		    /*
 		     * Acknowledge each 10 seconds that we are still
@@ -816,6 +818,7 @@ int Contact_servers(int count, char **servers,
 	    do {
 		printf("Contacting server %s.\n", servers[i]);
 		IFWINDOWS( Progress("Contacting server %s", servers[i]) );
+		Client_status("Contacting %s...", servers[i]);
 		Sockbuf_clear(&sbuf);
 		Packet_printf(&sbuf, "%u%s%hu%c",
 			      compat_mode ? COMPATIBILITY_MAGIC : MAGIC,
@@ -836,6 +839,7 @@ int Contact_servers(int count, char **servers,
 		if (retries) {
 		    printf("Retrying %s...\n", servers[i]);
 		    IFWINDOWS( Progress("Retrying %s...", servers[i]) );
+			Client_status("Retrying %s...", servers[i]);
 		}
 		ret = Get_contact_message(&sbuf, servers[i], conpar);
 		if (ret == 2 && !compat_mode) {
@@ -848,6 +852,7 @@ int Contact_servers(int count, char **servers,
 		if (ret == 1) {
 		    contacted++;
 		    IFWINDOWS( Progress("Contacted %s", servers[i]) );
+			Client_status("Contacted %s", servers[i]);
 		    connected = Connect_to_server(auto_connect, list_servers,
 						  auto_shutdown,
 						  shutdown_reason,

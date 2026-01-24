@@ -848,6 +848,14 @@ extern void xpilotShutdown(void);
  */
 extern int Mapdata_setup(const char *);
 
+/*
+ * status (UI progress reporting)
+ */
+typedef void (*client_status_cb_t)(const char *msg);
+extern void Client_set_status_callback(client_status_cb_t cb);
+extern void Client_status(const char *fmt, ...)
+    __attribute__((format(printf, 1, 2)));
+
 
 /*
  * metaclient.c
