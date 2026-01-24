@@ -32,6 +32,10 @@ autom4te.cache/
 *.cache
 configure
 aclocal.m4
+INSTALL
+config.h.in
+config.h.in~
+config/
 
 # Configure backup
 configure.bak
