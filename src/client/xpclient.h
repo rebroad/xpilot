@@ -3,7 +3,7 @@
  *
  * Copyright (C) 1991-2001 by
  *
- *      Bjørn Stabell        <bjoern@xpilot.org>
+ *      BjÃ¸rn Stabell        <bjoern@xpilot.org>
  *      Ken Ronny Schouten   <ken@xpilot.org>
  *      Bert Gijsbers        <bert@xpilot.org>
  *      Dick Balaska         <dick@xpilot.org>
@@ -37,8 +37,8 @@
 #endif
 
 #ifdef _WINDOWS
+# include <direct.h>  /* _mkdir */
 #ifdef _MSC_VER
-# include <direct.h>
 # define snprintf _snprintf
 # define printf Trace
 # define X_OK 0
@@ -47,6 +47,7 @@
 # define W_OK 2
 # define R_OK 4
 # define mkdir(A,B) _mkdir(A)
+void Progress(const char *fmt, ...);
 extern bool threadedDraw; /* default.c */
 #endif
 

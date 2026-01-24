@@ -99,7 +99,7 @@ typedef unsigned int uint32_t;
 typedef int int32_t;
 #endif
 
-#ifdef _WINDOWS
+#if defined(_WINDOWS) && !defined(__MINGW32__) && !defined(__MINGW64__)
 /*
  * Defines gettimeofday
  *
@@ -138,7 +138,7 @@ extern gettimeofday(struct timeval *tv, struct timezone *tz);
 #  define HAVE_GETTIMEOFDAY 1
 
 #  endif /* HAVE_GETTIMEOFDAY */
-#endif /* _WINDOWS */
+#endif /* _WINDOWS && !__MINGW32__ && !__MINGW64__ */
 
 #ifndef HAVE_GETTIMEOFDAY
 #  error "This program needs gettimeofday() to work. Have a nice day."
