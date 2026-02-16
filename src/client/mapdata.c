@@ -35,6 +35,11 @@ typedef struct {
     char *query;
 } URL;
 
+#ifdef _WINDOWS
+#include <urlmon.h>
+#include <objbase.h>
+#endif
+
 static int Mapdata_extract(const char *name);
 static int Mapdata_download(const URL *url, const char *filePath);
 static int Mapdata_download_redirects(const URL *url, const char *filePath, int depth);
@@ -291,6 +296,22 @@ static void Mapdata_home_datadir(char *path, size_t pathsz)
     if (pathsz == 0)
 	return;
     path[0] = '\0';
+
+#ifdef _WINDOWS
+    /*
+     * Prefer Windows user profile locations over HOME.
+     * Under Wine these are usually set (e.g. C:\users\<user>\AppData\Roaming).
+     */
+    {
+	const char *appdata = getenv("APPDATA");
+	const char *userprofile = getenv("USERPROFILE");
+	if (appdata && *appdata)
+	    home = appdata;
+	else if (userprofile && *userprofile)
+	    home = userprofile;
+    }
+#endif
+
     if (home == NULL)
 	return;
 
@@ -783,9 +804,18 @@ static void Url_to_string(const URL *url, char *buf, size_t bufsz)
 static int Mapdata_download_external(const char *urlstr, const char *filePath)
 {
 #ifdef _WINDOWS
-    UNUSED_PARAM(urlstr);
-    UNUSED_PARAM(filePath);
-    return false;
+    HRESULT hr;
+    HRESULT init_hr;
+
+    if (urlstr == NULL || *urlstr == '\0' || filePath == NULL || *filePath == '\0')
+	return false;
+
+    Client_status("Downloading map data (Windows HTTPS)...");
+    init_hr = CoInitializeEx(NULL, COINIT_APARTMENTTHREADED);
+    hr = URLDownloadToFileA(NULL, urlstr, filePath, 0, NULL);
+    if (SUCCEEDED(init_hr))
+	CoUninitialize();
+    return (hr == S_OK);
 #else
     pid_t pid;
     int status;
