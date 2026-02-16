@@ -111,7 +111,18 @@ wine_run_latest_installed_client() {
     # Override by setting XPILOT_WINDOWED=0.
     local install_dir
     install_dir="$(dirname "$exe_path")"
-    (cd "$install_dir" && XPILOT_WINDOWED="${XPILOT_WINDOWED:-1}" wine "$exe_path")
+    local run_log="${XPILOT_WINE_RUN_LOG:-/tmp/xpilot-wine-run.manual.$(date +%Y%m%d-%H%M%S).log}"
+    local debug="${XPILOT_WINE_RUN_WINEDEBUG:-${WINEDEBUG:-}}"
+    if [ -n "$debug" ]; then
+        echo "WINEDEBUG: $debug"
+        echo "Log: $run_log"
+        (cd "$install_dir" && XPILOT_WINDOWED="${XPILOT_WINDOWED:-1}" WINEDEBUG="$debug" wine "$exe_path" >"$run_log" 2>&1)
+    else
+        echo "Log: $run_log"
+        (cd "$install_dir" && XPILOT_WINDOWED="${XPILOT_WINDOWED:-1}" wine "$exe_path" >"$run_log" 2>&1)
+    fi
+    echo ""
+    echo "Wine output saved to: $run_log"
 }
 
 if [ "$WINE_RUN" = true ]; then
@@ -402,12 +413,17 @@ wine_test_msi() {
 
             echo "Launching under Wine (best effort; capturing output)..."
             set +e
-            if command -v timeout >/dev/null 2>&1; then
-                # The Windows SDL client defaults to fullscreen; under Wine this can fail when it tries to
-                # change display settings. Force windowed mode for the smoke test.
-                (cd "$install_dir" && XPILOT_WINDOWED=1 timeout 10s wine "$exe_path" >"$tmp_run_log" 2>&1)
+            # By default, don't time-limit the client when running --wine-test:
+            # the point is to let the user interact with the GUI. If you want
+            # the old behavior, set XPILOT_WINE_TEST_CLIENT_TIMEOUT (seconds).
+            local client_timeout="${XPILOT_WINE_TEST_CLIENT_TIMEOUT:-}"
+            if [ -n "$client_timeout" ] && command -v timeout >/dev/null 2>&1; then
+                # Force windowed mode for Wine to avoid fullscreen display-change issues.
+                (cd "$install_dir" && XPILOT_WINDOWED=1 timeout "${client_timeout}s" wine "$exe_path" >"$tmp_run_log" 2>&1)
             else
-                (cd "$install_dir" && XPILOT_WINDOWED=1 wine "$exe_path" >"$tmp_run_log" 2>&1 &)
+                # Foreground by default so we actually capture crash output in $tmp_run_log.
+                echo "Wine client running in foreground. Close it when done."
+                (cd "$install_dir" && XPILOT_WINDOWED=1 wine "$exe_path" >"$tmp_run_log" 2>&1)
             fi
             local run_rc=$?
             set -e
